@@ -1,16 +1,25 @@
-%{
-//! Stores all information needed for the preprocessor.
-verilog_preprocessor_context * yy_preproc;
-
-#define EMIT_TOKEN(x) yy_preproc -> token_count ++; \
-					  if(yy_preproc -> emit) {      \
-						  return x;                 \
-					  }
-%}
-
+%option prefix="verilog_"
 %option yylineno
-%option nodefault 
-%option noyywrap 
+%option nodefault
+%option noyywrap
+
+%top {
+#include "verilog_ast.h"
+#include "verilog_yacc.h"
+#include "verilog_preprocessor.h"
+#include "asttree.h"
+
+//! Stores all information needed for the preprocessor.
+#define yy_preproc verilog_preproc
+//verilog_preprocessor_context * yy_preproc;
+//#define EMIT_TOKEN(x) { \
+//		yy_preproc->token_count ++; \
+//		if(yy_preproc -> emit) { \
+//			return x; \
+//		} \
+//	}
+#define EMIT_TOKEN(x) return x;
+}
 
 /* Pre-processor definitions */
 CD_DEFAULT_NETTYPE     "`default_nettype"
@@ -316,43 +325,43 @@ TERNARY             "?"
 
 {CD_DEFAULT_NETTYPE}     {BEGIN(in_default_nettype);}
 <in_default_nettype>{TRIAND}  {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_TRIAND );
     }
 <in_default_nettype>{TRIOR}   {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_TRIOR  );
     }
 <in_default_nettype>{TRIREG}     {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_TRIREG );
     }
 <in_default_nettype>{TRI0}     {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_TRI    );
     }
 <in_default_nettype>{TRI}     {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_TRI    );
     }
 <in_default_nettype>{WIRE}    {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_WIRE   );
     }
 <in_default_nettype>{WAND}    {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_WAND   );
     }
 <in_default_nettype>{WOR}     {
-    BEGIN(INITIAL); 
-    verilog_preproc_default_net(yy_preproc -> token_count, 
+    BEGIN(INITIAL);
+    verilog_preproc_default_net(yy_preproc -> token_count,
         yylineno, NET_TYPE_WOR    );
     }
 
@@ -417,10 +426,10 @@ TERNARY             "?"
 <in_include>{STRING}     {
     YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
 
-    verilog_include_directive * id = 
+    verilog_include_directive * id =
         verilog_preprocessor_include(yytext,yylineno);
 
-    // Now, we need to look for the file, open it as a buffer, and then 
+    // Now, we need to look for the file, open it as a buffer, and then
     // switch to it.
 
     if(id -> file_found == AST_TRUE)
@@ -428,11 +437,11 @@ TERNARY             "?"
         FILE * file = fopen(id -> filename, "r");
 
         YY_BUFFER_STATE n   = yy_create_buffer(file, YY_BUF_SIZE);
-        
-        cur -> yy_bs_lineno = yylineno;
-        yy_switch_to_buffer(cur);
-        yypush_buffer_state(n);
-        BEGIN(INITIAL);
+
+	cur -> yy_bs_lineno = yylineno;
+	yy_switch_to_buffer(cur);
+	yypush_buffer_state(n);
+	BEGIN(INITIAL);
     }
     else
     {
@@ -440,7 +449,7 @@ TERNARY             "?"
             id -> filename, id-> lineNumber);
         printf("\tExpect stuff to break now.\n");
     }
-    
+
     BEGIN(INITIAL);
 }
 
@@ -516,16 +525,16 @@ TERNARY             "?"
     ast_hashtable_result r = ast_hashtable_get(yy_preproc -> macrodefines,
                                                macroName,
                                                (void**)&macro);
-    
+
     if(r == HASH_SUCCESS)
     {
         // Switch buffers to expand the macro.
 
-        YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
-        YY_BUFFER_STATE n   = yy_scan_string(macro -> macro_value);
-        
-        yy_switch_to_buffer(cur);
-        yypush_buffer_state(n);
+	YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
+	YY_BUFFER_STATE n   = yy_scan_string(macro -> macro_value);
+
+	yy_switch_to_buffer(cur);
+	yypush_buffer_state(n);
     }
     else
     {
@@ -591,140 +600,140 @@ TERNARY             "?"
 {NUM_REAL}             {yylval.string=yytext;EMIT_TOKEN(NUM_REAL);}
 {NUM_UNSIGNED}         {yylval.string=yytext;EMIT_TOKEN(UNSIGNED_NUMBER);}
 
-{ALWAYS}               {EMIT_TOKEN(KW_ALWAYS);} 
-{AND}                  {EMIT_TOKEN(KW_AND);} 
-{ASSIGN}               {EMIT_TOKEN(KW_ASSIGN);} 
-{AUTOMATIC}            {EMIT_TOKEN(KW_AUTOMATIC);} 
-{BEGIN}                {EMIT_TOKEN(KW_BEGIN);} 
-{BUF}                  {EMIT_TOKEN(KW_BUF);} 
-{BUFIF0}               {EMIT_TOKEN(KW_BUFIF0);} 
-{BUFIF1}               {EMIT_TOKEN(KW_BUFIF1);} 
-{CASE}                 {EMIT_TOKEN(KW_CASE);} 
-{CASEX}                {EMIT_TOKEN(KW_CASEX);} 
-{CASEZ}                {EMIT_TOKEN(KW_CASEZ);} 
-{CELL}                 {EMIT_TOKEN(KW_CELL);} 
-{CMOS}                 {EMIT_TOKEN(KW_CMOS);} 
-{CONFIG}               {EMIT_TOKEN(KW_CONFIG);} 
-{DEASSIGN}             {EMIT_TOKEN(KW_DEASSIGN);} 
-{DEFAULT}              {EMIT_TOKEN(KW_DEFAULT);} 
-{DEFPARAM}             {EMIT_TOKEN(KW_DEFPARAM);} 
-{DESIGN}               {EMIT_TOKEN(KW_DESIGN);} 
-{DISABLE}              {EMIT_TOKEN(KW_DISABLE);} 
-{EDGE}                 {EMIT_TOKEN(KW_EDGE);} 
-{ELSE}                 {EMIT_TOKEN(KW_ELSE);} 
-{END}                  {EMIT_TOKEN(KW_END);} 
-{ENDCASE}              {EMIT_TOKEN(KW_ENDCASE);} 
-{ENDCONFIG}            {EMIT_TOKEN(KW_ENDCONFIG);} 
-{ENDFUNCTION}          {EMIT_TOKEN(KW_ENDFUNCTION);} 
-{ENDGENERATE}          {EMIT_TOKEN(KW_ENDGENERATE);} 
-{ENDMODULE}            {EMIT_TOKEN(KW_ENDMODULE);} 
-{ENDPRIMITIVE}         {EMIT_TOKEN(KW_ENDPRIMITIVE);} 
-{ENDSPECIFY}           {EMIT_TOKEN(KW_ENDSPECIFY);} 
-{ENDTABLE}             {EMIT_TOKEN(KW_ENDTABLE);} 
-{ENDTASK}              {EMIT_TOKEN(KW_ENDTASK);} 
-{EVENT}                {EMIT_TOKEN(KW_EVENT);} 
-{FOR}                  {EMIT_TOKEN(KW_FOR);} 
-{FORCE}                {EMIT_TOKEN(KW_FORCE);} 
-{FOREVER}              {EMIT_TOKEN(KW_FOREVER);} 
-{FORK}                 {EMIT_TOKEN(KW_FORK);} 
-{FUNCTION}             {EMIT_TOKEN(KW_FUNCTION);} 
-{GENERATE}             {EMIT_TOKEN(KW_GENERATE);} 
-{GENVAR}               {EMIT_TOKEN(KW_GENVAR);} 
-{HIGHZ0}               {EMIT_TOKEN(KW_HIGHZ0);} 
-{HIGHZ1}               {EMIT_TOKEN(KW_HIGHZ1);} 
-{IF}                   {EMIT_TOKEN(KW_IF);} 
-{IFNONE}               {EMIT_TOKEN(KW_IFNONE);} 
-{INCDIR}               {EMIT_TOKEN(KW_INCDIR);} 
-{INCLUDE}              {EMIT_TOKEN(KW_INCLUDE);} 
-{INITIAL}              {EMIT_TOKEN(KW_INITIAL);} 
-{INOUT}                {EMIT_TOKEN(KW_INOUT);} 
-{INPUT}                {EMIT_TOKEN(KW_INPUT);} 
-{INSTANCE}             {EMIT_TOKEN(KW_INSTANCE);} 
-{INTEGER}              {EMIT_TOKEN(KW_INTEGER);} 
-{JOIN}                 {EMIT_TOKEN(KW_JOIN);} 
-{LARGE}                {EMIT_TOKEN(KW_LARGE);} 
-{LIBLIST}              {EMIT_TOKEN(KW_LIBLIST);} 
-{LIBRARY}              {EMIT_TOKEN(KW_LIBRARY);} 
-{LOCALPARAM}           {EMIT_TOKEN(KW_LOCALPARAM);} 
-{MACROMODULE}          {EMIT_TOKEN(KW_MACROMODULE);} 
-{MEDIUM}               {EMIT_TOKEN(KW_MEDIUM);} 
-{MODULE}               {EMIT_TOKEN(KW_MODULE);} 
-{NAND}                 {EMIT_TOKEN(KW_NAND);} 
-{NEGEDGE}              {EMIT_TOKEN(KW_NEGEDGE);} 
-{NMOS}                 {EMIT_TOKEN(KW_NMOS);} 
-{NOR}                  {EMIT_TOKEN(KW_NOR);} 
-{NOSHOWCANCELLED}      {EMIT_TOKEN(KW_NOSHOWCANCELLED);} 
-{NOT}                  {EMIT_TOKEN(KW_NOT);} 
-{NOTIF0}               {EMIT_TOKEN(KW_NOTIF0);} 
-{NOTIF1}               {EMIT_TOKEN(KW_NOTIF1);} 
-{OR}                   {EMIT_TOKEN(KW_OR);} 
-{OUTPUT}               {EMIT_TOKEN(KW_OUTPUT);} 
-{PARAMETER}            {EMIT_TOKEN(KW_PARAMETER);} 
-{PMOS}                 {EMIT_TOKEN(KW_PMOS);} 
-{POSEDGE}              {EMIT_TOKEN(KW_POSEDGE);} 
-{PRIMITIVE}            {EMIT_TOKEN(KW_PRIMITIVE);} 
-{PULL0}                {EMIT_TOKEN(KW_PULL0);} 
-{PULL1}                {EMIT_TOKEN(KW_PULL1);} 
-{PULLDOWN}             {EMIT_TOKEN(KW_PULLDOWN);} 
-{PULLUP}               {EMIT_TOKEN(KW_PULLUP);} 
-{PULSESTYLE_ONEVENT}   {EMIT_TOKEN(KW_PULSESTYLE_ONEVENT);} 
-{PULSESTYLE_ONDETECT}  {EMIT_TOKEN(KW_PULSESTYLE_ONDETECT);} 
-{RCMOS}                {EMIT_TOKEN(KW_RCMOS);} 
-{REAL}                 {EMIT_TOKEN(KW_REAL);} 
-{REALTIME}             {EMIT_TOKEN(KW_REALTIME);} 
-{REG}                  {EMIT_TOKEN(KW_REG);} 
-{RELEASE}              {EMIT_TOKEN(KW_RELEASE);} 
-{REPEAT}               {EMIT_TOKEN(KW_REPEAT);} 
-{RNMOS}                {EMIT_TOKEN(KW_RNMOS);} 
-{RPMOS}                {EMIT_TOKEN(KW_RPMOS);} 
-{RTRAN}                {EMIT_TOKEN(KW_RTRAN);} 
-{RTRANIF0}             {EMIT_TOKEN(KW_RTRANIF0);} 
-{RTRANIF1}             {EMIT_TOKEN(KW_RTRANIF1);} 
-{SCALARED}             {EMIT_TOKEN(KW_SCALARED);} 
-{SHOWCANCELLED}        {EMIT_TOKEN(KW_SHOWCANCELLED);} 
-{SIGNED}               {EMIT_TOKEN(KW_SIGNED);} 
-{SMALL}                {EMIT_TOKEN(KW_SMALL);} 
-{SPECIFY}              {EMIT_TOKEN(KW_SPECIFY);} 
-{SPECPARAM}            {EMIT_TOKEN(KW_SPECPARAM);} 
-{STRONG0}              {EMIT_TOKEN(KW_STRONG0);} 
-{STRONG1}              {EMIT_TOKEN(KW_STRONG1);} 
-{SUPPLY0}              {EMIT_TOKEN(KW_SUPPLY0);} 
-{SUPPLY1}              {EMIT_TOKEN(KW_SUPPLY1);} 
-{TABLE}                {EMIT_TOKEN(KW_TABLE);} 
-{TASK}                 {EMIT_TOKEN(KW_TASK);} 
-{TIME}                 {EMIT_TOKEN(KW_TIME);} 
-{TRAN}                 {EMIT_TOKEN(KW_TRAN);} 
-{TRANIF0}              {EMIT_TOKEN(KW_TRANIF0);} 
-{TRANIF1}              {EMIT_TOKEN(KW_TRANIF1);} 
-{TRI0}                 {EMIT_TOKEN(KW_TRI0);} 
-{TRI1}                 {EMIT_TOKEN(KW_TRI1);} 
-{TRIAND}               {EMIT_TOKEN(KW_TRIAND);} 
-{TRIOR}                {EMIT_TOKEN(KW_TRIOR);} 
-{TRIREG}               {EMIT_TOKEN(KW_TRIREG);} 
-{TRI}                  {EMIT_TOKEN(KW_TRI);} 
-{UNSIGNED}             {EMIT_TOKEN(KW_UNSIGNED);} 
-{USE}                  {EMIT_TOKEN(KW_USE);} 
-{VECTORED}             {EMIT_TOKEN(KW_VECTORED);} 
-{WAIT}                 {EMIT_TOKEN(KW_WAIT);} 
-{WAND}                 {EMIT_TOKEN(KW_WAND);} 
-{WEAK0}                {EMIT_TOKEN(KW_WEAK0);} 
-{WEAK1}                {EMIT_TOKEN(KW_WEAK1);} 
-{WHILE}                {EMIT_TOKEN(KW_WHILE);} 
-{WIRE}                 {EMIT_TOKEN(KW_WIRE);} 
-{WOR}                  {EMIT_TOKEN(KW_WOR);} 
-{XNOR}                 {EMIT_TOKEN(KW_XNOR);} 
-{XOR}                  {EMIT_TOKEN(KW_XOR);} 
+{ALWAYS}               {EMIT_TOKEN(KW_ALWAYS);}
+{AND}                  {EMIT_TOKEN(KW_AND);}
+{ASSIGN}               {EMIT_TOKEN(KW_ASSIGN);}
+{AUTOMATIC}            {EMIT_TOKEN(KW_AUTOMATIC);}
+{BEGIN}                {EMIT_TOKEN(KW_BEGIN);}
+{BUF}                  {EMIT_TOKEN(KW_BUF);}
+{BUFIF0}               {EMIT_TOKEN(KW_BUFIF0);}
+{BUFIF1}               {EMIT_TOKEN(KW_BUFIF1);}
+{CASE}                 {EMIT_TOKEN(KW_CASE);}
+{CASEX}                {EMIT_TOKEN(KW_CASEX);}
+{CASEZ}                {EMIT_TOKEN(KW_CASEZ);}
+{CELL}                 {EMIT_TOKEN(KW_CELL);}
+{CMOS}                 {EMIT_TOKEN(KW_CMOS);}
+{CONFIG}               {EMIT_TOKEN(KW_CONFIG);}
+{DEASSIGN}             {EMIT_TOKEN(KW_DEASSIGN);}
+{DEFAULT}              {EMIT_TOKEN(KW_DEFAULT);}
+{DEFPARAM}             {EMIT_TOKEN(KW_DEFPARAM);}
+{DESIGN}               {EMIT_TOKEN(KW_DESIGN);}
+{DISABLE}              {EMIT_TOKEN(KW_DISABLE);}
+{EDGE}                 {EMIT_TOKEN(KW_EDGE);}
+{ELSE}                 {EMIT_TOKEN(KW_ELSE);}
+{END}                  {EMIT_TOKEN(KW_END);}
+{ENDCASE}              {EMIT_TOKEN(KW_ENDCASE);}
+{ENDCONFIG}            {EMIT_TOKEN(KW_ENDCONFIG);}
+{ENDFUNCTION}          {EMIT_TOKEN(KW_ENDFUNCTION);}
+{ENDGENERATE}          {EMIT_TOKEN(KW_ENDGENERATE);}
+{ENDMODULE}            {EMIT_TOKEN(KW_ENDMODULE);}
+{ENDPRIMITIVE}         {EMIT_TOKEN(KW_ENDPRIMITIVE);}
+{ENDSPECIFY}           {EMIT_TOKEN(KW_ENDSPECIFY);}
+{ENDTABLE}             {EMIT_TOKEN(KW_ENDTABLE);}
+{ENDTASK}              {EMIT_TOKEN(KW_ENDTASK);}
+{EVENT}                {EMIT_TOKEN(KW_EVENT);}
+{FOR}                  {EMIT_TOKEN(KW_FOR);}
+{FORCE}                {EMIT_TOKEN(KW_FORCE);}
+{FOREVER}              {EMIT_TOKEN(KW_FOREVER);}
+{FORK}                 {EMIT_TOKEN(KW_FORK);}
+{FUNCTION}             {EMIT_TOKEN(KW_FUNCTION);}
+{GENERATE}             {EMIT_TOKEN(KW_GENERATE);}
+{GENVAR}               {EMIT_TOKEN(KW_GENVAR);}
+{HIGHZ0}               {EMIT_TOKEN(KW_HIGHZ0);}
+{HIGHZ1}               {EMIT_TOKEN(KW_HIGHZ1);}
+{IF}                   {EMIT_TOKEN(KW_IF);}
+{IFNONE}               {EMIT_TOKEN(KW_IFNONE);}
+{INCDIR}               {EMIT_TOKEN(KW_INCDIR);}
+{INCLUDE}              {EMIT_TOKEN(KW_INCLUDE);}
+{INITIAL}              {EMIT_TOKEN(KW_INITIAL);}
+{INOUT}                {EMIT_TOKEN(KW_INOUT);}
+{INPUT}                {EMIT_TOKEN(KW_INPUT);}
+{INSTANCE}             {EMIT_TOKEN(KW_INSTANCE);}
+{INTEGER}              {EMIT_TOKEN(KW_INTEGER);}
+{JOIN}                 {EMIT_TOKEN(KW_JOIN);}
+{LARGE}                {EMIT_TOKEN(KW_LARGE);}
+{LIBLIST}              {EMIT_TOKEN(KW_LIBLIST);}
+{LIBRARY}              {EMIT_TOKEN(KW_LIBRARY);}
+{LOCALPARAM}           {EMIT_TOKEN(KW_LOCALPARAM);}
+{MACROMODULE}          {EMIT_TOKEN(KW_MACROMODULE);}
+{MEDIUM}               {EMIT_TOKEN(KW_MEDIUM);}
+{MODULE}               {EMIT_TOKEN(KW_MODULE);}
+{NAND}                 {EMIT_TOKEN(KW_NAND);}
+{NEGEDGE}              {EMIT_TOKEN(KW_NEGEDGE);}
+{NMOS}                 {EMIT_TOKEN(KW_NMOS);}
+{NOR}                  {EMIT_TOKEN(KW_NOR);}
+{NOSHOWCANCELLED}      {EMIT_TOKEN(KW_NOSHOWCANCELLED);}
+{NOT}                  {EMIT_TOKEN(KW_NOT);}
+{NOTIF0}               {EMIT_TOKEN(KW_NOTIF0);}
+{NOTIF1}               {EMIT_TOKEN(KW_NOTIF1);}
+{OR}                   {EMIT_TOKEN(KW_OR);}
+{OUTPUT}               {EMIT_TOKEN(KW_OUTPUT);}
+{PARAMETER}            {EMIT_TOKEN(KW_PARAMETER);}
+{PMOS}                 {EMIT_TOKEN(KW_PMOS);}
+{POSEDGE}              {EMIT_TOKEN(KW_POSEDGE);}
+{PRIMITIVE}            {EMIT_TOKEN(KW_PRIMITIVE);}
+{PULL0}                {EMIT_TOKEN(KW_PULL0);}
+{PULL1}                {EMIT_TOKEN(KW_PULL1);}
+{PULLDOWN}             {EMIT_TOKEN(KW_PULLDOWN);}
+{PULLUP}               {EMIT_TOKEN(KW_PULLUP);}
+{PULSESTYLE_ONEVENT}   {EMIT_TOKEN(KW_PULSESTYLE_ONEVENT);}
+{PULSESTYLE_ONDETECT}  {EMIT_TOKEN(KW_PULSESTYLE_ONDETECT);}
+{RCMOS}                {EMIT_TOKEN(KW_RCMOS);}
+{REAL}                 {EMIT_TOKEN(KW_REAL);}
+{REALTIME}             {EMIT_TOKEN(KW_REALTIME);}
+{REG}                  {EMIT_TOKEN(KW_REG);}
+{RELEASE}              {EMIT_TOKEN(KW_RELEASE);}
+{REPEAT}               {EMIT_TOKEN(KW_REPEAT);}
+{RNMOS}                {EMIT_TOKEN(KW_RNMOS);}
+{RPMOS}                {EMIT_TOKEN(KW_RPMOS);}
+{RTRAN}                {EMIT_TOKEN(KW_RTRAN);}
+{RTRANIF0}             {EMIT_TOKEN(KW_RTRANIF0);}
+{RTRANIF1}             {EMIT_TOKEN(KW_RTRANIF1);}
+{SCALARED}             {EMIT_TOKEN(KW_SCALARED);}
+{SHOWCANCELLED}        {EMIT_TOKEN(KW_SHOWCANCELLED);}
+{SIGNED}               {EMIT_TOKEN(KW_SIGNED);}
+{SMALL}                {EMIT_TOKEN(KW_SMALL);}
+{SPECIFY}              {EMIT_TOKEN(KW_SPECIFY);}
+{SPECPARAM}            {EMIT_TOKEN(KW_SPECPARAM);}
+{STRONG0}              {EMIT_TOKEN(KW_STRONG0);}
+{STRONG1}              {EMIT_TOKEN(KW_STRONG1);}
+{SUPPLY0}              {EMIT_TOKEN(KW_SUPPLY0);}
+{SUPPLY1}              {EMIT_TOKEN(KW_SUPPLY1);}
+{TABLE}                {EMIT_TOKEN(KW_TABLE);}
+{TASK}                 {EMIT_TOKEN(KW_TASK);}
+{TIME}                 {EMIT_TOKEN(KW_TIME);}
+{TRAN}                 {EMIT_TOKEN(KW_TRAN);}
+{TRANIF0}              {EMIT_TOKEN(KW_TRANIF0);}
+{TRANIF1}              {EMIT_TOKEN(KW_TRANIF1);}
+{TRI0}                 {EMIT_TOKEN(KW_TRI0);}
+{TRI1}                 {EMIT_TOKEN(KW_TRI1);}
+{TRIAND}               {EMIT_TOKEN(KW_TRIAND);}
+{TRIOR}                {EMIT_TOKEN(KW_TRIOR);}
+{TRIREG}               {EMIT_TOKEN(KW_TRIREG);}
+{TRI}                  {EMIT_TOKEN(KW_TRI);}
+{UNSIGNED}             {EMIT_TOKEN(KW_UNSIGNED);}
+{USE}                  {EMIT_TOKEN(KW_USE);}
+{VECTORED}             {EMIT_TOKEN(KW_VECTORED);}
+{WAIT}                 {EMIT_TOKEN(KW_WAIT);}
+{WAND}                 {EMIT_TOKEN(KW_WAND);}
+{WEAK0}                {EMIT_TOKEN(KW_WEAK0);}
+{WEAK1}                {EMIT_TOKEN(KW_WEAK1);}
+{WHILE}                {EMIT_TOKEN(KW_WHILE);}
+{WIRE}                 {EMIT_TOKEN(KW_WIRE);}
+{WOR}                  {EMIT_TOKEN(KW_WOR);}
+{XNOR}                 {EMIT_TOKEN(KW_XNOR);}
+{XOR}                  {EMIT_TOKEN(KW_XOR);}
 
 {SYSTEM_ID}            {
-    yylval.identifier = ast_new_identifier(yytext,yylineno); 
+    yylval.identifier = ast_new_identifier(yytext,yylineno);
     EMIT_TOKEN(SYSTEM_ID);
 }
 {ESCAPED_ID}           {
-    yylval.identifier = ast_new_identifier(yytext,yylineno); 
+    yylval.identifier = ast_new_identifier(yytext,yylineno);
     EMIT_TOKEN(ESCAPED_ID);
 }
 {SIMPLE_ID}            {
-    yylval.identifier = ast_new_identifier(yytext,yylineno); 
+    yylval.identifier = ast_new_identifier(yytext,yylineno);
     EMIT_TOKEN(SIMPLE_ID);
 }
 

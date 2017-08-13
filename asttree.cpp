@@ -17,25 +17,18 @@ void AstTree::add_library(ast_list *t)
 
 void AstTree::add_source(ast_list *t)
 {
-  for(unsigned int i = 0; i < t->items; i ++)
-{
-        ast_source_item* toadd = (ast_source_item*)ast_list_get(t, i);
-
-        if(toadd -> type == SOURCE_MODULE)
-{
-    ast_list_append(this->yy_verilog_source_tree -> modules, toadd->module);
-}
-else if (toadd -> type == SOURCE_UDP)
-{
-    ast_list_append(this->yy_verilog_source_tree->primitives, toadd->udp);
-}
-else
-{
-    // Do nothing / unknown / unsupported type.
-    printf("line %d of %s - Unknown source item type: %d",
-        __LINE__,
-        __FILE__,
-        toadd -> type);
-}
-}
+	for(unsigned int i = 0; i < t->items; i ++) {
+		ast_source_item* toadd = (ast_source_item*)ast_list_get(t, i);
+		if(toadd->type == SOURCE_MODULE) {
+			ast_list_append(this->yy_verilog_source_tree -> modules, toadd->module);
+		} else if (toadd -> type == SOURCE_UDP) {
+			ast_list_append(this->yy_verilog_source_tree->primitives, toadd->udp);
+		} else {
+			// Do nothing / unknown / unsupported type.
+			printf("line %d of %s - Unknown source item type: %d",
+			__LINE__,
+			__FILE__,
+			toadd -> type);
+		}
+	}
 }

@@ -4,9 +4,7 @@
        and operate on the Verilog Abstract Syntax Tree (AST)
 */
 
-#include <stdarg.h>
-#include <stdlib.h>
-#include <string.h>
+#include <QString>
 
 #include "verilog_ast_common.h"
 
@@ -18,7 +16,7 @@ extern int yylineno;
 //! Forward declare. Defines the core node type for the AST.
 typedef struct ast_node_t ast_node;
 
-/*! 
+/*!
 @brief Typedef to make it easier to change into a proper structure later.
 @note The pointer is already included in the type.
 */
@@ -26,7 +24,7 @@ typedef struct ast_identifier_t * ast_identifier;
 
 //! Placeholder until this is implemented properly.
 typedef struct ast_concatenation_t ast_concatenation;
- 
+
 //! Expression type over a struct
 typedef struct ast_expression_t ast_expression;
 //! Expression type over a struct
@@ -34,7 +32,7 @@ typedef struct ast_function_call_t ast_function_call;
 
 //! An item within a module. Duh.
 typedef struct ast_module_item_t ast_module_item;
-    
+
 //! Stores different Operators.
 typedef enum ast_operator_e{
     OPERATOR_STAR    , //!<
@@ -89,13 +87,6 @@ typedef struct ast_block_item_declaration_t ast_block_item_declaration;
 typedef void * ast_tf_input_declaration;
 typedef struct ast_statement_t ast_statement;
 typedef struct ast_module_declaration_t ast_module_declaration;
-
-//! Stores the values of booleans.
-typedef enum  ast_boolean_e
-{
-    AST_TRUE=1,
-    AST_FALSE=0
-} ast_boolean;
 
 //! Describes a rising or falling edge, or where none is specified.
 typedef enum ast_edge_e{
@@ -225,7 +216,7 @@ struct ast_node_attributes_t
 @param [in] value - The value the attribute should take.
 */
 ast_node_attributes * ast_new_attributes(
-    ast_identifier name, 
+    ast_identifier name,
     ast_expression * value
 );
 
@@ -236,7 +227,7 @@ ast_node_attributes * ast_new_attributes(
                         attribute name,value pairs.
 @param [in]    toadd  - The new attribute to add.
 */
-void ast_append_attribute(ast_node_attributes * parent, 
+void ast_append_attribute(ast_node_attributes * parent,
                           ast_node_attributes * toadd);
 
 /*! @} */
@@ -378,8 +369,8 @@ system fucntion.
 */
 struct ast_function_call_t {
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean         constant;   //!< Constant function call?
-    ast_boolean         system;     //!< System function call?
+    bool         constant;   //!< Constant function call?
+    bool         system;     //!< System function call?
     ast_identifier      function;   //!< Function identifier
     ast_list        *   arguments;  //!< Linked list of arguments.
     ast_node_attributes * attributes;
@@ -397,8 +388,8 @@ no arguments, then it is an empty list, not NULL.
 @param [in] attr - Attributes for vendor specific tool features.
 */
 ast_function_call * ast_new_function_call(ast_identifier  id,
-                                          ast_boolean     constant,
-                                          ast_boolean     system,
+                                          bool     constant,
+                                          bool     system,
                                           ast_node_attributes * attr,
                                           ast_list      * arguments);
 
@@ -434,7 +425,7 @@ typedef enum ast_primary_value_type_e
     PRIMARY_CONCATENATION,
     PRIMARY_FUNCTION_CALL,
     PRIMARY_MINMAX_EXP,
-    PRIMARY_MACRO_USAGE    
+    PRIMARY_MACRO_USAGE
 } ast_primary_value_type;
 
 //! The expression primary can produce several different sub-expressions:
@@ -454,12 +445,12 @@ typedef union ast_primary_value_e
 @details The following AST_PRIMARY_VALUE_TYPE values map to the following
 ast_primary_value_members:
 
-  - PRIMARY_NUMBER          : use value.number       
+  - PRIMARY_NUMBER          : use value.number
   - PRIMARY_IDENTIFIER      : use value.identifier
   - PRIMARY_CONCATENATION   : use value.concatenation
   - PRIMARY_FUNCTION_CALL   : use value.function_call
   - PRIMARY_MINMAX_EXP      : use value.minmax
-  - PRIMARY_MACRO_USAGE     : use value.macro        
+  - PRIMARY_MACRO_USAGE     : use value.macro
 
 */
 typedef struct ast_primary_t
@@ -514,7 +505,7 @@ ast_primary * ast_new_module_path_primary(ast_primary_value_type type);
 @defgroup ast-node-expressions Expressions
 @{
 @ingroup ast-construction
-@brief Super-group for data-structures representing the kinds of 
+@brief Super-group for data-structures representing the kinds of
 expressions that Verilog has.
 */
 
@@ -540,7 +531,7 @@ typedef enum ast_expression_type_e
 //! Returns the string representation of an operator;
 char * ast_operator_tostring(ast_operator op);
 
-/*! 
+/*!
 @brief Storage type for an entire expression / subexpression tree.
 @details Each expression node has left and right children (unless it is a
 leaf) and an operation. The idea being that if the children are primaries,
@@ -561,7 +552,7 @@ struct ast_expression_t
     ast_expression * aux;               //!< Optional auxiliary/predicate.
     ast_primary    * primary;           //!< Valid IFF type == PRIMARY_EXPRESSION.
     ast_operator     operation;         //!< What are we doing?
-    ast_boolean      constant;          //!< True iff constant_expression.
+    bool      constant;          //!< True iff constant_expression.
     ast_string       string;            //!< The string constant. Valid IFF type == STRING_EXPRESSION.
 };
 
@@ -596,7 +587,7 @@ ast_expression * ast_new_binary_expression(ast_expression * left,
                                            ast_expression * right,
                                            ast_operator     operation,
                                            ast_node_attributes * attr,
-                                           ast_boolean      constant);
+                                           bool      constant);
 
 /*!
 @brief Creates a new unary expression with the supplied operation.
@@ -608,7 +599,7 @@ ast_expression * ast_new_binary_expression(ast_expression * left,
 ast_expression * ast_new_unary_expression(ast_primary    * operand,
                                           ast_operator     operation,
                                           ast_node_attributes * attr,
-                                          ast_boolean       constant);
+                                          bool       constant);
 
 /*!
 @brief Creates a new range expression with the supplied operands.
@@ -648,7 +639,7 @@ ast_expression * ast_new_string_expression(ast_string string);
 
 
 /*!
-@brief Creates a new conditional expression node. 
+@brief Creates a new conditional expression node.
 @param [in] condition - Decides which result expression is presented.
 @param [in] if_true - executed if condition == true (!0)
 @param [in] if_false - executed if condition == false (0).
@@ -786,10 +777,10 @@ ast_simple_full_path_declaration * ast_new_simple_full_path_declaration
     ast_list        *   delay_value
 );
 
-/*! 
+/*!
 @brief Describes a single edge sensitive path declaration
 */
-ast_edge_sensitive_parallel_path_declaration * 
+ast_edge_sensitive_parallel_path_declaration *
   ast_new_edge_sensitive_parallel_path_declaration(
     ast_edge            edge,               //!< edge_identifier
     ast_identifier      input_terminal,     //!< specify_input_terminal_descriptor
@@ -799,10 +790,10 @@ ast_edge_sensitive_parallel_path_declaration *
     ast_list        *   delay_value         //!< path_delay_value
 );
 
-/*! 
+/*!
 @brief Describes a parallel edge sensitive path declaration
 */
-ast_edge_sensitive_full_path_declaration * 
+ast_edge_sensitive_full_path_declaration *
   ast_new_edge_sensitive_full_path_declaration(
     ast_edge            edge,               //!< edge_identifier
     ast_list        *   input_terminal,     //!< list_of_path_inputs
@@ -810,7 +801,7 @@ ast_edge_sensitive_full_path_declaration *
     ast_list        *   output_terminal,    //!< list_of_path_outputs
     ast_expression  *   data_source,        //!< data_source_expression
     ast_list        *   delay_value         //!< path_delay_value
-); 
+);
 
 
 /*! @} */
@@ -829,7 +820,7 @@ typedef struct ast_task_enable_statement_t{
     ast_metadata    meta;   //!< Node metadata.
     ast_list        * expressions;  //!< Arguments to the task
     ast_identifier    identifier;   //!< Task identifier.
-    ast_boolean       is_system;    //!< Is this a system task?
+    bool       is_system;    //!< Is this a system task?
 } ast_task_enable_statement;
 
 /*!
@@ -837,8 +828,8 @@ typedef struct ast_task_enable_statement_t{
 */
 ast_task_enable_statement * ast_new_task_enable_statement(
     ast_list        * expressions,
-    ast_identifier    identifier, 
-    ast_boolean       is_system   
+    ast_identifier    identifier,
+    bool       is_system
 );
 
 /*! @} */
@@ -953,7 +944,7 @@ ast_loop_statement * ast_new_repeat_loop_statement(
 @defgroup ast-node-case-statements Case Statements
 @{
 @ingroup ast-node-procedural
-@brief 
+@brief
 */
 
 //! Records the three different types of case statement Verilog has.
@@ -968,7 +959,7 @@ typedef struct ast_case_item_t{
     ast_metadata    meta;   //!< Node metadata.
     ast_list    * conditions; //!< A list of condtions, one must be met.
     ast_statement * body;     //!< What to execute if the condition is met.
-    ast_boolean     is_default; //!< This is the default item.
+    bool     is_default; //!< This is the default item.
 } ast_case_item;
 
 //! Describes the top level of a case statement in terms of its items.
@@ -978,7 +969,7 @@ typedef struct ast_case_statement_t{
     ast_list        * cases;        //!< Statements, conditionally run.
     ast_statement   * default_item; //!< Default IFF no item matches.
     ast_case_statement_type type;   //!< CASE, CASEX or CASEZ.
-    ast_boolean       is_function;  //!< Is this a function_case_statement?
+    bool       is_function;  //!< Is this a function_case_statement?
 } ast_case_statement;
 
 /*!
@@ -1008,7 +999,7 @@ ast_case_statement * ast_new_case_statement(ast_expression * expression,
 @defgroup ast-node-if-else If Else Statements
 @{
 @ingroup ast-node-procedural
-@brief 
+@brief
 */
 
 //! Describes a single if-then-do statement.
@@ -1042,7 +1033,7 @@ ast_conditional_statement * ast_new_conditional_statement(
 @param else_condition - What to do if no conditional statements are executed.
 This can be NULL.
 @details This node also supports "if then elseif then else then" statements,
-and uses the ast_extend_if_else function to append a new 
+and uses the ast_extend_if_else function to append a new
 ast_conditional_statement to the end of a list of if-else conditions.
 Priority of exectuion is given to items added first.
 */
@@ -1073,7 +1064,7 @@ void  ast_extend_if_else(
 @defgroup ast-node-timing-control Timing Control Statements
 @{
 @ingroup ast-construction
-@brief 
+@brief
 */
 
 //! Describes a single wait statement.
@@ -1196,7 +1187,7 @@ ast_delay_ctrl * ast_new_delay_ctrl_value(ast_delay_value * value);
 @brief creates and returns a new delay control statement.
 */
 ast_delay_ctrl * ast_new_delay_ctrl_mintypmax(
-    ast_expression * mintypmax 
+    ast_expression * mintypmax
 );
 
 /*!
@@ -1249,7 +1240,7 @@ typedef enum ast_block_type_e{
     BLOCK_PARALLEL,
 } ast_block_type;
 
-/*! 
+/*!
 @brief Fully describes a single block of statements.
 @details this is used to represent begin...end constructs, always, initial
 blocks, and collections of statements in the body of a function or task.
@@ -1285,7 +1276,7 @@ ast_statement_block * ast_new_statement_block(
 @{
 @ingroup ast-node-module-items
 @brief Describes items found inside procedural blocks.
-@details 
+@details
 */
 
 //! Describes the type (and implicitly, the location) of an assignment.
@@ -1420,9 +1411,9 @@ ast_assignment * ast_new_continuous_assignment(
 
 //! Describes the kind of statement in a statement struct.
 typedef enum ast_statement_type_e{
-    STM_GENERATE=0,           //!< 
+    STM_GENERATE=0,           //!<
     STM_ASSIGNMENT=1,         //!< Blocking, non-blocking, continuous
-    STM_CASE=2,               //!< 
+    STM_CASE=2,               //!<
     STM_CONDITIONAL=3,        //!< if/if-else/if-elseif-else
     STM_DISABLE=4,            //!<
     STM_EVENT_TRIGGER=5,      //!<
@@ -1430,16 +1421,16 @@ typedef enum ast_statement_type_e{
     STM_BLOCK=7,              //!< Par, sequential
     STM_BLOCK_ALWAYS=8,       //!< always @ blocks
     STM_BLOCK_INITIAL=9,      //!< Initial blocks
-    STM_TIMING_CONTROL=10,    //!< 
-    STM_FUNCTION_CALL=11,     //!< 
+    STM_TIMING_CONTROL=10,    //!<
+    STM_FUNCTION_CALL=11,     //!<
     STM_TASK_ENABLE=12,       //!< System, user
-    STM_WAIT=13,              //!< 
-    STM_MODULE_ITEM=14        //!< 
+    STM_WAIT=13,              //!<
+    STM_MODULE_ITEM=14        //!<
 } ast_statement_type;
 
 
-/*! 
-@brief Describes a single statement, and can contain sequential statement 
+/*!
+@brief Describes a single statement, and can contain sequential statement
     blocks.
 @warning The data member of the union should *never* be accessed except
 when first instantiating the structure. It is used to set the data content
@@ -1449,9 +1440,9 @@ pains me dearly.
 struct ast_statement_t{
     ast_metadata    meta;   //!< Node metadata.
     ast_statement_type      type;
-    ast_boolean             is_function_statement;
+    bool             is_function_statement;
     ast_node_attributes   * attributes;
-    ast_boolean             is_generate_statement;
+    bool             is_generate_statement;
     union{
         ast_wait_statement              * wait;
         ast_task_enable_statement       * task_enable;
@@ -1476,7 +1467,7 @@ struct ast_statement_t{
 */
 ast_statement * ast_new_statement(
     ast_node_attributes * attr,
-    ast_boolean         is_function_statement,
+    bool         is_function_statement,
     void             *  data,
     ast_statement_type  type
 );
@@ -1579,7 +1570,7 @@ typedef struct ast_udp_port_t{
         ast_list            * identifiers; //! IFF direction = input
     };
     ast_node_attributes * attributes;
-    ast_boolean           reg;  //!< Is a register or wire?
+    bool           reg;  //!< Is a register or wire?
     ast_expression      * default_value;
 } ast_udp_port;
 
@@ -1593,7 +1584,7 @@ typedef struct ast_udp_initial_statement_t{
 //! Describes a single UDP body sequentially or combinatorially.
 typedef struct ast_udp_body_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_list *        entries;    
+    ast_list *        entries;
     ast_udp_initial_statement * initial; //!< IFF body_type = sequential
     ast_udp_body_type body_type;
 } ast_udp_body;
@@ -1617,7 +1608,7 @@ typedef struct ast_udp_sequential_entry_t{
     ast_udp_next_state output;
 } ast_udp_sequential_entry;
 
-/*! 
+/*!
 @brief Describes the declaration of a user defined primitive (UDP)
 @note The ports member can represent the udp_port_list non-terminal
 in the grammar. This means that the first element is the output terminal,
@@ -1628,7 +1619,7 @@ typedef struct ast_udp_declaration_t{
     ast_identifier        identifier;
     ast_node_attributes * attributes;
     ast_list            * ports;
-    ast_list            * body_entries;    
+    ast_list            * body_entries;
     ast_udp_initial_statement * initial; //!< IFF body_type = sequential
     ast_udp_body_type     body_type;
 } ast_udp_declaration;
@@ -1693,7 +1684,7 @@ ast_udp_port * ast_new_udp_port(
     ast_port_direction    direction,
     ast_identifier        identifier, //!< The udp being instanced.
     ast_node_attributes * attributes,
-    ast_boolean           reg,
+    bool           reg,
     ast_expression      * default_value
 );
 
@@ -1734,7 +1725,7 @@ ast_udp_instance * ast_new_udp_instance(
 
 /*!
 @brief Creates a new list of UDP instances with shared properties.
-@details 
+@details
 @returns A pointer to the new list.
 */
 ast_udp_instantiation * ast_new_udp_instantiation(
@@ -1791,7 +1782,7 @@ ast_statement * ast_new_generate_item(
 @brief Describes the instantiation of a module, as opposed to it's declaration.
 */
 
-/*! 
+/*!
 @brief Describes the instantiation of one or more modules of the same type with
 the same parameters.
 @details If the resolved member is true, then you can access the declaration
@@ -1801,7 +1792,7 @@ module is called.
 */
 typedef struct ast_module_instantiation_t {
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean     resolved; //!< Is the name resolved to a declaration?
+    bool     resolved; //!< Is the name resolved to a declaration?
     union{
         ast_identifier  module_identifer; //!< The module being instanced.
         ast_module_declaration * declaration; //!< The module instanced.
@@ -1841,7 +1832,7 @@ ast_module_instance * ast_new_module_instance(
     ast_list              * port_connections
 );
 
-/*! 
+/*!
 @brief Decribes a single port connection in a module instance.
 @note This is also used to represent parameter assignments.
 */
@@ -2013,7 +2004,7 @@ typedef enum ast_enable_gatetype_e{
     EN_BUFIF0,
     EN_BUFIF1,
     EN_NOTIF0,
-    EN_NOTIF1 
+    EN_NOTIF1
 } ast_enable_gatetype;
 
 //! A collection of enable gates with the same type and delay properties.
@@ -2075,7 +2066,7 @@ typedef enum ast_pass_enable_switchtype_e{
     PASS_EN_TRANIF0,
     PASS_EN_TRANIF1,
     PASS_EN_RTRANIF0,
-    PASS_EN_RTRANIF1 
+    PASS_EN_RTRANIF1
 } ast_pass_enable_switchtype;
 
 /*!
@@ -2137,7 +2128,7 @@ ast_n_output_gate_instances * ast_new_n_output_gate_instances(
 ast_pass_enable_switches * ast_new_pass_enable_switches(
     ast_pass_enable_switchtype    type,
     ast_delay2                  * delay,
-    ast_list                    * switches 
+    ast_list                    * switches
 );
 
 /*!
@@ -2365,7 +2356,7 @@ typedef enum ast_charge_strength_e{
 @defgroup ast-node-port-declarations Module Port Declaration
 @{
 @ingroup ast-node-module-declaration
-@brief 
+@brief
 */
 
 //! Describes the type of a net in Verilog.
@@ -2387,9 +2378,9 @@ typedef struct ast_port_declaration_t{
     ast_metadata    meta;   //!< Node metadata.
     ast_port_direction  direction;      //!< Input / output / inout etc.
     ast_net_type        net_type;       //!< Wire/reg etc
-    ast_boolean         net_signed;     //!< Signed value?
-    ast_boolean         is_reg;         //!< Is explicitly a "reg"
-    ast_boolean         is_variable;    //!< Variable or net?
+    bool         net_signed;     //!< Signed value?
+    bool         is_reg;         //!< Is explicitly a "reg"
+    bool         is_variable;    //!< Variable or net?
     ast_range         * range;          //!< Bus width.
     ast_list          * port_names;     //!< The names of the ports.
 } ast_port_declaration;
@@ -2400,9 +2391,9 @@ typedef struct ast_port_declaration_t{
 ast_port_declaration * ast_new_port_declaration(
     ast_port_direction  direction,      //!< [in] Input / output / inout etc.
     ast_net_type        net_type,       //!< [in] Wire/reg etc
-    ast_boolean         net_signed,     //!< [in] Signed value?
-    ast_boolean         is_reg,         //!< [in] Is explicitly a "reg"
-    ast_boolean         is_variable,    //!< [in] Variable or net?
+    bool         net_signed,     //!< [in] Signed value?
+    bool         is_reg,         //!< [in] Is explicitly a "reg"
+    bool         is_variable,    //!< [in] Variable or net?
     ast_range         * range,          //!< [in] Bus width.
     ast_list          * port_names      //!< [in] The names of the ports.
 );
@@ -2431,7 +2422,7 @@ typedef enum ast_declaration_type_e{
     DECLARE_UNKNOWN //!< For when we don't know the type when instancing.
 } ast_declaration_type;
 
-/*! 
+/*!
 @brief Fully describes the declaration of elements one might find inside a
 module.
 @todo Clean this up to avoid accessing members which are mutually exclusive
@@ -2444,9 +2435,9 @@ typedef struct ast_type_declaration_t{
     ast_delay3          * delay;
     ast_drive_strength  * drive_strength;
     ast_charge_strength   charge_strength;
-    ast_boolean           vectored;
-    ast_boolean           scalared;
-    ast_boolean           is_signed;
+    bool           vectored;
+    bool           scalared;
+    bool           is_signed;
     ast_range           * range;
 } ast_type_declaration;
 
@@ -2458,9 +2449,9 @@ typedef struct ast_net_declaration_t{
     ast_delay3         * delay;      //!< Delay characteristics.
     ast_drive_strength * drive;      //!< Drive strength.
     ast_range          * range;      //!< Width of the net.
-    ast_boolean          vectored;
-    ast_boolean          scalared;
-    ast_boolean          is_signed;
+    bool          vectored;
+    bool          scalared;
+    bool          is_signed;
     ast_expression     * value;      //!< Default assigned value.
 } ast_net_declaration;
 
@@ -2470,7 +2461,7 @@ typedef struct ast_reg_declaration_t{
     ast_metadata         meta;       //!< Node metadata.
     ast_identifier       identifier; //!< What is the reg called?
     ast_range          * range;      //!< Width of the reg.
-    ast_boolean          is_signed;
+    bool          is_signed;
     ast_expression     * value;      //!< Default assigned value.
 } ast_reg_declaration;
 
@@ -2538,7 +2529,7 @@ ast_type_declaration * ast_new_type_declaration(ast_declaration_type type);
 @defgroup ast-node-module-parameters Module Parameters
 @{
 @ingroup ast-node-module-declaration
-@brief 
+@brief
 */
 
 //! Data value types that a module parameter can take on.
@@ -2555,8 +2546,8 @@ typedef enum ast_parameter_type_e{
 typedef struct ast_parameter_declarations_t{
     ast_metadata    meta;   //!< Node metadata.
     ast_list        * assignments;
-    ast_boolean       signed_values; //!< Valid IFF type==PARAM_GENERIC
-    ast_boolean       local;        //!< Local parameter or global.
+    bool       signed_values; //!< Valid IFF type==PARAM_GENERIC
+    bool       local;        //!< Local parameter or global.
     ast_range       * range; //!< Valid IFF type==PARAM_GENERIC
     ast_parameter_type  type;
 } ast_parameter_declarations;
@@ -2570,10 +2561,10 @@ typedef struct ast_parameter_declarations_t{
 */
 ast_parameter_declarations * ast_new_parameter_declarations(
     ast_list        * assignments,
-    ast_boolean       signed_values,
-    ast_boolean       local,
+    bool       signed_values,
+    bool       local,
     ast_range       * range,
-    ast_parameter_type  type 
+    ast_parameter_type  type
 );
 
 /*! @} */
@@ -2590,7 +2581,7 @@ ast_parameter_declarations * ast_new_parameter_declarations(
 //! Describes the declaration of a set of registers within a block.
 typedef struct ast_block_reg_declaration_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean   is_signed;     //!< Do they represent signed values?
+    bool   is_signed;     //!< Do they represent signed values?
     ast_range   * range;         //!< Are these vectors of registers?
     ast_list    * identifiers;   //!< list of reg names with same properties.
 } ast_block_reg_declaration;
@@ -2599,7 +2590,7 @@ typedef struct ast_block_reg_declaration_t{
 @brief Creates and returns a new block register declaration descriptor.
 */
 ast_block_reg_declaration * ast_new_block_reg_declaration(
-    ast_boolean   is_signed,    //!< Do they represent signed values?
+    bool   is_signed,    //!< Do they represent signed values?
     ast_range   * range,        //!< Are these vectors of registers?
     ast_list    * identifiers   //!< list of reg names with same properties.
 );
@@ -2657,7 +2648,7 @@ typedef enum ast_task_port_type_e{
 //! Holds either a range or a type data item.
 typedef struct ast_range_or_type_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean is_range;   //!< iff true use range, else type.
+    bool is_range;   //!< iff true use range, else type.
     union{
         ast_range * range;  //!< The range strucure.
         ast_task_port_type type; //!< The type structure (an enum)
@@ -2669,7 +2660,7 @@ typedef struct ast_range_or_type_t{
 @param [in] is_range - IFF true then the structure's union contains a
 range structure, otherwise it contains a type structure.
 */
-ast_range_or_type * ast_new_range_or_type(ast_boolean is_range);
+ast_range_or_type * ast_new_range_or_type(bool is_range);
 
 
 /*!
@@ -2677,9 +2668,9 @@ ast_range_or_type * ast_new_range_or_type(ast_boolean is_range);
 */
 typedef struct ast_function_declaration_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean         automatic;         //!< Is automatic?
-    ast_boolean         is_signed;         //!< Is the returned value signed?
-    ast_boolean         function_or_block; //!< IFF true statements is list of function_item_declaration else list of block_item_declaration.
+    bool         automatic;         //!< Is automatic?
+    bool         is_signed;         //!< Is the returned value signed?
+    bool         function_or_block; //!< IFF true statements is list of function_item_declaration else list of block_item_declaration.
     ast_range_or_type  *rot;               //!< Range or type.
     ast_identifier      identifier;        //!< Function name.
     ast_list           *item_declarations; //!< Internal variable declarations.
@@ -2690,9 +2681,9 @@ typedef struct ast_function_declaration_t{
 @brief Creates and returns a function declaration node.
 */
 ast_function_declaration * ast_new_function_declaration(
-    ast_boolean         automatic,         //!< Is automatic?
-    ast_boolean         is_signed,         //!< Is the returned value signed?
-    ast_boolean         function_or_block, //!< IFF true statements is list of function_item_declaration else list of block_item_declaration.
+    bool         automatic,         //!< Is automatic?
+    bool         is_signed,         //!< Is the returned value signed?
+    bool         function_or_block, //!< IFF true statements is list of function_item_declaration else list of block_item_declaration.
     ast_range_or_type  *rot,               //!< Range or type.
     ast_identifier      identifier,        //!< Function name.
     ast_list           *item_declarations, //!< Internal variable declarations.
@@ -2705,8 +2696,8 @@ ast_function_declaration * ast_new_function_declaration(
 typedef struct ast_task_port_t{
     ast_metadata    meta;   //!< Node metadata.
     ast_port_direction direction;   //!< Input or output to the port.
-    ast_boolean        reg;         //!< Is is a registered value?
-    ast_boolean        is_signed;   //!< Does it represent a signed value?
+    bool        reg;         //!< Is is a registered value?
+    bool        is_signed;   //!< Does it represent a signed value?
     ast_range        * range;       //!< Bit or item range for arrays.
     ast_task_port_type type;        //!< Data type (if any)
     ast_list         * identifiers; //!< The list of port names.
@@ -2719,8 +2710,8 @@ argument.
 */
 ast_task_port * ast_new_task_port(
     ast_port_direction direction,   //!< Input or output to the port.
-    ast_boolean        reg,         //!< Is is a registered value?
-    ast_boolean        is_signed,   //!< Does it represent a signed value?
+    bool        reg,         //!< Is is a registered value?
+    bool        is_signed,   //!< Does it represent a signed value?
     ast_range        * range,       //!< Bit or item range for arrays.
     ast_task_port_type type,        //!< Data type (if any)
     ast_list         * identifiers //!< The list of port names.
@@ -2732,7 +2723,7 @@ item or port declaration.
 */
 typedef struct ast_function_item_declaration_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean is_port_declaration; //!< True IFF an argument to the function.
+    bool is_port_declaration; //!< True IFF an argument to the function.
     union{
         ast_block_item_declaration  * block_item; //!< Standard body statements.
         ast_task_port               * port_declaration; //!< IFF is_port_declaration == AST_TRUE
@@ -2762,7 +2753,7 @@ ast_function_item_declaration * ast_new_function_item_declaration();
 */
 typedef struct ast_task_declaration_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean         automatic;      //!< Automatic iff TRUE
+    bool         automatic;      //!< Automatic iff TRUE
     ast_identifier      identifier;     //!< The task name.
     ast_list        *   ports;          //!< Arguments to the task.
     ast_list        *   declarations;   //!< Internal variable declarations.
@@ -2773,7 +2764,7 @@ typedef struct ast_task_declaration_t{
 @brief Creates and returns a new task declaration statement.
 */
 ast_task_declaration * ast_new_task_declaration(
-    ast_boolean         automatic,      //!< Automatic iff TRUE
+    bool         automatic,      //!< Automatic iff TRUE
     ast_identifier      identifier,     //!< The task name.
     ast_list        *   ports,          //!< Arguments to the task.
     ast_list        *   declarations,   //!< Internal variable declarations.
@@ -3021,7 +3012,7 @@ struct ast_identifier_t{
     ast_identifier_type   type;         //!< What construct does it identify?
     char                * identifier;   //!< The identifier value.
     unsigned int          from_line;    //!< The line number of the file.
-    ast_boolean           is_system;    //!< Is this a system identifier?
+    bool           is_system;    //!< Is this a system identifier?
     ast_identifier        next;         //!< Represents a hierarchical id.
     ast_id_range_or_index range_or_idx; //!< Is it indexed or ranged?
     union{
@@ -3061,7 +3052,7 @@ Also, the is_system member is set to false. If you want a new system
 idenifier instance, use the @ref ast_new_system_identifier function.
 */
 ast_identifier ast_new_identifier(
-    char         * identifier,  //!< String text of the identifier.
+    QString        identifier,  //!< String text of the identifier.
     unsigned int   from_line    //!< THe line the idenifier came from.
 );
 
@@ -3123,8 +3114,8 @@ void ast_identifier_set_index(
 //! Fully describes a config rule statemnet. See Annex 1.2
 typedef struct ast_config_rule_statement_t{
     ast_metadata    meta;   //!< Node metadata.
-    ast_boolean    is_default;
-    ast_boolean    multiple_clauses; //<! IFF TRUE use clauses, else clause_2
+    bool    is_default;
+    bool    multiple_clauses; //<! IFF TRUE use clauses, else clause_2
     ast_identifier clause_1;    //!< The first grammar clause.
     union{
         ast_identifier clause_2;    //!< The second grammar clause.
@@ -3138,7 +3129,7 @@ typedef struct ast_config_rule_statement_t{
 @details If is_default is TRUE then clause_2 is NULL.
 */
 ast_config_rule_statement * ast_new_config_rule_statement(
-    ast_boolean    is_default,
+    bool    is_default,
     ast_identifier clause_1,    //!< The first grammar clause.
     ast_identifier clause_2     //!< The second grammar clause.
 );

@@ -22,9 +22,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-LEXSOURCES += verilog_scanner.l
+LEXSOURCES += verilog.l
 
-YACCSOURCES += verilog_parser.y
+YACCSOURCES += verilog.y
 
 QMAKE_LEX = flex
 QMAKE_YACC = bison
@@ -38,7 +38,10 @@ SOURCES += \
 HEADERS += \
 	mainwindow.h \
 	verilogschematics.h \
-  	asttree.h
+  	asttree.h \
+	verilog_ast_common.h \
+	verilog_ast.h \
+	verilog_ast_mem.h
 
 FORMS += \
 	mainwindow.ui

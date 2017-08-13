@@ -2,10 +2,13 @@
 #define VERILOGSCHEMATICS_H
 
 #include <QWidget>
+#include "asttree.h"
 
 class VerilogSchematics : public QWidget
 {
 	Q_OBJECT
+private:
+	AstTree *ast;
 public:
 	explicit VerilogSchematics(QWidget *parent = nullptr);
 
