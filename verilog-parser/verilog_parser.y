@@ -2,8 +2,6 @@
 %defines 
 %define parse.trace
 %verbose
-
-
 %define parse.error verbose
 
 %{
@@ -80,7 +78,7 @@
     ast_net_type                   net_type;
     ast_node                     * node;
     ast_node_attributes          * node_attributes;
-    ast_operator                   operator;
+	ast_operator                   verilog_operator;
     ast_parameter_declarations   * parameter_declaration;
     ast_parameter_type             parameter_type;
     ast_pass_enable_switch       * pass_enable_switch   ;
@@ -180,41 +178,41 @@
 
 %token <string> STRING
 
-/* Operators Precedence */
+/* verilog_operators Precedence */
 
-%token <operator> STAR
-%token <operator> PLUS
-%token <operator> MINUS
-%token <operator> ASL     
-%token <operator> ASR     
-%token <operator> LSL     
-%token <operator> LSR     
-%token <operator> DIV     
-%token <operator> POW     
-%token <operator> MOD     
-%token <operator> GTE     
-%token <operator> LTE     
-%token <operator> GT      
-%token <operator> LT      
-%token <operator> L_NEG   
-%token <operator> L_AND   
-%token <operator> L_OR    
-%token <operator> C_EQ    
-%token <operator> L_EQ    
-%token <operator> C_NEQ   
-%token <operator> L_NEQ   
-%token <operator> B_NEG   
-%token <operator> B_AND   
-%token <operator> B_OR    
-%token <operator> B_XOR   
-%token <operator> B_EQU   
-%token <operator> B_NAND  
-%token <operator> B_NOR   
-%token <operator> TERNARY 
+%token <verilog_operator> STAR
+%token <verilog_operator> PLUS
+%token <verilog_operator> MINUS
+%token <verilog_operator> ASL
+%token <verilog_operator> ASR
+%token <verilog_operator> LSL
+%token <verilog_operator> LSR
+%token <verilog_operator> DIV
+%token <verilog_operator> POW
+%token <verilog_operator> MOD
+%token <verilog_operator> GTE
+%token <verilog_operator> LTE
+%token <verilog_operator> GT
+%token <verilog_operator> LT
+%token <verilog_operator> L_NEG
+%token <verilog_operator> L_AND
+%token <verilog_operator> L_OR
+%token <verilog_operator> C_EQ
+%token <verilog_operator> L_EQ
+%token <verilog_operator> C_NEQ
+%token <verilog_operator> L_NEQ
+%token <verilog_operator> B_NEG
+%token <verilog_operator> B_AND
+%token <verilog_operator> B_OR
+%token <verilog_operator> B_XOR
+%token <verilog_operator> B_EQU
+%token <verilog_operator> B_NAND
+%token <verilog_operator> B_NOR
+%token <verilog_operator> TERNARY
 
-%token <operator> UNARY_OP
+%token <verilog_operator> UNARY_OP
 
-/* Operator Precedence */
+/* verilog_operator Precedence */
 
 
 %right  TERNARY                 /* Lowest Precedence */
@@ -653,11 +651,11 @@
 %type   <number>                     init_val
 %type   <number>                     number
 %type   <number>                     unsigned_number
-%type   <operator>                   binary_module_path_operator
-%type   <operator>                   polarity_operator
-%type   <operator>                   polarity_operator_o
-%type   <operator>                   unary_module_path_operator
-%type   <operator>                   unary_operator
+%type   <verilog_operator>                   binary_module_path_verilog_operator
+%type   <verilog_operator>                   polarity_verilog_operator
+%type   <verilog_operator>                   polarity_verilog_operator_o
+%type   <verilog_operator>                   unary_module_path_verilog_operator
+%type   <verilog_operator>                   unary_verilog_operator
 %type   <parameter_declaration>      local_parameter_declaration
 %type   <parameter_declaration>      parameter_declaration
 %type   <parameter_declaration>      specparam_declaration
@@ -781,8 +779,7 @@ grammar_begin :
 | source_text {
     assert(yy_verilog_source_tree != NULL);
 
-    unsigned int i;
-    for(i  = 0; i < $1 -> items; i ++)
+	for(int i = 0; i < $1 -> items; i ++)
     {
         ast_source_item * toadd = ast_list_get($1, i);
 
@@ -3723,14 +3720,14 @@ path_declaration : simple_path_declaration          SEMICOLON {$$=$1;}
                  ;
 
 simple_path_declaration : 
-  OPEN_BRACKET specify_input_terminal_descriptor polarity_operator_o EQ GT
+  OPEN_BRACKET specify_input_terminal_descriptor polarity_verilog_operator_o EQ GT
   specify_output_terminal_descriptor CLOSE_BRACKET EQ path_delay_value{
     $$ = ast_new_path_declaration(SIMPLE_PARALLEL_PATH);
     $$ -> parallel = ast_new_simple_parallel_path_declaration(
         $2,$3,$6,$9
     );
   }
-| OPEN_BRACKET list_of_path_inputs polarity_operator_o STAR GT 
+| OPEN_BRACKET list_of_path_inputs polarity_verilog_operator_o STAR GT
   list_of_path_outputs CLOSE_BRACKET EQ path_delay_value{
     $$ = ast_new_path_declaration(SIMPLE_FULL_PATH);
     $$ -> full = ast_new_simple_full_path_declaration(
@@ -3841,14 +3838,14 @@ path_delay_expression : constant_mintypmax_expression  {$$=$1;};
 
 edge_sensitive_path_declaration : 
   OPEN_BRACKET edge_identifier_o specify_input_terminal_descriptor EQ GT
-  specify_output_terminal_descriptor polarity_operator_o COLON
+  specify_output_terminal_descriptor polarity_verilog_operator_o COLON
   data_source_expression CLOSE_BRACKET EQ path_delay_value{
     $$ = ast_new_path_declaration(EDGE_SENSITIVE_PARALLEL_PATH);
     $$ -> es_parallel = 
         ast_new_edge_sensitive_parallel_path_declaration($2,$3,$7,$6,$9,$12);
   }
 | OPEN_BRACKET edge_identifier_o list_of_path_inputs STAR GT
-  list_of_path_outputs polarity_operator_o COLON data_source_expression
+  list_of_path_outputs polarity_verilog_operator_o COLON data_source_expression
   CLOSE_BRACKET EQ path_delay_value{
     $$ = ast_new_path_declaration(EDGE_SENSITIVE_FULL_PATH);
     $$ -> es_full= 
@@ -3894,11 +3891,11 @@ state_dependent_path_declaration :
     }
 ;
 
-polarity_operator_o : polarity_operator  {$$=$1;}
-                    |  {$$=OPERATOR_NONE;}
+polarity_verilog_operator_o : polarity_verilog_operator  {$$=$1;}
+					|  {$$=verilog_operator_NONE;}
                     ;
 
-polarity_operator : PLUS  {$$=$1;}
+polarity_verilog_operator : PLUS  {$$=$1;}
                   | MINUS {$$=$1;}
                   ;
 
@@ -4145,7 +4142,7 @@ conditional_expression :
 
 constant_expression:
   constant_primary {$$ = ast_new_expression_primary($1);}
-| unary_operator attribute_instances constant_primary{
+| unary_verilog_operator attribute_instances constant_primary{
     $$ = ast_new_unary_expression($3,$1,$2,AST_TRUE);
   }
 | constant_expression PLUS  attribute_instances constant_expression{
@@ -4253,7 +4250,7 @@ expression :
   primary {
     $$ = ast_new_expression_primary($1);
   }
-| unary_operator attribute_instances primary{
+| unary_verilog_operator attribute_instances primary{
     $$ = ast_new_unary_expression($3,$1,$2, AST_FALSE);
   }
 | expression PLUS  attribute_instances expression{
@@ -4360,11 +4357,11 @@ module_path_expression :
     $$ = ast_new_expression_primary($1);
     $$ -> type = MODULE_PATH_PRIMARY_EXPRESSION;
   }
-| unary_module_path_operator attribute_instances module_path_primary{
+| unary_module_path_verilog_operator attribute_instances module_path_primary{
     $$ = ast_new_unary_expression($3,$1,$2,AST_FALSE);
     $$ -> type = MODULE_PATH_UNARY_EXPRESSION;
 }
-| module_path_expression binary_module_path_operator attribute_instances
+| module_path_expression binary_module_path_verilog_operator attribute_instances
   module_path_expression{
     $$ = ast_new_binary_expression($1,$4,$2,$3,AST_FALSE);
     $$ -> type = MODULE_PATH_BINARY_EXPRESSION;
@@ -4578,9 +4575,9 @@ variable_lvalue :
 
 ;
 
-/* A.8.6 Operators */
+/* A.8.6 verilog_operators */
 
-unary_operator : PLUS    {$$ = $1;}
+unary_verilog_operator : PLUS    {$$ = $1;}
                | MINUS   {$$ = $1;}
                | L_NEG   {$$ = $1;}
                | B_NEG   {$$ = $1;}
@@ -4593,7 +4590,7 @@ unary_operator : PLUS    {$$ = $1;}
                ;
 
 
-unary_module_path_operator  : L_NEG  {$$=$1;}
+unary_module_path_verilog_operator  : L_NEG  {$$=$1;}
                             | B_NEG  {$$=$1;}
                             | B_AND  {$$=$1;}
                             | B_NAND {$$=$1;}
@@ -4603,7 +4600,7 @@ unary_module_path_operator  : L_NEG  {$$=$1;}
                             | B_EQU  {$$=$1;}
                             ;
 
-binary_module_path_operator : L_EQ   {$$=$1;}
+binary_module_path_verilog_operator : L_EQ   {$$=$1;}
                             | L_NEQ  {$$=$1;}
                             | L_AND  {$$=$1;}
                             | L_OR   {$$=$1;}

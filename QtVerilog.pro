@@ -33,12 +33,12 @@ SOURCES += \
 	main.cpp \
 	mainwindow.cpp \
 	verilogschematics.cpp \
-    verilogparser.cpp
+  	asttree.cpp
 
 HEADERS += \
 	mainwindow.h \
 	verilogschematics.h \
-    verilogparser.h
+  	asttree.h
 
 FORMS += \
 	mainwindow.ui

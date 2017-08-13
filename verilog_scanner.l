@@ -1,16 +1,11 @@
 %{
-	#include "verilog-parser/verilog_ast.h"
-	#include "verilog-parser/verilog_parser.tab.h"
-    
-	#include "verilog-parser/verilog_preprocessor.h"
+//! Stores all information needed for the preprocessor.
+verilog_preprocessor_context * yy_preproc;
 
-    //! Stores all information needed for the preprocessor.
-    verilog_preprocessor_context * yy_preproc;
-
-    #define EMIT_TOKEN(x) yy_preproc -> token_count ++; \
-                          if(yy_preproc -> emit) {      \
-                              return x;                 \
-                          }
+#define EMIT_TOKEN(x) yy_preproc -> token_count ++; \
+					  if(yy_preproc -> emit) {      \
+						  return x;                 \
+					  }
 %}
 
 %option yylineno

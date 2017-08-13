@@ -5,15 +5,12 @@
 %define parse.error verbose
 
 %{
-    #include <stdio.h>
-    #include <string.h>
-    #include <assert.h>
-
-	#include "verilog-parser/verilog_ast.h"
+	#include "asttree.h"
 
     extern int yylex();
     extern int yylineno;
     extern char * yytext;
+	extern AstTree *ast;
 
     void yyerror(const char *msg){
         printf("line %d - ERROR: %s\n", yylineno,msg);
@@ -22,7 +19,7 @@
 %}
 
 %code requires{
-	#include "verilog-parser/verilog_ast.h"
+	#include "verilog_ast.h"
 }
 
 
@@ -768,18 +765,13 @@
 
 grammar_begin : 
   library_text {
-	assert(yy_verilog_source_tree != NULL);
-	yy_verilog_source_tree -> libraries =
-        ast_list_concat(yy_verilog_source_tree -> libraries, $1);
+	ast->add_library($1);
 }
 | config_declaration {
-	assert(yy_verilog_source_tree != NULL);
-	ast_list_append(yy_verilog_source_tree -> configs, $1);
+	ast->add_config($1);
 }
 | source_text {
-	assert(yy_verilog_source_tree != NULL);
-
-	for(int i = 0; i < $1 -> items; i ++)
+	for(unsigned int i = 0; i < $1->items; i ++)
     {
 		ast_source_item * toadd = ast_list_get($1, i);
 
