@@ -771,29 +771,7 @@ grammar_begin :
 	ast->add_config($1);
 }
 | source_text {
-	for(unsigned int i = 0; i < $1->items; i ++)
-    {
-		ast_source_item * toadd = ast_list_get($1, i);
-
-		if(toadd -> type == SOURCE_MODULE)
-        {
-            ast_list_append(yy_verilog_source_tree -> modules, 
-                toadd -> module);
-        }
-        else if (toadd -> type == SOURCE_UDP)
-        {
-            ast_list_append(yy_verilog_source_tree -> primitives, 
-                toadd -> udp);
-        }
-        else
-        {
-            // Do nothing / unknown / unsupported type.
-            printf("line %d of %s - Unknown source item type: %d",
-                __LINE__,
-                __FILE__,
-                toadd -> type);
-        }
-    }
+	ast->add_source($1);
 }
 | {
     // Do nothing, it's an empty file.
