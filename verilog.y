@@ -1,20 +1,23 @@
-%name-prefix "verilog_"
+%name-prefix "verilog"
+%token-table
 %glr-parser
 
 %code top{
+#include "verilog.tab.hh"
 #include "verilog_ast.h"
 #include "asttree.h"
 
-  extern int yylex();
-  extern int yylineno;
-  extern char * yytext;
-  extern AstTree *ast;
+extern int yylex();
+extern int yylineno;
+extern char * yytext;
+extern AstTree *ast;
 
-  void verilogerror(const char *msg){
-      printf("line %d - ERROR: %s\n", yylineno,msg);
-      printf("- '%s'\n", yytext);
-  }
-  int veriloglex();
+void verilogerror(const char *msg){
+	printf("line %d - ERROR: %s\n", yylineno,msg);
+	printf("- '%s'\n", yytext);
+}
+
+int veriloglex();
 }
 
 /* token types */

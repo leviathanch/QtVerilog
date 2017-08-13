@@ -22,13 +22,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-LEXSOURCES += verilog.l
-
-YACCSOURCES += verilog.y
-
-QMAKE_LEX = flex
-QMAKE_YACC = bison
-
 SOURCES += \
 	main.cpp \
 	mainwindow.cpp \
@@ -45,3 +38,30 @@ HEADERS += \
 
 FORMS += \
 	mainwindow.ui
+
+FLEXSOURCES += verilog.l
+BISONSOURCES += verilog.y
+
+flex.commands = flex++ --c++ -o verilog.yy.cc ${QMAKE_FILE_IN}
+flex.input = FLEXSOURCES
+flex.output = verilog.yy.cc
+flex.variable_out = SOURCES
+flex.depends = verilog.tab.h
+flex.name = flex
+QMAKE_EXTRA_COMPILERS += flex
+ 
+bison.commands = bison -Lc++ -d -t ${QMAKE_FILE_IN}
+bison.input = BISONSOURCES
+bison.output = verilog.tab.cc
+bison.variable_out = SOURCES
+bison.name = bison
+QMAKE_EXTRA_COMPILERS += bison
+ 
+bisonheader.commands = @true
+bisonheader.input = BISONSOURCES
+bisonheader.output = verilog.tab.h
+bisonheader.variable_out = HEADERS
+bisonheader.name = bison header
+bisonheader.depends = verilog.tab.cc
+QMAKE_EXTRA_COMPILERS += bisonheader
+
