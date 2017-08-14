@@ -6,7 +6,7 @@
 
 #include <QString>
 
-#include "verilog_ast_common.h"
+#include "verilog_ast_common.hh"
 
 #ifndef VERILOG_AST_H
 #define VERILOG_AST_H

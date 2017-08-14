@@ -2,7 +2,7 @@
 #define VERILOGSCHEMATICS_H
 
 #include <QWidget>
-#include "asttree.h"
+#include "asttree.hh"
 
 class VerilogSchematics : public QWidget
 {

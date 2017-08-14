@@ -1,4 +1,4 @@
-#include "asttree.h"
+#include "asttree.hh"
 
 AstTree::AstTree()
 {

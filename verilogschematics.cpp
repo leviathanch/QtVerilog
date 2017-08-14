@@ -1,6 +1,6 @@
 #include <QPainter>
 #include "verilogschematics.h"
-#include "asttree.h"
+#include "asttree.hh"
 
 VerilogSchematics::VerilogSchematics(QWidget *parent) : QWidget(parent)
 {

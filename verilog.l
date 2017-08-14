@@ -1,15 +1,24 @@
-%option prefix="verilog"
 %option yylineno
 %option nodefault
-%option noyywrap
+%option yywrap nounput
+%option c++
+%option yyclass="AstTree"
+%option batch
+%option stack
+%option debug
 
 %top {
-#include "verilog.tab.hh"
-#include "verilog_ast.h"
-#include "verilog_preprocessor.h"
-#include "asttree.h"
+#include <iostream>
+#include <fstream>
 
-#define EMIT_TOKEN(x) return x;
+#include "verilog_ast.hh"
+#include "verilog_preprocessor.hh"
+#include "asttree.hh"
+
+#include "verilog.tab.hh"
+#include "verilog.yy.hh"
+
+#define EMIT_TOKEN(x) return x
 }
 
 /* Pre-processor definitions */
@@ -302,10 +311,10 @@ B_NOR               "~|"
 TERNARY             "?"
 
 %%
-{ATTRIBUTE_START}      {EMIT_TOKEN(verilog::parser::token::ATTRIBUTE_START);}
-{ATTRIBUTE_END}        {EMIT_TOKEN(verilog::parser::token::ATTRIBUTE_END);}
+{ATTRIBUTE_START}      {EMIT_TOKEN(yy::VerilogParser::token::ATTRIBUTE_START);}
+{ATTRIBUTE_END}        {EMIT_TOKEN(yy::VerilogParser::token::ATTRIBUTE_END);}
 
-{COMMENT_LINE}         {/*EMIT_TOKEN(verilog::parser::token::COMMENT_LINE); IGNORE */}
+{COMMENT_LINE}         {/*EMIT_TOKEN(yy::VerilogParser::token::COMMENT_LINE); IGNORE */}
 {COMMENT_BEGIN}        {BEGIN(in_comment);                    ;}
 
 <in_comment>.|\n       {/* IGNORE                            */}
@@ -360,7 +369,7 @@ TERNARY             "?"
     BEGIN(in_ts_1);
 }
 <in_ts_1>{NUM_UNSIGNED}      {
-	yy_preproc -> timescale.scale = yylval.string;
+        yy_preproc->timescale.scale = yylval.string;
 }
 <in_ts_1>{SIMPLE_ID}         {
     BEGIN(in_ts_2);
@@ -369,7 +378,7 @@ TERNARY             "?"
     BEGIN(in_ts_3);
 }
 <in_ts_3>{NUM_UNSIGNED}      {
-	yy_preproc -> timescale.precision= yylval.string;
+        yy_preproc->timescale.precision = yylval.string;
 }
 <in_ts_3>{SIMPLE_ID}         {
     BEGIN(INITIAL);
@@ -383,7 +392,7 @@ TERNARY             "?"
     BEGIN(in_ifdef);
 }
 <in_ifdef>{SIMPLE_ID}    {
-	verilog_preprocessor_ifdef(yytext,yylineno,false);
+        verilog_preprocessor_ifdef(yytext,yylineno,false);
     BEGIN(INITIAL);
 }
 
@@ -391,7 +400,7 @@ TERNARY             "?"
     BEGIN(in_ifndef);
 }
 <in_ifndef>{SIMPLE_ID}   {
-	verilog_preprocessor_ifdef(yytext,yylineno,true);
+        verilog_preprocessor_ifdef(yytext,yylineno,true);
     BEGIN(INITIAL);
 }
 
@@ -417,19 +426,18 @@ TERNARY             "?"
 <in_include>{STRING}     {
     YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
 
-    verilog_include_directive * id =
-        verilog_preprocessor_include(yytext,yylineno);
+    verilog_include_directive * id = verilog_preprocessor_include(yytext,yylineno);
 
     // Now, we need to look for the file, open it as a buffer, and then
     // switch to it.
 
-	if(id -> file_found == true)
+        if(id -> file_found == true)
     {
-        FILE * file = fopen(id -> filename, "r");
+        std::ifstream file;
+        file.open (id->filename, std::ifstream::in);
+        YY_BUFFER_STATE n = this->yy_create_buffer(file, YY_BUF_SIZE);
 
-        YY_BUFFER_STATE n   = yy_create_buffer(file, YY_BUF_SIZE);
-
-	cur -> yy_bs_lineno = yylineno;
+	cur->yy_bs_lineno = yylineno;
 	yy_switch_to_buffer(cur);
 	yypush_buffer_state(n);
 	BEGIN(INITIAL);
@@ -535,204 +543,204 @@ TERNARY             "?"
     }
 }
 
-{AT}                   {EMIT_TOKEN(verilog::parser::token::AT);}
-{COMMA}                {EMIT_TOKEN(verilog::parser::token::COMMA);}
-{HASH}                 {EMIT_TOKEN(verilog::parser::token::HASH);}
-{DOT}                  {EMIT_TOKEN(verilog::parser::token::DOT);}
-{EQ}                   {yylval.operator = OPERATOR_L_EQ; EMIT_TOKEN(verilog::parser::token::EQ);}
-{COLON}                {EMIT_TOKEN(verilog::parser::token::COLON);}
-{IDX_PRT_SEL}          {EMIT_TOKEN(verilog::parser::token::IDX_PRT_SEL);}
-{SEMICOLON}            {EMIT_TOKEN(verilog::parser::token::SEMICOLON);}
-{OPEN_BRACKET}         {EMIT_TOKEN(verilog::parser::token::OPEN_BRACKET);}
-{CLOSE_BRACKET}        {EMIT_TOKEN(verilog::parser::token::CLOSE_BRACKET);}
-{OPEN_SQ_BRACKET}      {EMIT_TOKEN(verilog::parser::token::OPEN_SQ_BRACKET);}
-{CLOSE_SQ_BRACKET}     {EMIT_TOKEN(verilog::parser::token::CLOSE_SQ_BRACKET);}
-{OPEN_SQ_BRACE}        {EMIT_TOKEN(verilog::parser::token::OPEN_SQ_BRACE);}
-{CLOSE_SQ_BRACE}       {EMIT_TOKEN(verilog::parser::token::CLOSE_SQ_BRACE);}
-{STAR}                 {yylval.operator=OPERATOR_STAR   ; EMIT_TOKEN(verilog::parser::token::STAR);}
-{PLUS}                 {yylval.operator=OPERATOR_PLUS   ; EMIT_TOKEN(verilog::parser::token::PLUS);}
-{MINUS}                {yylval.operator=OPERATOR_MINUS  ; EMIT_TOKEN(verilog::parser::token::MINUS);}
-{ASL}                  {yylval.operator=OPERATOR_ASL    ; EMIT_TOKEN(verilog::parser::token::ASL);}
-{ASR}                  {yylval.operator=OPERATOR_ASR    ; EMIT_TOKEN(verilog::parser::token::ASR);}
-{LSL}                  {yylval.operator=OPERATOR_LSL    ; EMIT_TOKEN(verilog::parser::token::LSL);}
-{LSR}                  {yylval.operator=OPERATOR_LSR    ; EMIT_TOKEN(verilog::parser::token::LSR);}
-{DIV}                  {yylval.operator=OPERATOR_DIV    ; EMIT_TOKEN(verilog::parser::token::DIV);}
-{POW}                  {yylval.operator=OPERATOR_POW    ; EMIT_TOKEN(verilog::parser::token::POW);}
-{MOD}                  {yylval.operator=OPERATOR_MOD    ; EMIT_TOKEN(verilog::parser::token::MOD);}
-{GTE}                  {yylval.operator=OPERATOR_GTE    ; EMIT_TOKEN(verilog::parser::token::GTE);}
-{LTE}                  {yylval.operator=OPERATOR_LTE    ; EMIT_TOKEN(verilog::parser::token::LTE);}
-{GT}                   {yylval.operator=OPERATOR_GT     ; EMIT_TOKEN(verilog::parser::token::GT);}
-{LT}                   {yylval.operator=OPERATOR_LT     ; EMIT_TOKEN(verilog::parser::token::LT);}
-{L_NEG}                {yylval.operator=OPERATOR_L_NEG  ; EMIT_TOKEN(verilog::parser::token::L_NEG);}
-{L_AND}                {yylval.operator=OPERATOR_L_AND  ; EMIT_TOKEN(verilog::parser::token::L_AND);}
-{L_OR}                 {yylval.operator=OPERATOR_L_OR   ; EMIT_TOKEN(verilog::parser::token::L_OR);}
-{C_EQ}                 {yylval.operator=OPERATOR_C_EQ   ; EMIT_TOKEN(verilog::parser::token::C_EQ);}
-{L_EQ}                 {yylval.operator=OPERATOR_L_EQ   ; EMIT_TOKEN(verilog::parser::token::L_EQ);}
-{C_NEQ}                {yylval.operator=OPERATOR_C_NEQ  ; EMIT_TOKEN(verilog::parser::token::C_NEQ);}
-{L_NEQ}                {yylval.operator=OPERATOR_L_NEQ  ; EMIT_TOKEN(verilog::parser::token::L_NEQ);}
-{B_NEG}                {yylval.operator=OPERATOR_B_NEG  ; EMIT_TOKEN(verilog::parser::token::B_NEG);}
-{B_AND}                {yylval.operator=OPERATOR_B_AND  ; EMIT_TOKEN(verilog::parser::token::B_AND);}
-{B_OR}                 {yylval.operator=OPERATOR_B_OR   ; EMIT_TOKEN(verilog::parser::token::B_OR);}
-{B_XOR}                {yylval.operator=OPERATOR_B_XOR  ; EMIT_TOKEN(verilog::parser::token::B_XOR);}
-{B_EQU}                {yylval.operator=OPERATOR_B_EQU  ; EMIT_TOKEN(verilog::parser::token::B_EQU);}
-{B_NAND}               {yylval.operator=OPERATOR_B_NAND ; EMIT_TOKEN(verilog::parser::token::B_NAND);}
-{B_NOR}                {yylval.operator=OPERATOR_B_NOR  ; EMIT_TOKEN(verilog::parser::token::B_NOR);}
-{TERNARY}              {yylval.operator=OPERATOR_TERNARY; EMIT_TOKEN(verilog::parser::token::TERNARY);}
+{AT}                   {EMIT_TOKEN(yy::VerilogParser::token::AT);}
+{COMMA}                {EMIT_TOKEN(yy::VerilogParser::token::COMMA);}
+{HASH}                 {EMIT_TOKEN(yy::VerilogParser::token::HASH);}
+{DOT}                  {EMIT_TOKEN(yy::VerilogParser::token::DOT);}
+{EQ}                   {yylval.operator = OPERATOR_L_EQ; EMIT_TOKEN(yy::VerilogParser::token::EQ);}
+{COLON}                {EMIT_TOKEN(yy::VerilogParser::token::COLON);}
+{IDX_PRT_SEL}          {EMIT_TOKEN(yy::VerilogParser::token::IDX_PRT_SEL);}
+{SEMICOLON}            {EMIT_TOKEN(yy::VerilogParser::token::SEMICOLON);}
+{OPEN_BRACKET}         {EMIT_TOKEN(yy::VerilogParser::token::OPEN_BRACKET);}
+{CLOSE_BRACKET}        {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_BRACKET);}
+{OPEN_SQ_BRACKET}      {EMIT_TOKEN(yy::VerilogParser::token::OPEN_SQ_BRACKET);}
+{CLOSE_SQ_BRACKET}     {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_SQ_BRACKET);}
+{OPEN_SQ_BRACE}        {EMIT_TOKEN(yy::VerilogParser::token::OPEN_SQ_BRACE);}
+{CLOSE_SQ_BRACE}       {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_SQ_BRACE);}
+{STAR}                 {yylval.operator=OPERATOR_STAR   ; EMIT_TOKEN(yy::VerilogParser::token::STAR);}
+{PLUS}                 {yylval.operator=OPERATOR_PLUS   ; EMIT_TOKEN(yy::VerilogParser::token::PLUS);}
+{MINUS}                {yylval.operator=OPERATOR_MINUS  ; EMIT_TOKEN(yy::VerilogParser::token::MINUS);}
+{ASL}                  {yylval.operator=OPERATOR_ASL    ; EMIT_TOKEN(yy::VerilogParser::token::ASL);}
+{ASR}                  {yylval.operator=OPERATOR_ASR    ; EMIT_TOKEN(yy::VerilogParser::token::ASR);}
+{LSL}                  {yylval.operator=OPERATOR_LSL    ; EMIT_TOKEN(yy::VerilogParser::token::LSL);}
+{LSR}                  {yylval.operator=OPERATOR_LSR    ; EMIT_TOKEN(yy::VerilogParser::token::LSR);}
+{DIV}                  {yylval.operator=OPERATOR_DIV    ; EMIT_TOKEN(yy::VerilogParser::token::DIV);}
+{POW}                  {yylval.operator=OPERATOR_POW    ; EMIT_TOKEN(yy::VerilogParser::token::POW);}
+{MOD}                  {yylval.operator=OPERATOR_MOD    ; EMIT_TOKEN(yy::VerilogParser::token::MOD);}
+{GTE}                  {yylval.operator=OPERATOR_GTE    ; EMIT_TOKEN(yy::VerilogParser::token::GTE);}
+{LTE}                  {yylval.operator=OPERATOR_LTE    ; EMIT_TOKEN(yy::VerilogParser::token::LTE);}
+{GT}                   {yylval.operator=OPERATOR_GT     ; EMIT_TOKEN(yy::VerilogParser::token::GT);}
+{LT}                   {yylval.operator=OPERATOR_LT     ; EMIT_TOKEN(yy::VerilogParser::token::LT);}
+{L_NEG}                {yylval.operator=OPERATOR_L_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEG);}
+{L_AND}                {yylval.operator=OPERATOR_L_AND  ; EMIT_TOKEN(yy::VerilogParser::token::L_AND);}
+{L_OR}                 {yylval.operator=OPERATOR_L_OR   ; EMIT_TOKEN(yy::VerilogParser::token::L_OR);}
+{C_EQ}                 {yylval.operator=OPERATOR_C_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::C_EQ);}
+{L_EQ}                 {yylval.operator=OPERATOR_L_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::L_EQ);}
+{C_NEQ}                {yylval.operator=OPERATOR_C_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::C_NEQ);}
+{L_NEQ}                {yylval.operator=OPERATOR_L_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEQ);}
+{B_NEG}                {yylval.operator=OPERATOR_B_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::B_NEG);}
+{B_AND}                {yylval.operator=OPERATOR_B_AND  ; EMIT_TOKEN(yy::VerilogParser::token::B_AND);}
+{B_OR}                 {yylval.operator=OPERATOR_B_OR   ; EMIT_TOKEN(yy::VerilogParser::token::B_OR);}
+{B_XOR}                {yylval.operator=OPERATOR_B_XOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_XOR);}
+{B_EQU}                {yylval.operator=OPERATOR_B_EQU  ; EMIT_TOKEN(yy::VerilogParser::token::B_EQU);}
+{B_NAND}               {yylval.operator=OPERATOR_B_NAND ; EMIT_TOKEN(yy::VerilogParser::token::B_NAND);}
+{B_NOR}                {yylval.operator=OPERATOR_B_NOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_NOR);}
+{TERNARY}              {yylval.operator=OPERATOR_TERNARY; EMIT_TOKEN(yy::VerilogParser::token::TERNARY);}
 
-{BASE_DECIMAL}         {EMIT_TOKEN(verilog::parser::token::DEC_BASE);}
-{BASE_HEX}             {BEGIN(in_hex_val); EMIT_TOKEN(verilog::parser::token::HEX_BASE);}
-{BASE_OCTAL}           {BEGIN(in_oct_val); EMIT_TOKEN(verilog::parser::token::OCT_BASE);}
-{BASE_BINARY}          {BEGIN(in_bin_val); EMIT_TOKEN(verilog::parser::token::BIN_BASE);}
+{BASE_DECIMAL}         {EMIT_TOKEN(yy::VerilogParser::token::DEC_BASE);}
+{BASE_HEX}             {BEGIN(in_hex_val); EMIT_TOKEN(yy::VerilogParser::token::HEX_BASE);}
+{BASE_OCTAL}           {BEGIN(in_oct_val); EMIT_TOKEN(yy::VerilogParser::token::OCT_BASE);}
+{BASE_BINARY}          {BEGIN(in_bin_val); EMIT_TOKEN(yy::VerilogParser::token::BIN_BASE);}
 
-<in_bin_val>{BIN_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(verilog::parser::token::BIN_VALUE);}
-<in_oct_val>{OCT_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(verilog::parser::token::OCT_VALUE);}
-<in_hex_val>{HEX_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(verilog::parser::token::HEX_VALUE);}
+<in_bin_val>{BIN_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(yy::VerilogParser::token::BIN_VALUE);}
+<in_oct_val>{OCT_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(yy::VerilogParser::token::OCT_VALUE);}
+<in_hex_val>{HEX_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(yy::VerilogParser::token::HEX_VALUE);}
 
-{NUM_REAL}             {yylval.string=yytext;EMIT_TOKEN(verilog::parser::token::NUM_REAL);}
-{NUM_UNSIGNED}         {yylval.string=yytext;EMIT_TOKEN(verilog::parser::token::UNSIGNED_NUMBER);}
+{NUM_REAL}             {yylval.string=yytext;EMIT_TOKEN(yy::VerilogParser::token::NUM_REAL);}
+{NUM_UNSIGNED}         {yylval.string=yytext;EMIT_TOKEN(yy::VerilogParser::token::UNSIGNED_NUMBER);}
 
-{ALWAYS}               {EMIT_TOKEN(verilog::parser::token::KW_ALWAYS);}
-{AND}                  {EMIT_TOKEN(verilog::parser::token::KW_AND);}
-{ASSIGN}               {EMIT_TOKEN(verilog::parser::token::KW_ASSIGN);}
-{AUTOMATIC}            {EMIT_TOKEN(verilog::parser::token::KW_AUTOMATIC);}
-{BEGIN}                {EMIT_TOKEN(verilog::parser::token::KW_BEGIN);}
-{BUF}                  {EMIT_TOKEN(verilog::parser::token::KW_BUF);}
-{BUFIF0}               {EMIT_TOKEN(verilog::parser::token::KW_BUFIF0);}
-{BUFIF1}               {EMIT_TOKEN(verilog::parser::token::KW_BUFIF1);}
-{CASE}                 {EMIT_TOKEN(verilog::parser::token::KW_CASE);}
-{CASEX}                {EMIT_TOKEN(verilog::parser::token::KW_CASEX);}
-{CASEZ}                {EMIT_TOKEN(verilog::parser::token::KW_CASEZ);}
-{CELL}                 {EMIT_TOKEN(verilog::parser::token::KW_CELL);}
-{CMOS}                 {EMIT_TOKEN(verilog::parser::token::KW_CMOS);}
-{CONFIG}               {EMIT_TOKEN(verilog::parser::token::KW_CONFIG);}
-{DEASSIGN}             {EMIT_TOKEN(verilog::parser::token::KW_DEASSIGN);}
-{DEFAULT}              {EMIT_TOKEN(verilog::parser::token::KW_DEFAULT);}
-{DEFPARAM}             {EMIT_TOKEN(verilog::parser::token::KW_DEFPARAM);}
-{DESIGN}               {EMIT_TOKEN(verilog::parser::token::KW_DESIGN);}
-{DISABLE}              {EMIT_TOKEN(verilog::parser::token::KW_DISABLE);}
-{EDGE}                 {EMIT_TOKEN(verilog::parser::token::KW_EDGE);}
-{ELSE}                 {EMIT_TOKEN(verilog::parser::token::KW_ELSE);}
-{END}                  {EMIT_TOKEN(verilog::parser::token::KW_END);}
-{ENDCASE}              {EMIT_TOKEN(verilog::parser::token::KW_ENDCASE);}
-{ENDCONFIG}            {EMIT_TOKEN(verilog::parser::token::KW_ENDCONFIG);}
-{ENDFUNCTION}          {EMIT_TOKEN(verilog::parser::token::KW_ENDFUNCTION);}
-{ENDGENERATE}          {EMIT_TOKEN(verilog::parser::token::KW_ENDGENERATE);}
-{ENDMODULE}            {EMIT_TOKEN(verilog::parser::token::KW_ENDMODULE);}
-{ENDPRIMITIVE}         {EMIT_TOKEN(verilog::parser::token::KW_ENDPRIMITIVE);}
-{ENDSPECIFY}           {EMIT_TOKEN(verilog::parser::token::KW_ENDSPECIFY);}
-{ENDTABLE}             {EMIT_TOKEN(verilog::parser::token::KW_ENDTABLE);}
-{ENDTASK}              {EMIT_TOKEN(verilog::parser::token::KW_ENDTASK);}
-{EVENT}                {EMIT_TOKEN(verilog::parser::token::KW_EVENT);}
-{FOR}                  {EMIT_TOKEN(verilog::parser::token::KW_FOR);}
-{FORCE}                {EMIT_TOKEN(verilog::parser::token::KW_FORCE);}
-{FOREVER}              {EMIT_TOKEN(verilog::parser::token::KW_FOREVER);}
-{FORK}                 {EMIT_TOKEN(verilog::parser::token::KW_FORK);}
-{FUNCTION}             {EMIT_TOKEN(verilog::parser::token::KW_FUNCTION);}
-{GENERATE}             {EMIT_TOKEN(verilog::parser::token::KW_GENERATE);}
-{GENVAR}               {EMIT_TOKEN(verilog::parser::token::KW_GENVAR);}
-{HIGHZ0}               {EMIT_TOKEN(verilog::parser::token::KW_HIGHZ0);}
-{HIGHZ1}               {EMIT_TOKEN(verilog::parser::token::KW_HIGHZ1);}
-{IF}                   {EMIT_TOKEN(verilog::parser::token::KW_IF);}
-{IFNONE}               {EMIT_TOKEN(verilog::parser::token::KW_IFNONE);}
-{INCDIR}               {EMIT_TOKEN(verilog::parser::token::KW_INCDIR);}
-{INCLUDE}              {EMIT_TOKEN(verilog::parser::token::KW_INCLUDE);}
-{INITIAL}              {EMIT_TOKEN(verilog::parser::token::KW_INITIAL);}
-{INOUT}                {EMIT_TOKEN(verilog::parser::token::KW_INOUT);}
-{INPUT}                {EMIT_TOKEN(verilog::parser::token::KW_INPUT);}
-{INSTANCE}             {EMIT_TOKEN(verilog::parser::token::KW_INSTANCE);}
-{INTEGER}              {EMIT_TOKEN(verilog::parser::token::KW_INTEGER);}
-{JOIN}                 {EMIT_TOKEN(verilog::parser::token::KW_JOIN);}
-{LARGE}                {EMIT_TOKEN(verilog::parser::token::KW_LARGE);}
-{LIBLIST}              {EMIT_TOKEN(verilog::parser::token::KW_LIBLIST);}
-{LIBRARY}              {EMIT_TOKEN(verilog::parser::token::KW_LIBRARY);}
-{LOCALPARAM}           {EMIT_TOKEN(verilog::parser::token::KW_LOCALPARAM);}
-{MACROMODULE}          {EMIT_TOKEN(verilog::parser::token::KW_MACROMODULE);}
-{MEDIUM}               {EMIT_TOKEN(verilog::parser::token::KW_MEDIUM);}
-{MODULE}               {EMIT_TOKEN(verilog::parser::token::KW_MODULE);}
-{NAND}                 {EMIT_TOKEN(verilog::parser::token::KW_NAND);}
-{NEGEDGE}              {EMIT_TOKEN(verilog::parser::token::KW_NEGEDGE);}
-{NMOS}                 {EMIT_TOKEN(verilog::parser::token::KW_NMOS);}
-{NOR}                  {EMIT_TOKEN(verilog::parser::token::KW_NOR);}
-{NOSHOWCANCELLED}      {EMIT_TOKEN(verilog::parser::token::KW_NOSHOWCANCELLED);}
-{NOT}                  {EMIT_TOKEN(verilog::parser::token::KW_NOT);}
-{NOTIF0}               {EMIT_TOKEN(verilog::parser::token::KW_NOTIF0);}
-{NOTIF1}               {EMIT_TOKEN(verilog::parser::token::KW_NOTIF1);}
-{OR}                   {EMIT_TOKEN(verilog::parser::token::KW_OR);}
-{OUTPUT}               {EMIT_TOKEN(verilog::parser::token::KW_OUTPUT);}
-{PARAMETER}            {EMIT_TOKEN(verilog::parser::token::KW_PARAMETER);}
-{PMOS}                 {EMIT_TOKEN(verilog::parser::token::KW_PMOS);}
-{POSEDGE}              {EMIT_TOKEN(verilog::parser::token::KW_POSEDGE);}
-{PRIMITIVE}            {EMIT_TOKEN(verilog::parser::token::KW_PRIMITIVE);}
-{PULL0}                {EMIT_TOKEN(verilog::parser::token::KW_PULL0);}
-{PULL1}                {EMIT_TOKEN(verilog::parser::token::KW_PULL1);}
-{PULLDOWN}             {EMIT_TOKEN(verilog::parser::token::KW_PULLDOWN);}
-{PULLUP}               {EMIT_TOKEN(verilog::parser::token::KW_PULLUP);}
-{PULSESTYLE_ONEVENT}   {EMIT_TOKEN(verilog::parser::token::KW_PULSESTYLE_ONEVENT);}
-{PULSESTYLE_ONDETECT}  {EMIT_TOKEN(verilog::parser::token::KW_PULSESTYLE_ONDETECT);}
-{RCMOS}                {EMIT_TOKEN(verilog::parser::token::KW_RCMOS);}
-{REAL}                 {EMIT_TOKEN(verilog::parser::token::KW_REAL);}
-{REALTIME}             {EMIT_TOKEN(verilog::parser::token::KW_REALTIME);}
-{REG}                  {EMIT_TOKEN(verilog::parser::token::KW_REG);}
-{RELEASE}              {EMIT_TOKEN(verilog::parser::token::KW_RELEASE);}
-{REPEAT}               {EMIT_TOKEN(verilog::parser::token::KW_REPEAT);}
-{RNMOS}                {EMIT_TOKEN(verilog::parser::token::KW_RNMOS);}
-{RPMOS}                {EMIT_TOKEN(verilog::parser::token::KW_RPMOS);}
-{RTRAN}                {EMIT_TOKEN(verilog::parser::token::KW_RTRAN);}
-{RTRANIF0}             {EMIT_TOKEN(verilog::parser::token::KW_RTRANIF0);}
-{RTRANIF1}             {EMIT_TOKEN(verilog::parser::token::KW_RTRANIF1);}
-{SCALARED}             {EMIT_TOKEN(verilog::parser::token::KW_SCALARED);}
-{SHOWCANCELLED}        {EMIT_TOKEN(verilog::parser::token::KW_SHOWCANCELLED);}
-{SIGNED}               {EMIT_TOKEN(verilog::parser::token::KW_SIGNED);}
-{SMALL}                {EMIT_TOKEN(verilog::parser::token::KW_SMALL);}
-{SPECIFY}              {EMIT_TOKEN(verilog::parser::token::KW_SPECIFY);}
-{SPECPARAM}            {EMIT_TOKEN(verilog::parser::token::KW_SPECPARAM);}
-{STRONG0}              {EMIT_TOKEN(verilog::parser::token::KW_STRONG0);}
-{STRONG1}              {EMIT_TOKEN(verilog::parser::token::KW_STRONG1);}
-{SUPPLY0}              {EMIT_TOKEN(verilog::parser::token::KW_SUPPLY0);}
-{SUPPLY1}              {EMIT_TOKEN(verilog::parser::token::KW_SUPPLY1);}
-{TABLE}                {EMIT_TOKEN(verilog::parser::token::KW_TABLE);}
-{TASK}                 {EMIT_TOKEN(verilog::parser::token::KW_TASK);}
-{TIME}                 {EMIT_TOKEN(verilog::parser::token::KW_TIME);}
-{TRAN}                 {EMIT_TOKEN(verilog::parser::token::KW_TRAN);}
-{TRANIF0}              {EMIT_TOKEN(verilog::parser::token::KW_TRANIF0);}
-{TRANIF1}              {EMIT_TOKEN(verilog::parser::token::KW_TRANIF1);}
-{TRI0}                 {EMIT_TOKEN(verilog::parser::token::KW_TRI0);}
-{TRI1}                 {EMIT_TOKEN(verilog::parser::token::KW_TRI1);}
-{TRIAND}               {EMIT_TOKEN(verilog::parser::token::KW_TRIAND);}
-{TRIOR}                {EMIT_TOKEN(verilog::parser::token::KW_TRIOR);}
-{TRIREG}               {EMIT_TOKEN(verilog::parser::token::KW_TRIREG);}
-{TRI}                  {EMIT_TOKEN(verilog::parser::token::KW_TRI);}
-{UNSIGNED}             {EMIT_TOKEN(verilog::parser::token::KW_UNSIGNED);}
-{USE}                  {EMIT_TOKEN(verilog::parser::token::KW_USE);}
-{VECTORED}             {EMIT_TOKEN(verilog::parser::token::KW_VECTORED);}
-{WAIT}                 {EMIT_TOKEN(verilog::parser::token::KW_WAIT);}
-{WAND}                 {EMIT_TOKEN(verilog::parser::token::KW_WAND);}
-{WEAK0}                {EMIT_TOKEN(verilog::parser::token::KW_WEAK0);}
-{WEAK1}                {EMIT_TOKEN(verilog::parser::token::KW_WEAK1);}
-{WHILE}                {EMIT_TOKEN(verilog::parser::token::KW_WHILE);}
-{WIRE}                 {EMIT_TOKEN(verilog::parser::token::KW_WIRE);}
-{WOR}                  {EMIT_TOKEN(verilog::parser::token::KW_WOR);}
-{XNOR}                 {EMIT_TOKEN(verilog::parser::token::KW_XNOR);}
-{XOR}                  {EMIT_TOKEN(verilog::parser::token::KW_XOR);}
+{ALWAYS}               {EMIT_TOKEN(yy::VerilogParser::token::KW_ALWAYS);}
+{AND}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_AND);}
+{ASSIGN}               {EMIT_TOKEN(yy::VerilogParser::token::KW_ASSIGN);}
+{AUTOMATIC}            {EMIT_TOKEN(yy::VerilogParser::token::KW_AUTOMATIC);}
+{BEGIN}                {EMIT_TOKEN(yy::VerilogParser::token::KW_BEGIN);}
+{BUF}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_BUF);}
+{BUFIF0}               {EMIT_TOKEN(yy::VerilogParser::token::KW_BUFIF0);}
+{BUFIF1}               {EMIT_TOKEN(yy::VerilogParser::token::KW_BUFIF1);}
+{CASE}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_CASE);}
+{CASEX}                {EMIT_TOKEN(yy::VerilogParser::token::KW_CASEX);}
+{CASEZ}                {EMIT_TOKEN(yy::VerilogParser::token::KW_CASEZ);}
+{CELL}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_CELL);}
+{CMOS}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_CMOS);}
+{CONFIG}               {EMIT_TOKEN(yy::VerilogParser::token::KW_CONFIG);}
+{DEASSIGN}             {EMIT_TOKEN(yy::VerilogParser::token::KW_DEASSIGN);}
+{DEFAULT}              {EMIT_TOKEN(yy::VerilogParser::token::KW_DEFAULT);}
+{DEFPARAM}             {EMIT_TOKEN(yy::VerilogParser::token::KW_DEFPARAM);}
+{DESIGN}               {EMIT_TOKEN(yy::VerilogParser::token::KW_DESIGN);}
+{DISABLE}              {EMIT_TOKEN(yy::VerilogParser::token::KW_DISABLE);}
+{EDGE}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_EDGE);}
+{ELSE}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_ELSE);}
+{END}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_END);}
+{ENDCASE}              {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDCASE);}
+{ENDCONFIG}            {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDCONFIG);}
+{ENDFUNCTION}          {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDFUNCTION);}
+{ENDGENERATE}          {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDGENERATE);}
+{ENDMODULE}            {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDMODULE);}
+{ENDPRIMITIVE}         {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDPRIMITIVE);}
+{ENDSPECIFY}           {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDSPECIFY);}
+{ENDTABLE}             {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDTABLE);}
+{ENDTASK}              {EMIT_TOKEN(yy::VerilogParser::token::KW_ENDTASK);}
+{EVENT}                {EMIT_TOKEN(yy::VerilogParser::token::KW_EVENT);}
+{FOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_FOR);}
+{FORCE}                {EMIT_TOKEN(yy::VerilogParser::token::KW_FORCE);}
+{FOREVER}              {EMIT_TOKEN(yy::VerilogParser::token::KW_FOREVER);}
+{FORK}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_FORK);}
+{FUNCTION}             {EMIT_TOKEN(yy::VerilogParser::token::KW_FUNCTION);}
+{GENERATE}             {EMIT_TOKEN(yy::VerilogParser::token::KW_GENERATE);}
+{GENVAR}               {EMIT_TOKEN(yy::VerilogParser::token::KW_GENVAR);}
+{HIGHZ0}               {EMIT_TOKEN(yy::VerilogParser::token::KW_HIGHZ0);}
+{HIGHZ1}               {EMIT_TOKEN(yy::VerilogParser::token::KW_HIGHZ1);}
+{IF}                   {EMIT_TOKEN(yy::VerilogParser::token::KW_IF);}
+{IFNONE}               {EMIT_TOKEN(yy::VerilogParser::token::KW_IFNONE);}
+{INCDIR}               {EMIT_TOKEN(yy::VerilogParser::token::KW_INCDIR);}
+{INCLUDE}              {EMIT_TOKEN(yy::VerilogParser::token::KW_INCLUDE);}
+{INITIAL}              {EMIT_TOKEN(yy::VerilogParser::token::KW_INITIAL);}
+{INOUT}                {EMIT_TOKEN(yy::VerilogParser::token::KW_INOUT);}
+{INPUT}                {EMIT_TOKEN(yy::VerilogParser::token::KW_INPUT);}
+{INSTANCE}             {EMIT_TOKEN(yy::VerilogParser::token::KW_INSTANCE);}
+{INTEGER}              {EMIT_TOKEN(yy::VerilogParser::token::KW_INTEGER);}
+{JOIN}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_JOIN);}
+{LARGE}                {EMIT_TOKEN(yy::VerilogParser::token::KW_LARGE);}
+{LIBLIST}              {EMIT_TOKEN(yy::VerilogParser::token::KW_LIBLIST);}
+{LIBRARY}              {EMIT_TOKEN(yy::VerilogParser::token::KW_LIBRARY);}
+{LOCALPARAM}           {EMIT_TOKEN(yy::VerilogParser::token::KW_LOCALPARAM);}
+{MACROMODULE}          {EMIT_TOKEN(yy::VerilogParser::token::KW_MACROMODULE);}
+{MEDIUM}               {EMIT_TOKEN(yy::VerilogParser::token::KW_MEDIUM);}
+{MODULE}               {EMIT_TOKEN(yy::VerilogParser::token::KW_MODULE);}
+{NAND}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_NAND);}
+{NEGEDGE}              {EMIT_TOKEN(yy::VerilogParser::token::KW_NEGEDGE);}
+{NMOS}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_NMOS);}
+{NOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_NOR);}
+{NOSHOWCANCELLED}      {EMIT_TOKEN(yy::VerilogParser::token::KW_NOSHOWCANCELLED);}
+{NOT}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_NOT);}
+{NOTIF0}               {EMIT_TOKEN(yy::VerilogParser::token::KW_NOTIF0);}
+{NOTIF1}               {EMIT_TOKEN(yy::VerilogParser::token::KW_NOTIF1);}
+{OR}                   {EMIT_TOKEN(yy::VerilogParser::token::KW_OR);}
+{OUTPUT}               {EMIT_TOKEN(yy::VerilogParser::token::KW_OUTPUT);}
+{PARAMETER}            {EMIT_TOKEN(yy::VerilogParser::token::KW_PARAMETER);}
+{PMOS}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_PMOS);}
+{POSEDGE}              {EMIT_TOKEN(yy::VerilogParser::token::KW_POSEDGE);}
+{PRIMITIVE}            {EMIT_TOKEN(yy::VerilogParser::token::KW_PRIMITIVE);}
+{PULL0}                {EMIT_TOKEN(yy::VerilogParser::token::KW_PULL0);}
+{PULL1}                {EMIT_TOKEN(yy::VerilogParser::token::KW_PULL1);}
+{PULLDOWN}             {EMIT_TOKEN(yy::VerilogParser::token::KW_PULLDOWN);}
+{PULLUP}               {EMIT_TOKEN(yy::VerilogParser::token::KW_PULLUP);}
+{PULSESTYLE_ONEVENT}   {EMIT_TOKEN(yy::VerilogParser::token::KW_PULSESTYLE_ONEVENT);}
+{PULSESTYLE_ONDETECT}  {EMIT_TOKEN(yy::VerilogParser::token::KW_PULSESTYLE_ONDETECT);}
+{RCMOS}                {EMIT_TOKEN(yy::VerilogParser::token::KW_RCMOS);}
+{REAL}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_REAL);}
+{REALTIME}             {EMIT_TOKEN(yy::VerilogParser::token::KW_REALTIME);}
+{REG}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_REG);}
+{RELEASE}              {EMIT_TOKEN(yy::VerilogParser::token::KW_RELEASE);}
+{REPEAT}               {EMIT_TOKEN(yy::VerilogParser::token::KW_REPEAT);}
+{RNMOS}                {EMIT_TOKEN(yy::VerilogParser::token::KW_RNMOS);}
+{RPMOS}                {EMIT_TOKEN(yy::VerilogParser::token::KW_RPMOS);}
+{RTRAN}                {EMIT_TOKEN(yy::VerilogParser::token::KW_RTRAN);}
+{RTRANIF0}             {EMIT_TOKEN(yy::VerilogParser::token::KW_RTRANIF0);}
+{RTRANIF1}             {EMIT_TOKEN(yy::VerilogParser::token::KW_RTRANIF1);}
+{SCALARED}             {EMIT_TOKEN(yy::VerilogParser::token::KW_SCALARED);}
+{SHOWCANCELLED}        {EMIT_TOKEN(yy::VerilogParser::token::KW_SHOWCANCELLED);}
+{SIGNED}               {EMIT_TOKEN(yy::VerilogParser::token::KW_SIGNED);}
+{SMALL}                {EMIT_TOKEN(yy::VerilogParser::token::KW_SMALL);}
+{SPECIFY}              {EMIT_TOKEN(yy::VerilogParser::token::KW_SPECIFY);}
+{SPECPARAM}            {EMIT_TOKEN(yy::VerilogParser::token::KW_SPECPARAM);}
+{STRONG0}              {EMIT_TOKEN(yy::VerilogParser::token::KW_STRONG0);}
+{STRONG1}              {EMIT_TOKEN(yy::VerilogParser::token::KW_STRONG1);}
+{SUPPLY0}              {EMIT_TOKEN(yy::VerilogParser::token::KW_SUPPLY0);}
+{SUPPLY1}              {EMIT_TOKEN(yy::VerilogParser::token::KW_SUPPLY1);}
+{TABLE}                {EMIT_TOKEN(yy::VerilogParser::token::KW_TABLE);}
+{TASK}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_TASK);}
+{TIME}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_TIME);}
+{TRAN}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_TRAN);}
+{TRANIF0}              {EMIT_TOKEN(yy::VerilogParser::token::KW_TRANIF0);}
+{TRANIF1}              {EMIT_TOKEN(yy::VerilogParser::token::KW_TRANIF1);}
+{TRI0}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_TRI0);}
+{TRI1}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_TRI1);}
+{TRIAND}               {EMIT_TOKEN(yy::VerilogParser::token::KW_TRIAND);}
+{TRIOR}                {EMIT_TOKEN(yy::VerilogParser::token::KW_TRIOR);}
+{TRIREG}               {EMIT_TOKEN(yy::VerilogParser::token::KW_TRIREG);}
+{TRI}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_TRI);}
+{UNSIGNED}             {EMIT_TOKEN(yy::VerilogParser::token::KW_UNSIGNED);}
+{USE}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_USE);}
+{VECTORED}             {EMIT_TOKEN(yy::VerilogParser::token::KW_VECTORED);}
+{WAIT}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_WAIT);}
+{WAND}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_WAND);}
+{WEAK0}                {EMIT_TOKEN(yy::VerilogParser::token::KW_WEAK0);}
+{WEAK1}                {EMIT_TOKEN(yy::VerilogParser::token::KW_WEAK1);}
+{WHILE}                {EMIT_TOKEN(yy::VerilogParser::token::KW_WHILE);}
+{WIRE}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_WIRE);}
+{WOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_WOR);}
+{XNOR}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_XNOR);}
+{XOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_XOR);}
 
 {SYSTEM_ID}            {
 	yylval.identifier = ast_new_identifier(yytext,yylineno);
-	EMIT_TOKEN(verilog::parser::token::SYSTEM_ID);
+	EMIT_TOKEN(yy::VerilogParser::token::SYSTEM_ID);
 }
 {ESCAPED_ID}           {
 	yylval.identifier = ast_new_identifier(yytext,yylineno);
-	EMIT_TOKEN(verilog::parser::token::ESCAPED_ID);
+	EMIT_TOKEN(yy::VerilogParser::token::ESCAPED_ID);
 }
 {SIMPLE_ID}            {
 	yylval.identifier = ast_new_identifier(yytext,yylineno);
-	EMIT_TOKEN(verilog::parser::token::SIMPLE_ID);
+	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
-{STRING}               {yylval.string= yytext;EMIT_TOKEN(verilog::parser::token::STRING);}
+{STRING}               {yylval.string= yytext;EMIT_TOKEN(yy::VerilogParser::token::STRING);}
 
-<*>{NEWLINE}              {/*EMIT_TOKEN(verilog::parser::token::NEWLINE); IGNORE */   }
-<*>{SPACE}                {/*EMIT_TOKEN(verilog::parser::token::SPACE);   IGNORE */   }
-<*>{TAB}                  {/*EMIT_TOKEN(verilog::parser::token::TAB);     IGNORE */   }
+<*>{NEWLINE}              {/*EMIT_TOKEN(yy::VerilogParser::token::NEWLINE); IGNORE */   }
+<*>{SPACE}                {/*EMIT_TOKEN(yy::VerilogParser::token::SPACE);   IGNORE */   }
+<*>{TAB}                  {/*EMIT_TOKEN(yy::VerilogParser::token::TAB);     IGNORE */   }
 
 <<EOF>> {
 
@@ -755,6 +763,6 @@ TERNARY             "?"
 }
 
   .                      {
-	  EMIT_TOKEN(verilog::parser::token::ANY);
+          EMIT_TOKEN(yy::VerilogParser::token::ANY);
   }
 %%

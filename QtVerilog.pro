@@ -31,10 +31,11 @@ SOURCES += \
 HEADERS += \
 	mainwindow.h \
 	verilogschematics.h \
-  	asttree.h \
-	verilog_ast_common.h \
-	verilog_ast.h \
-	verilog_ast_mem.h
+	asttree.hh \ 
+	verilog_ast_common.hh \
+       	verilog_ast.hh \
+       	verilog_ast_mem.hh \
+	verilog_preprocessor.hh
 
 FORMS += \
 	mainwindow.ui
@@ -42,13 +43,21 @@ FORMS += \
 FLEXSOURCES += verilog.l
 BISONSOURCES += verilog.y
 
-flex.commands = flex++ --c++ -o verilog.yy.cc ${QMAKE_FILE_IN}
+flex.commands = flex++ --c++ --header-file=verilog.yy.hh -o verilog.yy.cc ${QMAKE_FILE_IN}
 flex.input = FLEXSOURCES
 flex.output = verilog.yy.cc
 flex.variable_out = SOURCES
-flex.depends = verilog.tab.h
+flex.depends = verilog.tab.hh
 flex.name = flex
 QMAKE_EXTRA_COMPILERS += flex
+
+flexheader.commands = @true
+flexheader.input = FLEXSOURCES
+flexheader.output = verilog.yy.hh
+flexheader.variable_out = HEADERS
+flexheader.name = flex header
+flexheader.depends = verilog.yy.cc
+QMAKE_EXTRA_COMPILERS += flexheader
  
 bison.commands = bison -Lc++ -d -t ${QMAKE_FILE_IN}
 bison.input = BISONSOURCES
@@ -59,7 +68,7 @@ QMAKE_EXTRA_COMPILERS += bison
  
 bisonheader.commands = @true
 bisonheader.input = BISONSOURCES
-bisonheader.output = verilog.tab.h
+bisonheader.output = verilog.tab.hh
 bisonheader.variable_out = HEADERS
 bisonheader.name = bison header
 bisonheader.depends = verilog.tab.cc

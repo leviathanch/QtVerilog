@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "verilog_ast.h"
-#include "verilog_ast_common.h"
+#include "verilog_ast.hh"
+#include "verilog_ast_common.hh"
 
 #ifndef VERILOG_PREPROCESSOR_H
 #define VERILOG_PREPROCESSOR_H
@@ -196,7 +196,7 @@ void verilog_preprocessor_endif (unsigned int lineno);
 - Timescale directives
 */
 typedef struct verilog_preprocessor_context_t{
-    bool     emit;           //!< Only emit tokens iff true.
+    bool     emit_e;           //!< Only emit tokens iff true.
     unsigned int    token_count;    //!< Keeps count of tokens processed.
     bool     in_cell_define; //!< TRUE iff we are in a cell define.
 

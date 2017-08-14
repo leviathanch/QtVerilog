@@ -1,14 +1,15 @@
-%name-prefix "verilog"
 %token-table
 %glr-parser
+%define "parser_class_name" "VerilogParser"
+%locations
 
 %code top{
-#include "verilog.tab.hh"
-#include "verilog_ast.h"
-#include "asttree.h"
+#include "verilog_ast.hh"
+#include "asttree.hh"
 
-extern int yylex();
-extern int yylineno;
+#include "verilog.tab.hh"
+//#include "verilog.yy.hh"
+
 extern char * yytext;
 extern AstTree *ast;
 
