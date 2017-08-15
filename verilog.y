@@ -1,17 +1,19 @@
 %token-table
 %glr-parser
 %define "parser_class_name" "VerilogParser"
-%locations
+//%locations
 
 %code top{
+#include <string>
+#include <iostream>
+#include <fstream>
+
 #include "verilog_ast.hh"
+#include "verilog_preprocessor.hh"
 #include "asttree.hh"
 
-#include "verilog.tab.hh"
-//#include "verilog.yy.hh"
-
 extern char * yytext;
-extern AstTree *ast;
+//extern AstTree *ast;
 
 void verilogerror(const char *msg){
 	printf("line %d - ERROR: %s\n", yylineno,msg);
@@ -73,7 +75,7 @@ int veriloglex();
     ast_net_type                   net_type;
     ast_node                     * node;
     ast_node_attributes          * node_attributes;
-        ast_operator                   verilog_operator;
+    ast_operator                   verilog_operator;
     ast_parameter_declarations   * parameter_declaration;
     ast_parameter_type             parameter_type;
     ast_pass_enable_switch       * pass_enable_switch   ;
