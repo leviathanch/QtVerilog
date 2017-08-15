@@ -4,6 +4,10 @@
 %code requires {
 #include "verilogcode.h"
 #include "asttree.hh"
+namespace yy {
+	class VerilogCode;
+	class AstTree;
+};
 }
 %param {yy::VerilogCode *code} {yy::AstTree *ast }
 %locations
