@@ -1,11 +1,14 @@
 #include <istream>
 #include <string>
 
+#include "verilogscanner.h"
 #include "verilogcode.h"
 #include "verilog.y.hh"
-#include "verilogscanner.h"
 
 namespace yy {
+	class VerilogScanner;
+	class VerilogParser;
+
 	VerilogCode::VerilogCode()
 	{
 		ast = new AstTree();
@@ -15,12 +18,12 @@ namespace yy {
 	{
 		streamname = sname;
 
-		yy::VerilogScanner *scanner = new yy::VerilogScanner(&in);
+		VerilogScanner *scanner = new VerilogScanner(&in);
 		scanner->set_debug(trace_scanning);
 		this->lexer = scanner;
 
 		//yy::VerilogParser parser(*this);
-		yy::VerilogParser *parser = new yy::VerilogParser(this, ast);
+		VerilogParser *parser = new VerilogParser(this, ast);
 		parser->parse();
 
 		//parser.set_debug_level(trace_parsing);

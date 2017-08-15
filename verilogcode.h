@@ -6,8 +6,11 @@
 #include <ostream>
 
 #include "location.hh"
+#include "verilogscanner.h"
 
 namespace yy {
+	class AstTree;
+	class VerilogScanner;
 	class VerilogCode
 	{
 	public:
