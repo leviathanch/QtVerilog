@@ -40,8 +40,8 @@ HEADERS += \
 FORMS += \
 	mainwindow.ui
 
-FLEXSOURCES += verilog.l
-BISONSOURCES += verilog.y
+FLEXSOURCES += verilog_scanner.ll
+BISONSOURCES += verilog_parser.yy
 
 flex.commands = flex++ --c++ --header-file=verilog.l.hh -o verilog.l.cc ${QMAKE_FILE_IN}
 flex.input = FLEXSOURCES

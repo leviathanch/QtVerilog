@@ -1,5 +1,5 @@
 %option c++
-%option yyclass="AstTree"
+/*%option yyclass="AstTree"*/
 %option batch
 %option stack
 %option debug
@@ -9,9 +9,9 @@
 #include <iostream>
 #include <fstream>
 
-#include "verilog.y.hh"
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
+#include "verilog.y.hh"
 
 #define EMIT_TOKEN(x) return x;
 extern YYSTYPE yylval;
