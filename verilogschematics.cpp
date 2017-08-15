@@ -1,10 +1,9 @@
 #include <QPainter>
 #include "verilogschematics.h"
-#include "asttree.hh"
 
 VerilogSchematics::VerilogSchematics(QWidget *parent) : QWidget(parent)
 {
-	ast = new AstTree();
+	code = new yy::VerilogCode();
 }
 
 void VerilogSchematics::paintEvent(QPaintEvent *event)

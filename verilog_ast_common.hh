@@ -62,7 +62,7 @@ void       ast_list_free(ast_list * list);
 /*!
 @brief Adds a new item to the end of a linked list.
 */
-void       ast_list_append(ast_list * list, void * data);
+void       ast_list_append(ast_list * list, const void * data);
 
 
 /*!

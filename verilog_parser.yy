@@ -1,11 +1,12 @@
 %token-table
 %glr-parser
-%define "parser_class_name" "VerilogParser"
+%define "parser_class_name" {VerilogParser}
 %code requires {
+#include "verilogcode.h"
 #include "asttree.hh"
 }
-%param { AstTree *ast }
-/*%locations*/
+%param {yy::VerilogCode *code} {yy::AstTree *ast }
+%locations
 
 %code top{
 #include <string>
@@ -18,7 +19,7 @@
 #include "verilog.l.hh"
 
 extern char * yytext;
-extern int yylex();
+#define yylex code_tree.lexer->lex
 
 void verilogerror(const char *msg){
 	printf("line %d - ERROR: %s\n", yylineno,msg);

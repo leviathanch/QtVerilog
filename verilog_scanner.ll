@@ -1,5 +1,4 @@
 %option c++
-/*%option yyclass="AstTree"*/
 %option batch
 %option stack
 %option debug

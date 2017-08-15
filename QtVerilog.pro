@@ -26,7 +26,9 @@ SOURCES += \
 	main.cpp \
 	mainwindow.cpp \
 	verilogschematics.cpp \
-  	asttree.cpp
+  	asttree.cpp \
+    verilogcode.cpp \
+    verilogscanner.cpp
 
 HEADERS += \
 	mainwindow.h \
@@ -35,7 +37,9 @@ HEADERS += \
 	verilog_ast_common.hh \
        	verilog_ast.hh \
        	verilog_ast_mem.hh \
-	verilog_preprocessor.hh
+	verilog_preprocessor.hh \
+    verilogcode.h \
+    verilogscanner.h
 
 FORMS += \
 	mainwindow.ui
