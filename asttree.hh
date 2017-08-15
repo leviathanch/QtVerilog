@@ -3,8 +3,7 @@
 
 #include <QObject>
 #include "verilog_ast.hh"
-#include "verilog.tab.hh"
-#include "verilog.yy.hh"
+#include "verilog.l.hh"
 
 class AstTree : public yyFlexLexer
 {
