@@ -78,9 +78,7 @@ void verilog_preprocessor_resetall();
 @brief Handles the entering of a no-unconnected drive directive.
 @param [in] direction -  Where should an unconnected line be pulled?
 */
-//void verilog_preprocessor_nounconnected_drive(
-//    ast_primitive_strength direction;
-//);
+void verilog_preprocessor_nounconnected_drive(ast_primitive_strength direction);
 
 // ----------------------- Include Directives ---------------------------
 
