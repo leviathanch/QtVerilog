@@ -1,8 +1,6 @@
-#include "verilogscanner.h"
+#include "verilogssanner.hh"
 
-namespace yy {
-	VerilogScanner::VerilogScanner()
-	{
+VerilogsSanner::VerilogsSanner()
+{
 
-	}
 }
