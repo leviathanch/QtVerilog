@@ -28,11 +28,11 @@ SOURCES += \
 	verilogschematics.cpp \
   	asttree.cpp \
 	verilogcode.cpp \
-	verilogscanner.cpp \
 	verilog_ast.cc \
 	verilog_ast_common.cc \
 	verilog_ast_mem.cc \
-	verilog_ast_util.cc
+	verilog_ast_util.cc \
+    verilogscanner.cpp
 
 HEADERS += \
 	mainwindow.h \
@@ -43,7 +43,8 @@ HEADERS += \
        	verilog_ast_mem.hh \
 	verilog_preprocessor.hh \
 	verilogcode.h \
-	verilogscanner.h
+    verilogflexlexer.h \
+    verilogscanner.hh
 
 FORMS += \
 	mainwindow.ui

@@ -1,26 +1,24 @@
-%option c++
-%option batch
-%option stack
-%option debug
-%option yywrap nounput
-
-%top {
+%{
 #include <string>
 #include <iostream>
 #include <fstream>
 
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
-#include "verilog.yy.hh"
-}
 
-%{
-//#define yylex yyFlexLexer::yylex
-//#define yylval (yystackp->yyval)
-//#define yylineno (int)this->lineno()
-//#define yytext this->YYText()
+#include "verilogscanner.hh"
+
 #define EMIT_TOKEN(x) return x;
+#define YY_DECL int yy::VerilogScanner::yylex()
 %}
+
+%option c++
+%option batch
+%option stack
+%option debug
+/*%option yyclass="VerilogScanner"*/
+%option yywrap
+%option nounput
 
 /* Pre-processor definitions */
 CD_DEFAULT_NETTYPE     "`default_nettype"
@@ -368,7 +366,7 @@ TERNARY             "?"
 }
 <in_ts_1>{NUM_UNSIGNED}      {
     //TODO!
-    //yy_preproc->timescale.scale = yylval.string;
+	//yy_preproc->timescale.scale = yyget_lval()->string;
 }
 <in_ts_2>{DIV}               {
     BEGIN(in_ts_3);
@@ -380,7 +378,7 @@ TERNARY             "?"
 }
 <in_ts_3>{NUM_UNSIGNED}      {
     //TODO!
-    //yy_preproc->timescale.precision = yylval.string;
+	//yy_preproc->timescale.precision = yyget_lval()->string;
 }
 {CD_RESETALL}            {
     yy::verilog_preprocessor_resetall();
@@ -545,7 +543,7 @@ AT                   EMIT_TOKEN(yy::VerilogParser::token::AT)
 COMMA                EMIT_TOKEN(yy::VerilogParser::token::COMMA)
 HASH                 EMIT_TOKEN(yy::VerilogParser::token::HASH)
 DOT                  EMIT_TOKEN(yy::VerilogParser::token::DOT)
-EQ                   this->yylval.verilog_operator = yy::OPERATOR_L_EQ; EMIT_TOKEN(yy::VerilogParser::token::EQ)
+EQ                   {yyget_lval()->verilog_operator = yy::OPERATOR_L_EQ; EMIT_TOKEN(yy::VerilogParser::token::EQ)}
 COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {IDX_PRT_SEL}          {EMIT_TOKEN(yy::VerilogParser::token::IDX_PRT_SEL);}
 {SEMICOLON}            {EMIT_TOKEN(yy::VerilogParser::token::SEMICOLON);}
@@ -555,47 +553,47 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {CLOSE_SQ_BRACKET}     {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_SQ_BRACKET);}
 {OPEN_SQ_BRACE}        {EMIT_TOKEN(yy::VerilogParser::token::OPEN_SQ_BRACE);}
 {CLOSE_SQ_BRACE}       {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_SQ_BRACE);}
-{STAR}                 {yylval.verilog_operator=yy::OPERATOR_STAR   ; EMIT_TOKEN(yy::VerilogParser::token::STAR);}
-{PLUS}                 {yylval.verilog_operator=yy::OPERATOR_PLUS   ; EMIT_TOKEN(yy::VerilogParser::token::PLUS);}
-{MINUS}                {yylval.verilog_operator=yy::OPERATOR_MINUS  ; EMIT_TOKEN(yy::VerilogParser::token::MINUS);}
-{ASL}                  {yylval.verilog_operator=yy::OPERATOR_ASL    ; EMIT_TOKEN(yy::VerilogParser::token::ASL);}
-{ASR}                  {yylval.verilog_operator=yy::OPERATOR_ASR    ; EMIT_TOKEN(yy::VerilogParser::token::ASR);}
-{LSL}                  {yylval.verilog_operator=yy::OPERATOR_LSL    ; EMIT_TOKEN(yy::VerilogParser::token::LSL);}
-{LSR}                  {yylval.verilog_operator=yy::OPERATOR_LSR    ; EMIT_TOKEN(yy::VerilogParser::token::LSR);}
-{DIV}                  {yylval.verilog_operator=yy::OPERATOR_DIV    ; EMIT_TOKEN(yy::VerilogParser::token::DIV);}
-{POW}                  {yylval.verilog_operator=yy::OPERATOR_POW    ; EMIT_TOKEN(yy::VerilogParser::token::POW);}
-{MOD}                  {yylval.verilog_operator=yy::OPERATOR_MOD    ; EMIT_TOKEN(yy::VerilogParser::token::MOD);}
-{GTE}                  {yylval.verilog_operator=yy::OPERATOR_GTE    ; EMIT_TOKEN(yy::VerilogParser::token::GTE);}
-{LTE}                  {yylval.verilog_operator=yy::OPERATOR_LTE    ; EMIT_TOKEN(yy::VerilogParser::token::LTE);}
-{GT}                   {yylval.verilog_operator=yy::OPERATOR_GT     ; EMIT_TOKEN(yy::VerilogParser::token::GT);}
-{LT}                   {yylval.verilog_operator=yy::OPERATOR_LT     ; EMIT_TOKEN(yy::VerilogParser::token::LT);}
-{L_NEG}                {yylval.verilog_operator=yy::OPERATOR_L_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEG);}
-{L_AND}                {yylval.verilog_operator=yy::OPERATOR_L_AND  ; EMIT_TOKEN(yy::VerilogParser::token::L_AND);}
-{L_OR}                 {yylval.verilog_operator=yy::OPERATOR_L_OR   ; EMIT_TOKEN(yy::VerilogParser::token::L_OR);}
-{C_EQ}                 {yylval.verilog_operator=yy::OPERATOR_C_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::C_EQ);}
-{L_EQ}                 {yylval.verilog_operator=yy::OPERATOR_L_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::L_EQ);}
-{C_NEQ}                {yylval.verilog_operator=yy::OPERATOR_C_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::C_NEQ);}
-{L_NEQ}                {yylval.verilog_operator=yy::OPERATOR_L_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEQ);}
-{B_NEG}                {yylval.verilog_operator=yy::OPERATOR_B_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::B_NEG);}
-{B_AND}                {yylval.verilog_operator=yy::OPERATOR_B_AND  ; EMIT_TOKEN(yy::VerilogParser::token::B_AND);}
-{B_OR}                 {yylval.verilog_operator=yy::OPERATOR_B_OR   ; EMIT_TOKEN(yy::VerilogParser::token::B_OR);}
-{B_XOR}                {yylval.verilog_operator=yy::OPERATOR_B_XOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_XOR);}
-{B_EQU}                {yylval.verilog_operator=yy::OPERATOR_B_EQU  ; EMIT_TOKEN(yy::VerilogParser::token::B_EQU);}
-{B_NAND}               {yylval.verilog_operator=yy::OPERATOR_B_NAND ; EMIT_TOKEN(yy::VerilogParser::token::B_NAND);}
-{B_NOR}                {yylval.verilog_operator=yy::OPERATOR_B_NOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_NOR);}
-{TERNARY}              {yylval.verilog_operator=yy::OPERATOR_TERNARY; EMIT_TOKEN(yy::VerilogParser::token::TERNARY);}
+{STAR}                 {yyget_lval()->verilog_operator=yy::OPERATOR_STAR   ; EMIT_TOKEN(yy::VerilogParser::token::STAR);}
+{PLUS}                 {yyget_lval()->verilog_operator=yy::OPERATOR_PLUS   ; EMIT_TOKEN(yy::VerilogParser::token::PLUS);}
+{MINUS}                {yyget_lval()->verilog_operator=yy::OPERATOR_MINUS  ; EMIT_TOKEN(yy::VerilogParser::token::MINUS);}
+{ASL}                  {yyget_lval()->verilog_operator=yy::OPERATOR_ASL    ; EMIT_TOKEN(yy::VerilogParser::token::ASL);}
+{ASR}                  {yyget_lval()->verilog_operator=yy::OPERATOR_ASR    ; EMIT_TOKEN(yy::VerilogParser::token::ASR);}
+{LSL}                  {yyget_lval()->verilog_operator=yy::OPERATOR_LSL    ; EMIT_TOKEN(yy::VerilogParser::token::LSL);}
+{LSR}                  {yyget_lval()->verilog_operator=yy::OPERATOR_LSR    ; EMIT_TOKEN(yy::VerilogParser::token::LSR);}
+{DIV}                  {yyget_lval()->verilog_operator=yy::OPERATOR_DIV    ; EMIT_TOKEN(yy::VerilogParser::token::DIV);}
+{POW}                  {yyget_lval()->verilog_operator=yy::OPERATOR_POW    ; EMIT_TOKEN(yy::VerilogParser::token::POW);}
+{MOD}                  {yyget_lval()->verilog_operator=yy::OPERATOR_MOD    ; EMIT_TOKEN(yy::VerilogParser::token::MOD);}
+{GTE}                  {yyget_lval()->verilog_operator=yy::OPERATOR_GTE    ; EMIT_TOKEN(yy::VerilogParser::token::GTE);}
+{LTE}                  {yyget_lval()->verilog_operator=yy::OPERATOR_LTE    ; EMIT_TOKEN(yy::VerilogParser::token::LTE);}
+{GT}                   {yyget_lval()->verilog_operator=yy::OPERATOR_GT     ; EMIT_TOKEN(yy::VerilogParser::token::GT);}
+{LT}                   {yyget_lval()->verilog_operator=yy::OPERATOR_LT     ; EMIT_TOKEN(yy::VerilogParser::token::LT);}
+{L_NEG}                {yyget_lval()->verilog_operator=yy::OPERATOR_L_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEG);}
+{L_AND}                {yyget_lval()->verilog_operator=yy::OPERATOR_L_AND  ; EMIT_TOKEN(yy::VerilogParser::token::L_AND);}
+{L_OR}                 {yyget_lval()->verilog_operator=yy::OPERATOR_L_OR   ; EMIT_TOKEN(yy::VerilogParser::token::L_OR);}
+{C_EQ}                 {yyget_lval()->verilog_operator=yy::OPERATOR_C_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::C_EQ);}
+{L_EQ}                 {yyget_lval()->verilog_operator=yy::OPERATOR_L_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::L_EQ);}
+{C_NEQ}                {yyget_lval()->verilog_operator=yy::OPERATOR_C_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::C_NEQ);}
+{L_NEQ}                {yyget_lval()->verilog_operator=yy::OPERATOR_L_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEQ);}
+{B_NEG}                {yyget_lval()->verilog_operator=yy::OPERATOR_B_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::B_NEG);}
+{B_AND}                {yyget_lval()->verilog_operator=yy::OPERATOR_B_AND  ; EMIT_TOKEN(yy::VerilogParser::token::B_AND);}
+{B_OR}                 {yyget_lval()->verilog_operator=yy::OPERATOR_B_OR   ; EMIT_TOKEN(yy::VerilogParser::token::B_OR);}
+{B_XOR}                {yyget_lval()->verilog_operator=yy::OPERATOR_B_XOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_XOR);}
+{B_EQU}                {yyget_lval()->verilog_operator=yy::OPERATOR_B_EQU  ; EMIT_TOKEN(yy::VerilogParser::token::B_EQU);}
+{B_NAND}               {yyget_lval()->verilog_operator=yy::OPERATOR_B_NAND ; EMIT_TOKEN(yy::VerilogParser::token::B_NAND);}
+{B_NOR}                {yyget_lval()->verilog_operator=yy::OPERATOR_B_NOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_NOR);}
+{TERNARY}              {yyget_lval()->verilog_operator=yy::OPERATOR_TERNARY; EMIT_TOKEN(yy::VerilogParser::token::TERNARY);}
 
 {BASE_DECIMAL}         {EMIT_TOKEN(yy::VerilogParser::token::DEC_BASE);}
 {BASE_HEX}             {BEGIN(in_hex_val); EMIT_TOKEN(yy::VerilogParser::token::HEX_BASE);}
 {BASE_OCTAL}           {BEGIN(in_oct_val); EMIT_TOKEN(yy::VerilogParser::token::OCT_BASE);}
 {BASE_BINARY}          {BEGIN(in_bin_val); EMIT_TOKEN(yy::VerilogParser::token::BIN_BASE);}
 
-<in_bin_val>{BIN_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(yy::VerilogParser::token::BIN_VALUE);}
-<in_oct_val>{OCT_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(yy::VerilogParser::token::OCT_VALUE);}
-<in_hex_val>{HEX_VALUE} {BEGIN(INITIAL); yylval.string = yytext; EMIT_TOKEN(yy::VerilogParser::token::HEX_VALUE);}
+<in_bin_val>{BIN_VALUE} {BEGIN(INITIAL); yyget_lval()->string = yytext; EMIT_TOKEN(yy::VerilogParser::token::BIN_VALUE);}
+<in_oct_val>{OCT_VALUE} {BEGIN(INITIAL); yyget_lval()->string = yytext; EMIT_TOKEN(yy::VerilogParser::token::OCT_VALUE);}
+<in_hex_val>{HEX_VALUE} {BEGIN(INITIAL); yyget_lval()->string = yytext; EMIT_TOKEN(yy::VerilogParser::token::HEX_VALUE);}
 
-{NUM_REAL}             {yylval.string=yytext;EMIT_TOKEN(yy::VerilogParser::token::NUM_REAL);}
-{NUM_UNSIGNED}         {yylval.string=yytext;EMIT_TOKEN(yy::VerilogParser::token::UNSIGNED_NUMBER);}
+{NUM_REAL}             {yyget_lval()->string=yytext;EMIT_TOKEN(yy::VerilogParser::token::NUM_REAL);}
+{NUM_UNSIGNED}         {yyget_lval()->string=yytext;EMIT_TOKEN(yy::VerilogParser::token::UNSIGNED_NUMBER);}
 
 {ALWAYS}               {EMIT_TOKEN(yy::VerilogParser::token::KW_ALWAYS);}
 {AND}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_AND);}
@@ -722,19 +720,19 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {XOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_XOR);}
 
 {SYSTEM_ID}            {
-	yylval.identifier = yy::ast_new_identifier(yytext,yylineno);
+	yyget_lval()->identifier = yy::ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SYSTEM_ID);
 }
 {ESCAPED_ID}           {
-	yylval.identifier = yy::ast_new_identifier(yytext,yylineno);
+	yyget_lval()->identifier = yy::ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::ESCAPED_ID);
 }
 {SIMPLE_ID}            {
-	yylval.identifier = yy::ast_new_identifier(yytext,yylineno);
+	yyget_lval()->identifier = yy::ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
-{STRING}               {yylval.string= yytext;EMIT_TOKEN(yy::VerilogParser::token::STRING);}
+{STRING}               {yyget_lval()->string= yytext;EMIT_TOKEN(yy::VerilogParser::token::STRING);}
 
 <*>{NEWLINE}              {/*EMIT_TOKEN(yy::VerilogParser::token::NEWLINE); IGNORE */   }
 <*>{SPACE}                {/*EMIT_TOKEN(yy::VerilogParser::token::SPACE);   IGNORE */   }
@@ -764,3 +762,4 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
           EMIT_TOKEN(yy::VerilogParser::token::ANY);
   }
 %%
+

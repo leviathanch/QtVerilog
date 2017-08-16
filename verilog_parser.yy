@@ -1,4 +1,5 @@
 %token-table
+%language "c++"
 %glr-parser
 %define "parser_class_name" {VerilogParser}
 %code requires {
@@ -21,11 +22,12 @@ namespace yy {
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
 
-#include "verilogscanner.h"
+#include "verilogscanner.hh"
+
 }
 
 %{
-#define yylex code->lexer->lex
+#define yylex code->lexer->yylex
 #define yylineno (int)code->lexer->lineno()
 #define yytext code->lexer->YYText()
 %}
@@ -232,7 +234,6 @@ namespace yy {
 %left   STAR DIV MOD
 %left   POW
 %right  L_NEG B_NEG UNARY_OP    /* Highest Precedence. */
-
 
 /* Compiler / Preprocessor tokens */
 

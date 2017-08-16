@@ -1,7 +1,7 @@
 #include <istream>
 #include <string>
 
-#include "verilogscanner.h"
+#include "verilogscanner.hh"
 #include "verilogcode.h"
 #include "verilog.yy.hh"
 
@@ -19,15 +19,14 @@ namespace yy {
 		streamname = sname;
 
 		VerilogScanner *scanner = new VerilogScanner(&in);
-		scanner->set_debug(trace_scanning);
+		//scanner->set_debug(trace_scanning);
 		this->lexer = scanner;
 
 		//yy::VerilogParser parser(*this);
 		VerilogParser *parser = new VerilogParser(this, ast);
-		parser->parse();
 
 		//parser.set_debug_level(trace_parsing);
-		//return (parser.parse() == 0);
+		return parser->parse();
 	}
 
 	bool VerilogCode::parse_file(const std::string &filename)
@@ -41,10 +40,6 @@ namespace yy {
 	{
 		std::istringstream iss(input);
 		return parse_stream(iss, sname);
-	}
-
-	void VerilogCode::error(const class location& l, const std::string& m)
-	{
 	}
 
 	void VerilogCode::error(const std::string& m)
