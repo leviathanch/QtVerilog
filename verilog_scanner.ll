@@ -2,6 +2,7 @@
 %option batch
 %option stack
 %option debug
+%option yywrap nounput
 
 %top {
 #include <string>
@@ -10,15 +11,15 @@
 
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
-
 #include "verilog.yy.hh"
-
-#define EMIT_TOKEN(x) return x;
 }
 
 %{
-//#undef YY_STRUCT_YY_BUFFER_STATE
-extern YYSTYPE yylval;
+//#define yylex yyFlexLexer::yylex
+//#define yylval (yystackp->yyval)
+//#define yylineno (int)this->lineno()
+//#define yytext this->YYText()
+#define EMIT_TOKEN(x) return x;
 %}
 
 /* Pre-processor definitions */
@@ -320,79 +321,76 @@ TERNARY             "?"
 <in_comment>.|\n       {/* IGNORE                            */}
 <in_comment>{COMMENT_END} {BEGIN(INITIAL);                     }
 
-{CD_CELLDEFINE}          {verilog_preproc_enter_cell_define();}
-{CD_ENDCELLDEFINE}       {verilog_preproc_exit_cell_define();}
+{CD_CELLDEFINE}          {yy::verilog_preproc_enter_cell_define();}
+{CD_ENDCELLDEFINE}       {yy::verilog_preproc_exit_cell_define();}
 
 {CD_DEFAULT_NETTYPE}     {BEGIN(in_default_nettype);}
 <in_default_nettype>{TRIAND}  {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_TRIAND );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIAND );
     }
 <in_default_nettype>{TRIOR}   {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_TRIOR  );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIOR  );
     }
 <in_default_nettype>{TRIREG}     {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_TRIREG );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIREG );
     }
 <in_default_nettype>{TRI0}     {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_TRI    );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_TRI    );
     }
 <in_default_nettype>{TRI}     {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_TRI    );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_TRI    );
     }
 <in_default_nettype>{WIRE}    {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_WIRE   );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_WIRE   );
     }
 <in_default_nettype>{WAND}    {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_WAND   );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_WAND   );
     }
 <in_default_nettype>{WOR}     {
     BEGIN(INITIAL);
-    verilog_preproc_default_net(yy_preproc -> token_count,
-        yylineno, NET_TYPE_WOR    );
+    yy::verilog_preproc_default_net(yy::yy_preproc->token_count, yylineno, yy::NET_TYPE_WOR    );
     }
 
 {CD_TIMESCALE}           {
     BEGIN(in_ts_1);
 }
 <in_ts_1>{NUM_UNSIGNED}      {
-        yy_preproc->timescale.scale = yylval.string;
 }
 <in_ts_1>{SIMPLE_ID}         {
     BEGIN(in_ts_2);
+}
+<in_ts_1>{NUM_UNSIGNED}      {
+    //TODO!
+    //yy_preproc->timescale.scale = yylval.string;
 }
 <in_ts_2>{DIV}               {
     BEGIN(in_ts_3);
 }
 <in_ts_3>{NUM_UNSIGNED}      {
-        yy_preproc->timescale.precision = yylval.string;
 }
 <in_ts_3>{SIMPLE_ID}         {
     BEGIN(INITIAL);
 }
-
+<in_ts_3>{NUM_UNSIGNED}      {
+    //TODO!
+    //yy_preproc->timescale.precision = yylval.string;
+}
 {CD_RESETALL}            {
-    verilog_preprocessor_resetall();
+    yy::verilog_preprocessor_resetall();
 }
 
 {CD_IFDEF}               {
     BEGIN(in_ifdef);
 }
 <in_ifdef>{SIMPLE_ID}    {
-        verilog_preprocessor_ifdef(yytext,yylineno,false);
+        yy::verilog_preprocessor_ifdef(yytext,yylineno,false);
     BEGIN(INITIAL);
 }
 
@@ -400,7 +398,7 @@ TERNARY             "?"
     BEGIN(in_ifndef);
 }
 <in_ifndef>{SIMPLE_ID}   {
-        verilog_preprocessor_ifdef(yytext,yylineno,true);
+        yy::verilog_preprocessor_ifdef(yytext,yylineno,true);
     BEGIN(INITIAL);
 }
 
@@ -408,16 +406,16 @@ TERNARY             "?"
     BEGIN(in_elseif);
 }
 <in_elseif>{SIMPLE_ID}   {
-    verilog_preprocessor_elseif(yytext, yylineno);
+    yy::verilog_preprocessor_elseif(yytext, yylineno);
     BEGIN(INITIAL);
 }
 
 {CD_ELSE}                {
-    verilog_preprocessor_else(yylineno);
+    yy::verilog_preprocessor_else(yylineno);
 }
 
 {CD_ENDIF}               {
-    verilog_preprocessor_endif(yylineno);
+    yy::verilog_preprocessor_endif(yylineno);
 }
 
 {CD_INCLUDE}             {
@@ -426,12 +424,12 @@ TERNARY             "?"
 <in_include>{STRING}     {
     YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
 
-    verilog_include_directive * id = verilog_preprocessor_include(yytext,yylineno);
+    yy::verilog_include_directive * id = yy::verilog_preprocessor_include(yytext,yylineno);
 
     // Now, we need to look for the file, open it as a buffer, and then
     // switch to it.
 
-        if(id -> file_found == true)
+        if(id->file_found == true)
     {
         std::ifstream file;
         file.open (id->filename, std::ifstream::in);
@@ -445,7 +443,7 @@ TERNARY             "?"
     else
     {
         printf("ERROR - Could not find include file %s on line %d\n",
-            id -> filename, id-> lineNumber);
+            id->filename, id-> lineNumber);
         printf("\tExpect stuff to break now.\n");
     }
 
@@ -460,17 +458,17 @@ TERNARY             "?"
 <in_line_3>{NUM_UNSIGNED} {BEGIN(INITIAL);}
 
 {CD_NOUNCONNECTED_DRIVE} {
-    verilog_preprocessor_nounconnected_drive(STRENGTH_NONE);
+    yy::verilog_preprocessor_nounconnected_drive(yy::STRENGTH_NONE);
 }
 {CD_UNCONNECTED_DRIVE}   {
     BEGIN(in_unconnected_drive);
 }
 <in_unconnected_drive>{PULL0} {
-    verilog_preprocessor_nounconnected_drive(STRENGTH_PULL0);
+    yy::verilog_preprocessor_nounconnected_drive(yy::STRENGTH_PULL0);
     BEGIN(INITIAL);
 }
 <in_unconnected_drive>{PULL1} {
-    verilog_preprocessor_nounconnected_drive(STRENGTH_PULL1);
+    yy::verilog_preprocessor_nounconnected_drive(yy::STRENGTH_PULL1);
     BEGIN(INITIAL);
 }
 
@@ -479,7 +477,7 @@ TERNARY             "?"
 }
 
 <in_define>{SIMPLE_ID}   {
-    yy_preproc -> scratch = ast_strdup(yytext);
+    yy::yy_preproc->scratch = yy::ast_strdup(yytext);
     BEGIN(in_define_t);
 }
 
@@ -487,18 +485,18 @@ TERNARY             "?"
     if(yyleng == 1)
     {
         // Macro has no value, and is just a newline character.
-        verilog_preprocessor_macro_define(
+        yy::verilog_preprocessor_macro_define(
             yylineno-1,
-            yy_preproc -> scratch,
+            yy::yy_preproc->scratch,
             NULL,
             0); // -1 to avoid including the newline.
     }
     else
     {
         // Macro has a proper value.
-        verilog_preprocessor_macro_define(
+        yy::verilog_preprocessor_macro_define(
             yylineno-1,
-            yy_preproc -> scratch,
+            yy::yy_preproc->scratch,
             yytext+1,
             yyleng-2); // -1 to avoid including the newline.
     }
@@ -510,9 +508,7 @@ TERNARY             "?"
 }
 
 <in_undef>{SIMPLE_ID}  {
-    verilog_preprocessor_macro_undefine(
-        yytext
-    );
+    yy::verilog_preprocessor_macro_undefine(yytext);
     BEGIN(INITIAL);
 }
 
@@ -522,7 +518,7 @@ TERNARY             "?"
     // Look for the macro entry.
     verilog_macro_directive * macro = NULL;
     char * macroName = (yytext)+1;
-    ast_hashtable_result r = ast_hashtable_get(yy_preproc -> macrodefines,
+    yy::ast_hashtable_result r = yy::ast_hashtable_get(yy::yy_preproc->macrodefines,
                                                macroName,
                                                (void**)&macro);
 
@@ -549,7 +545,7 @@ AT                   EMIT_TOKEN(yy::VerilogParser::token::AT)
 COMMA                EMIT_TOKEN(yy::VerilogParser::token::COMMA)
 HASH                 EMIT_TOKEN(yy::VerilogParser::token::HASH)
 DOT                  EMIT_TOKEN(yy::VerilogParser::token::DOT)
-EQ                   yylval.verilog_operator = OPERATOR_L_EQ; EMIT_TOKEN(yy::VerilogParser::token::EQ)
+EQ                   this->yylval.verilog_operator = yy::OPERATOR_L_EQ; EMIT_TOKEN(yy::VerilogParser::token::EQ)
 COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {IDX_PRT_SEL}          {EMIT_TOKEN(yy::VerilogParser::token::IDX_PRT_SEL);}
 {SEMICOLON}            {EMIT_TOKEN(yy::VerilogParser::token::SEMICOLON);}
@@ -559,35 +555,35 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {CLOSE_SQ_BRACKET}     {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_SQ_BRACKET);}
 {OPEN_SQ_BRACE}        {EMIT_TOKEN(yy::VerilogParser::token::OPEN_SQ_BRACE);}
 {CLOSE_SQ_BRACE}       {EMIT_TOKEN(yy::VerilogParser::token::CLOSE_SQ_BRACE);}
-{STAR}                 {yylval.verilog_operator=OPERATOR_STAR   ; EMIT_TOKEN(yy::VerilogParser::token::STAR);}
-{PLUS}                 {yylval.verilog_operator=OPERATOR_PLUS   ; EMIT_TOKEN(yy::VerilogParser::token::PLUS);}
-{MINUS}                {yylval.verilog_operator=OPERATOR_MINUS  ; EMIT_TOKEN(yy::VerilogParser::token::MINUS);}
-{ASL}                  {yylval.verilog_operator=OPERATOR_ASL    ; EMIT_TOKEN(yy::VerilogParser::token::ASL);}
-{ASR}                  {yylval.verilog_operator=OPERATOR_ASR    ; EMIT_TOKEN(yy::VerilogParser::token::ASR);}
-{LSL}                  {yylval.verilog_operator=OPERATOR_LSL    ; EMIT_TOKEN(yy::VerilogParser::token::LSL);}
-{LSR}                  {yylval.verilog_operator=OPERATOR_LSR    ; EMIT_TOKEN(yy::VerilogParser::token::LSR);}
-{DIV}                  {yylval.verilog_operator=OPERATOR_DIV    ; EMIT_TOKEN(yy::VerilogParser::token::DIV);}
-{POW}                  {yylval.verilog_operator=OPERATOR_POW    ; EMIT_TOKEN(yy::VerilogParser::token::POW);}
-{MOD}                  {yylval.verilog_operator=OPERATOR_MOD    ; EMIT_TOKEN(yy::VerilogParser::token::MOD);}
-{GTE}                  {yylval.verilog_operator=OPERATOR_GTE    ; EMIT_TOKEN(yy::VerilogParser::token::GTE);}
-{LTE}                  {yylval.verilog_operator=OPERATOR_LTE    ; EMIT_TOKEN(yy::VerilogParser::token::LTE);}
-{GT}                   {yylval.verilog_operator=OPERATOR_GT     ; EMIT_TOKEN(yy::VerilogParser::token::GT);}
-{LT}                   {yylval.verilog_operator=OPERATOR_LT     ; EMIT_TOKEN(yy::VerilogParser::token::LT);}
-{L_NEG}                {yylval.verilog_operator=OPERATOR_L_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEG);}
-{L_AND}                {yylval.verilog_operator=OPERATOR_L_AND  ; EMIT_TOKEN(yy::VerilogParser::token::L_AND);}
-{L_OR}                 {yylval.verilog_operator=OPERATOR_L_OR   ; EMIT_TOKEN(yy::VerilogParser::token::L_OR);}
-{C_EQ}                 {yylval.verilog_operator=OPERATOR_C_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::C_EQ);}
-{L_EQ}                 {yylval.verilog_operator=OPERATOR_L_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::L_EQ);}
-{C_NEQ}                {yylval.verilog_operator=OPERATOR_C_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::C_NEQ);}
-{L_NEQ}                {yylval.verilog_operator=OPERATOR_L_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEQ);}
-{B_NEG}                {yylval.verilog_operator=OPERATOR_B_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::B_NEG);}
-{B_AND}                {yylval.verilog_operator=OPERATOR_B_AND  ; EMIT_TOKEN(yy::VerilogParser::token::B_AND);}
-{B_OR}                 {yylval.verilog_operator=OPERATOR_B_OR   ; EMIT_TOKEN(yy::VerilogParser::token::B_OR);}
-{B_XOR}                {yylval.verilog_operator=OPERATOR_B_XOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_XOR);}
-{B_EQU}                {yylval.verilog_operator=OPERATOR_B_EQU  ; EMIT_TOKEN(yy::VerilogParser::token::B_EQU);}
-{B_NAND}               {yylval.verilog_operator=OPERATOR_B_NAND ; EMIT_TOKEN(yy::VerilogParser::token::B_NAND);}
-{B_NOR}                {yylval.verilog_operator=OPERATOR_B_NOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_NOR);}
-{TERNARY}              {yylval.verilog_operator=OPERATOR_TERNARY; EMIT_TOKEN(yy::VerilogParser::token::TERNARY);}
+{STAR}                 {yylval.verilog_operator=yy::OPERATOR_STAR   ; EMIT_TOKEN(yy::VerilogParser::token::STAR);}
+{PLUS}                 {yylval.verilog_operator=yy::OPERATOR_PLUS   ; EMIT_TOKEN(yy::VerilogParser::token::PLUS);}
+{MINUS}                {yylval.verilog_operator=yy::OPERATOR_MINUS  ; EMIT_TOKEN(yy::VerilogParser::token::MINUS);}
+{ASL}                  {yylval.verilog_operator=yy::OPERATOR_ASL    ; EMIT_TOKEN(yy::VerilogParser::token::ASL);}
+{ASR}                  {yylval.verilog_operator=yy::OPERATOR_ASR    ; EMIT_TOKEN(yy::VerilogParser::token::ASR);}
+{LSL}                  {yylval.verilog_operator=yy::OPERATOR_LSL    ; EMIT_TOKEN(yy::VerilogParser::token::LSL);}
+{LSR}                  {yylval.verilog_operator=yy::OPERATOR_LSR    ; EMIT_TOKEN(yy::VerilogParser::token::LSR);}
+{DIV}                  {yylval.verilog_operator=yy::OPERATOR_DIV    ; EMIT_TOKEN(yy::VerilogParser::token::DIV);}
+{POW}                  {yylval.verilog_operator=yy::OPERATOR_POW    ; EMIT_TOKEN(yy::VerilogParser::token::POW);}
+{MOD}                  {yylval.verilog_operator=yy::OPERATOR_MOD    ; EMIT_TOKEN(yy::VerilogParser::token::MOD);}
+{GTE}                  {yylval.verilog_operator=yy::OPERATOR_GTE    ; EMIT_TOKEN(yy::VerilogParser::token::GTE);}
+{LTE}                  {yylval.verilog_operator=yy::OPERATOR_LTE    ; EMIT_TOKEN(yy::VerilogParser::token::LTE);}
+{GT}                   {yylval.verilog_operator=yy::OPERATOR_GT     ; EMIT_TOKEN(yy::VerilogParser::token::GT);}
+{LT}                   {yylval.verilog_operator=yy::OPERATOR_LT     ; EMIT_TOKEN(yy::VerilogParser::token::LT);}
+{L_NEG}                {yylval.verilog_operator=yy::OPERATOR_L_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEG);}
+{L_AND}                {yylval.verilog_operator=yy::OPERATOR_L_AND  ; EMIT_TOKEN(yy::VerilogParser::token::L_AND);}
+{L_OR}                 {yylval.verilog_operator=yy::OPERATOR_L_OR   ; EMIT_TOKEN(yy::VerilogParser::token::L_OR);}
+{C_EQ}                 {yylval.verilog_operator=yy::OPERATOR_C_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::C_EQ);}
+{L_EQ}                 {yylval.verilog_operator=yy::OPERATOR_L_EQ   ; EMIT_TOKEN(yy::VerilogParser::token::L_EQ);}
+{C_NEQ}                {yylval.verilog_operator=yy::OPERATOR_C_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::C_NEQ);}
+{L_NEQ}                {yylval.verilog_operator=yy::OPERATOR_L_NEQ  ; EMIT_TOKEN(yy::VerilogParser::token::L_NEQ);}
+{B_NEG}                {yylval.verilog_operator=yy::OPERATOR_B_NEG  ; EMIT_TOKEN(yy::VerilogParser::token::B_NEG);}
+{B_AND}                {yylval.verilog_operator=yy::OPERATOR_B_AND  ; EMIT_TOKEN(yy::VerilogParser::token::B_AND);}
+{B_OR}                 {yylval.verilog_operator=yy::OPERATOR_B_OR   ; EMIT_TOKEN(yy::VerilogParser::token::B_OR);}
+{B_XOR}                {yylval.verilog_operator=yy::OPERATOR_B_XOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_XOR);}
+{B_EQU}                {yylval.verilog_operator=yy::OPERATOR_B_EQU  ; EMIT_TOKEN(yy::VerilogParser::token::B_EQU);}
+{B_NAND}               {yylval.verilog_operator=yy::OPERATOR_B_NAND ; EMIT_TOKEN(yy::VerilogParser::token::B_NAND);}
+{B_NOR}                {yylval.verilog_operator=yy::OPERATOR_B_NOR  ; EMIT_TOKEN(yy::VerilogParser::token::B_NOR);}
+{TERNARY}              {yylval.verilog_operator=yy::OPERATOR_TERNARY; EMIT_TOKEN(yy::VerilogParser::token::TERNARY);}
 
 {BASE_DECIMAL}         {EMIT_TOKEN(yy::VerilogParser::token::DEC_BASE);}
 {BASE_HEX}             {BEGIN(in_hex_val); EMIT_TOKEN(yy::VerilogParser::token::HEX_BASE);}
@@ -726,15 +722,15 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {XOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_XOR);}
 
 {SYSTEM_ID}            {
-	yylval.identifier = ast_new_identifier(yytext,yylineno);
+	yylval.identifier = yy::ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SYSTEM_ID);
 }
 {ESCAPED_ID}           {
-	yylval.identifier = ast_new_identifier(yytext,yylineno);
+	yylval.identifier = yy::ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::ESCAPED_ID);
 }
 {SIMPLE_ID}            {
-	yylval.identifier = ast_new_identifier(yytext,yylineno);
+	yylval.identifier = yy::ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
@@ -750,7 +746,7 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 
 	// We are exiting a file, so pop from the the preprocessor stack of files
 	// being parsed.
-	ast_stack_pop(yy_preproc -> current_file);
+	yy::ast_stack_pop(yy::yy_preproc->current_file);
 
 
 	if ( !YY_CURRENT_BUFFER )
@@ -760,7 +756,7 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 	else
 	{
 		YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
-		yylineno = cur -> yy_bs_lineno;
+		yylineno = cur->yy_bs_lineno;
 	}
 }
 
