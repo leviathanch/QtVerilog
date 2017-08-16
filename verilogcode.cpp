@@ -3,7 +3,7 @@
 
 #include "verilogscanner.h"
 #include "verilogcode.h"
-#include "verilog.y.hh"
+#include "verilog.yy.hh"
 
 namespace yy {
 	class VerilogScanner;

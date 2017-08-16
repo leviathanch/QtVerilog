@@ -2,9 +2,10 @@
 %glr-parser
 %define "parser_class_name" {VerilogParser}
 %code requires {
-#include "verilogcode.h"
 #include "asttree.hh"
+#include "verilogcode.h"
 namespace yy {
+	class VerilogScanner;
 	class VerilogCode;
 	class AstTree;
 };
@@ -20,10 +21,10 @@ namespace yy {
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
 
-#include "verilog.l.hh"
+#include "verilogscanner.h"
 
 extern char * yytext;
-#define yylex code_tree.lexer->lex
+#define yylex code->lexer->lex
 
 void verilogerror(const char *msg){
 	printf("line %d - ERROR: %s\n", yylineno,msg);
@@ -893,8 +894,7 @@ lib_cell_identifier_os :
     if($1 == NULL){
         $$ = ast_append_identifier($2,$4);
     } else {
-        $2 = ast_append_identifier($2,$4);
-        $$ = ast_append_identifier($1,$2);
+		$$ = ast_append_identifier($1,ast_append_identifier($2,$4));
     }
 }
 ;

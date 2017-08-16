@@ -10,11 +10,16 @@
 
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
-#include "verilog.y.hh"
+
+#include "verilog.yy.hh"
 
 #define EMIT_TOKEN(x) return x;
-extern YYSTYPE yylval;
 }
+
+%{
+//#undef YY_STRUCT_YY_BUFFER_STATE
+extern YYSTYPE yylval;
+%}
 
 /* Pre-processor definitions */
 CD_DEFAULT_NETTYPE     "`default_nettype"

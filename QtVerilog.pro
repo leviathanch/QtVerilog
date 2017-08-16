@@ -27,8 +27,8 @@ SOURCES += \
 	mainwindow.cpp \
 	verilogschematics.cpp \
   	asttree.cpp \
-    verilogcode.cpp \
-    verilogscanner.cpp
+	verilogcode.cpp \
+	verilogscanner.cpp
 
 HEADERS += \
 	mainwindow.h \
@@ -38,8 +38,8 @@ HEADERS += \
        	verilog_ast.hh \
        	verilog_ast_mem.hh \
 	verilog_preprocessor.hh \
-    verilogcode.h \
-    verilogscanner.h
+	verilogcode.h \
+	verilogscanner.h
 
 FORMS += \
 	mainwindow.ui
@@ -47,34 +47,34 @@ FORMS += \
 FLEXSOURCES += verilog_scanner.ll
 BISONSOURCES += verilog_parser.yy
 
-flex.commands = flex++ --c++ --header-file=verilog.l.hh -o verilog.l.cc ${QMAKE_FILE_IN}
+flex.commands = flex++ --c++ --header-file=verilog.ll.hh -o verilog.ll.cc ${QMAKE_FILE_IN}
 flex.input = FLEXSOURCES
-flex.output = verilog.l.cc
+flex.output = verilog.ll.cc
 flex.variable_out = SOURCES
-flex.depends = verilog.y.hh
+flex.depends = verilog.yy.hh
 flex.name = flex
 QMAKE_EXTRA_COMPILERS += flex
 
 flexheader.commands = @true
 flexheader.input = FLEXSOURCES
-flexheader.output = verilog.l.hh
+flexheader.output = verilog.ll.hh
 flexheader.variable_out = HEADERS
 flexheader.name = flex header
-flexheader.depends = verilog.l.cc
+flexheader.depends = verilog.ll.cc
 QMAKE_EXTRA_COMPILERS += flexheader
  
-bison.commands = bison -Lc++ --defines=verilog.y.hh --output=verilog.y.cc -t ${QMAKE_FILE_IN}
+bison.commands = bison -Lc++ --defines=verilog.yy.hh --output=verilog.yy.cc -t ${QMAKE_FILE_IN}
 bison.input = BISONSOURCES
-bison.output = verilog.y.cc
+bison.output = verilog.yy.cc
 bison.variable_out = SOURCES
 bison.name = bison
 QMAKE_EXTRA_COMPILERS += bison
  
 bisonheader.commands = @true
 bisonheader.input = BISONSOURCES
-bisonheader.output = verilog.y.hh
+bisonheader.output = verilog.yy.hh
 bisonheader.variable_out = HEADERS
 bisonheader.name = bison header
-bisonheader.depends = verilog.y.cc
+bisonheader.depends = verilog.yy.cc
 QMAKE_EXTRA_COMPILERS += bisonheader
 
