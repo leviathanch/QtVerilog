@@ -121,11 +121,11 @@ namespace yy {
     yy::ast_udp_sequential_entry     * udp_seqential_entry;
     yy::ast_wait_statement           * wait_statement;
 
-    char                   boolean;
-    char                 * string;
-    yy::ast_number           * number;
-    char                 * term;
-    char                 * keyword;
+	bool                   boolean;
+	std::string            string;
+	yy::ast_number         * number;
+	char                   * term;
+	char                   * keyword;
 }
 
 %token <string> ANY
@@ -4878,4 +4878,5 @@ white_space : SPACE | TAB | NEWLINE;
 
 void yy::VerilogParser::error(const location_type &l, const std::string &m)
 {
+	std::cout << m << std::endl;
 }
