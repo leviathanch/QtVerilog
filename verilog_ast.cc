@@ -13,8 +13,6 @@ Syntax Tree (AST)
 #include "verilogcode.h"
 #include "verilogscanner.hh"
 
-extern yy::VerilogCode *code;
-
 #define yylex lexer->lex
 #define yylineno ((int) lexer->lineno())
 #define yytext lexer->YYText
@@ -134,13 +132,13 @@ a string representation.
 */
   ast_primary * VerilogCode::ast_new_constant_primary(ast_primary_value_type type)
   {
-    ast_primary * tr = (ast_primary *)ast_calloc(1, sizeof(ast_primary));
-        ast_set_meta_info(&(tr->meta_info));
+	ast_primary * tr = (ast_primary *)ast_calloc(1, sizeof(ast_primary));
+		ast_set_meta_info(&(tr->meta_info));
 
-    tr->primary_type  = CONSTANT_PRIMARY;
-    tr->value_type    = type;
+	tr->primary_type  = CONSTANT_PRIMARY;
+	tr->value_type    = type;
 
-    return tr;
+	return tr;
   }
 
 

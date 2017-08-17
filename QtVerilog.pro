@@ -22,17 +22,21 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+#QMAKE_CXXFLAGS += -Werror=missing-prototypes
+#QMAKE_CXXFLAGS += -Werror=missing-declarations
+QMAKE_CXXFLAGS += -g
+
 SOURCES += \
 	main.cpp \
 	mainwindow.cpp \
 	verilogschematics.cpp \
 	verilogcode.cpp \
-	verilog_ast.cc \
 	verilog_ast_common.cc \
 	verilog_ast_mem.cc \
 	verilog_ast_util.cc \
 	verilog_preprocessor.cc \
 	verilogscanner.cpp \
+        verilog_ast.cc \
 	verilog_parser_wrapper.cc
 
 HEADERS += \

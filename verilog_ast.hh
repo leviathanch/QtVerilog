@@ -12,7 +12,6 @@
 #define VERILOG_AST_H
 
 namespace yy {
-
   //! Forward declare. Defines the core node type for the AST.
   typedef struct ast_node_t ast_node;
 
@@ -167,7 +166,6 @@ namespace yy {
   };
 
   /*! @} */
-
 
   //-------------- attributes ------------------------------------
 
@@ -617,7 +615,6 @@ re-writing it. That will be post the first "release" though.
 
   //! Describes a single event expression
   typedef struct ast_event_expression_t ast_event_expression;
-  ast_metadata    meta_info;   //!< Node metadata.
   struct ast_event_expression_t {
     ast_event_expression_type type;
     union{

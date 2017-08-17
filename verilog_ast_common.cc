@@ -284,7 +284,7 @@ original head pointer is returned, with all data items still in tact.
   /*!
 @brief Free the stack, but not it's contents
 */
-  void ast_stack_free(ast_stack * stack){
+  void VerilogCode::ast_stack_free(ast_stack * stack){
     assert(stack != NULL);
 
     while(stack->items != NULL){
