@@ -1,9 +1,4 @@
-module counter (
-out, // Output of the counter
-enable, // enable for counter
-clk, // clock Input
-reset // reset Input
-);
+module counter ( out, enable, clk, reset );
 	output [7:0] out;
 	input enable, clk, reset;
 	reg [7:0] out;
