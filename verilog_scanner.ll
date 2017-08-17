@@ -523,8 +523,8 @@ TERNARY             "?"
     else
     {
         // Undefined macro - PANIC!
-        //printf("ERROR: Undefined macro '%s' on line %d\n", yytext, yylineno);
-        //printf("\tIt's probably all going to fall apart now...\n\n");
+		std::cout << "ERROR: Undefined macro '" << yytext << "' on line " << yylineno << std::endl;
+		std::cout << "\tIt's probably all going to fall apart now...\n\n" << std::endl;
     }
 }
 

@@ -2272,34 +2272,32 @@ n_output_gate_instance  :
 
 /* -------------------------------------------------------------------------*/
 
-gate_enable : enable_gatetype enable_gate_instances;
-/*gate_enable :
-  enable_gatetype enable_gate_instances{
-    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,$2);
+gate_enable : enable_gatetype enable_gate_instances{
+	$$ = code->ast_new_enable_gate_instances((yy::ast_gatetype_n_input)$1,NULL,NULL,$2);
 }
 | enable_gatetype OB drive_strength delay2 enable_gate_instances{
-    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,$5);
+	$$ = code->ast_new_enable_gate_instances((yy::ast_gatetype_n_input)$1,NULL,NULL,$5);
 }
 | enable_gatetype OB drive_strength enable_gate_instances{
-    $$ = code->ast_new_enable_gate_instances($1,NULL,$3,$4);
+	$$ = code->ast_new_enable_gate_instances((yy::ast_gatetype_n_input)$1,NULL,$3,$4);
 }
 | enable_gatetype OB output_terminal COMMA input_terminal COMMA
   enable_terminal CB COMMA n_output_gate_instances{
     yy::ast_enable_gate_instance * gate = code->ast_new_enable_gate_instance(code->ast_new_identifier("unamed_gate",yylineno), $3,$7,$5);
     code->ast_list_preappend($10,gate);
-    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,$10);
+	$$ = code->ast_new_enable_gate_instances((yy::ast_gatetype_n_input)$1,NULL,NULL,$10);
 }
 | enable_gatetype OB output_terminal COMMA input_terminal COMMA
   enable_terminal CB{
     yy::ast_enable_gate_instance * gate = code->ast_new_enable_gate_instance(code->ast_new_identifier("unamed_gate",yylineno), $3,$7,$5);
     yy::ast_list * list = code->ast_list_new();
     code->ast_list_append(list,gate);
-    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,list);
+	$$ = code->ast_new_enable_gate_instances((yy::ast_gatetype_n_input)$1,NULL,NULL,list);
 }
 | enable_gatetype delay3 enable_gate_instances{
-    $$ = code->ast_new_enable_gate_instances($1,$2,NULL,$3);
+	$$ = code->ast_new_enable_gate_instances((yy::ast_gatetype_n_input)$1,$2,NULL,$3);
 }
-;*/
+;
 
 enable_gate_instances :
   enable_gate_instance{

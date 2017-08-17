@@ -78,7 +78,9 @@ namespace yy {
 	{
 		ast_module_declaration * module;
 		verilog_source_tree *st = yy_verilog_source_tree;
-		for(ast_list_element * m=st->modules->head;m;m=m->next) {
+		for(ast_list_element * m = st->modules->head; m; m=m->next) {
+			module = (ast_module_declaration *)m->data;
+			std::cout << module->identifier->identifier << std::endl;
 		}
 	}
 }
