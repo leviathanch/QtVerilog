@@ -16,6 +16,7 @@
 %option batch
 %option stack
 %option debug
+%option verbose
 %option pointer
 /*%option yyclass="VerilogScanner"*/
 %option yywrap
@@ -482,20 +483,12 @@ TERNARY             "?"
     if(yyleng == 1)
     {
         // Macro has no value, and is just a newline character.
-        code->verilog_preprocessor_macro_define(
-            yylineno-1,
-                        code->yy_preproc->scratch,
-            NULL,
-            0); // -1 to avoid including the newline.
+		code->verilog_preprocessor_macro_define(yylineno-1, code->yy_preproc->scratch, NULL, 0); // -1 to avoid including the newline.
     }
     else
     {
         // Macro has a proper value.
-        code->verilog_preprocessor_macro_define(
-            yylineno-1,
-                        code->yy_preproc->scratch,
-            yytext+1,
-            yyleng-2); // -1 to avoid including the newline.
+		code->verilog_preprocessor_macro_define(yylineno-1, code->yy_preproc->scratch, yytext+1, yyleng-2); // -1 to avoid including the newline.
     }
     BEGIN(INITIAL);
 }
@@ -505,29 +498,27 @@ TERNARY             "?"
 }
 
 <in_undef>{SIMPLE_ID}  {
-    code->verilog_preprocessor_macro_undefine(yytext);
+	code->verilog_preprocessor_macro_undefine(yytext);
     BEGIN(INITIAL);
 }
 
 {MACRO_IDENTIFIER}     {
-/*
-    // TODO: figure out how to replace yy_scan_string
-    // Look for the macro entry.
-    verilog_macro_directive * macro = NULL;
+	// Look for the macro entry.
+	yy::verilog_macro_directive * macro = NULL;
     char * macroName = (yytext)+1;
-        yy::ast_hashtable_result r = yy::ast_hashtable_get(code->yy_preproc->macrodefines,
-                                               macroName,
-                                               (void**)&macro);
+	yy::ast_hashtable_result r = code->ast_hashtable_get(code->yy_preproc->macrodefines, macroName, (void**)&macro);
 
     if(r == HASH_SUCCESS)
     {
-        // Switch buffers to expand the macro.
-
-	YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
-	YY_BUFFER_STATE n   = this->yy_scan_string(macro->macro_value);
-
-	yy_switch_to_buffer(cur);
-	yypush_buffer_state(n);
+		// Switch buffers to expand the macro.
+		//YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
+		//YY_BUFFER_STATE n   = code->lexer->yy_scan_string(macro->macro_value);
+		//code->lexer->yy_switch_to_buffer(cur);
+		//code->lexer->yypush_buffer_state(n);
+		//yy_buffer_state* new_buffer = code->lexer->yy_create_buffer(std::string(macro->macro_value),strlen(macro->macro_value));
+		//code->lexer->yy_switch_to_buffer( new_buffer );
+		// TODO: Fix this!
+		std::cout << "MACRO_IDENTIFIER: " << macro->macro_value << std::endl;
     }
     else
     {
@@ -535,7 +526,6 @@ TERNARY             "?"
         //printf("ERROR: Undefined macro '%s' on line %d\n", yytext, yylineno);
         //printf("\tIt's probably all going to fall apart now...\n\n");
     }
-*/
 }
 
 AT                   EMIT_TOKEN(yy::VerilogParser::token::AT)

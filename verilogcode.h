@@ -47,10 +47,10 @@ namespace yy {
 		ast_memory * walker = NULL;
 
 		/// enable debug output in the flex scanner
-		bool trace_scanning;
+		bool trace_scanning = true;
 
 		/// enable debug output in the bison parser
-		bool trace_parsing;
+		bool trace_parsing = true;
 
 		/// construct a new parser driver context
 		VerilogCode();

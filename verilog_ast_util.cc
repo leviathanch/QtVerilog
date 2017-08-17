@@ -49,8 +49,7 @@ identifiers to their declarations.
     int resolved = 0;
     int unresolved = 0;
 
-    unsigned int m;
-    for(m = 0; m < source->modules->items; m++)
+	for(unsigned int m = 0; m < source->modules->items; m++)
       {
         ast_module_declaration * module = (ast_module_declaration *)ast_list_get(source->modules, m);
 

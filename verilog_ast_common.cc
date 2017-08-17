@@ -154,7 +154,7 @@ the list construct itself.
 @details Returns a void* pointer. The programmer must be sure to cast this
 as the correct type.
 */
-  const void *    VerilogCode::ast_list_get(ast_list * list, unsigned int item)
+  const void * VerilogCode::ast_list_get(ast_list * list, unsigned int item)
   {
     assert(list != NULL);
     if(item > list->items - 1)

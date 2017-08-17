@@ -5,7 +5,7 @@
 VerilogSchematics::VerilogSchematics(QWidget *parent) : QWidget(parent)
 {
 	code = new yy::VerilogCode();
-	if(code->parse_file("../counter.rtl.v")) {
+	if(code->parse_file("/home/leviathan/QtVerilog/counter.rtl.v")) {
 		code->showData();
 	}
 }
