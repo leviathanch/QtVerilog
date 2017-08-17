@@ -5,6 +5,7 @@ manage dynamic memory allocation within the library.
 */
 
 #include "verilog_ast_mem.hh"
+#include "verilogcode.h"
 
 namespace yy {
   /*!
@@ -95,7 +96,17 @@ has been freed.
   }
 
 
-  char * ast_strdup(char * in)
+  char * VerilogCode::ast_strdup(QString in)
+  {
+	QByteArray array = in.toLocal8Bit();
+	char* buffer = array.data();
+	int len = strlen(buffer);
+	char * tr = (char *)ast_calloc(len+1,sizeof(char));
+	memcpy(tr,buffer,len);
+	return tr;
+  }
+
+  char * VerilogCode::ast_strdup(char * in)
   {
     size_t len = strlen(in);
     char * tr = (char *)ast_calloc(len+1,sizeof(char));

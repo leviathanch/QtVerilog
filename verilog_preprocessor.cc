@@ -4,9 +4,10 @@
 */
 
 #include "verilog_preprocessor.hh"
+#include "verilogcode.h"
 
 namespace yy {
-	verilog_preprocessor_context * verilog_new_preprocessor_context()
+	verilog_preprocessor_context * VerilogCode::verilog_new_preprocessor_context()
 	{
 		verilog_preprocessor_context * tr = (verilog_preprocessor_context *)ast_calloc(1,sizeof(verilog_preprocessor_context));
 
@@ -35,7 +36,7 @@ namespace yy {
 	@param [inout] preproc - The context who's file name is being set.
 	@param [in] file - The file path to put as the current file.
 	*/
-	void verilog_preprocessor_set_file(
+	void VerilogCode::verilog_preprocessor_set_file(
 		verilog_preprocessor_context * preproc,
 		char * file
 	){
@@ -50,30 +51,30 @@ namespace yy {
 	@brief Returns the file currently being parsed by the context, or NULL
 	@param [in] preproc - The context to get the current file for.
 	*/
-	char * verilog_preprocessor_current_file(
+	char * VerilogCode::verilog_preprocessor_current_file(
 		verilog_preprocessor_context * preproc
 	){
 		return (char *)ast_stack_peek(preproc->current_file);
 	}
 
 
-	void verilog_free_preprocessor_context(verilog_preprocessor_context * tofree)
+	void VerilogCode::verilog_free_preprocessor_context(verilog_preprocessor_context * tofree)
 	{
 		printf("ERROR: Function not implemented. preprocessor context at %p not freed.\n", tofree);
 	}
 
-	void verilog_preproc_enter_cell_define()
+	void VerilogCode::verilog_preproc_enter_cell_define()
 	{
 		yy_preproc->in_cell_define = false;
 	}
 
-	void verilog_preproc_exit_cell_define()
+	void VerilogCode::verilog_preproc_exit_cell_define()
 	{
 		yy_preproc->in_cell_define = false;
 	}
 
 	//! Creates and returns a new default net type directive.
-	verilog_default_net_type * verilog_new_default_net_type(
+	verilog_default_net_type * VerilogCode::verilog_new_default_net_type(
 		unsigned int token_number,  //!< Token number of the directive.
 		unsigned int line_number,   //!< Line number of the directive.
 		ast_net_type type           //!< The net type.
@@ -92,7 +93,7 @@ namespace yy {
 	@details Adds a record of the directive to the end of the linked list
 	"net_types" in the global yy_preproc.
 	*/
-	void verilog_preproc_default_net(
+	void VerilogCode::verilog_preproc_default_net(
 		unsigned int token_number,  //!< Token number of the directive.
 		unsigned int line_number,   //!< Line number of the directive.
 		ast_net_type type           //!< The net type.
@@ -111,7 +112,7 @@ namespace yy {
 	@brief Handles the encounter of a `resetall directive as described in annex
 	19.6 of the spec.
 	*/
-	void verilog_preprocessor_resetall()
+	void VerilogCode::verilog_preprocessor_resetall()
 	{
 		return;
 	}
@@ -120,7 +121,7 @@ namespace yy {
 	/*!
 	@brief Handles the entering of a no-unconnected drive directive.
 	*/
-	void verilog_preprocessor_nounconnected_drive(
+	void VerilogCode::verilog_preprocessor_nounconnected_drive(
 		ast_primitive_strength direction
 	){
 		assert(direction == STRENGTH_PULL1 ||
@@ -135,7 +136,7 @@ namespace yy {
 	@brief Handles the encounter of an include directive.
 	@returns A pointer to the newly created directive reference.
 	*/
-	verilog_include_directive * verilog_preprocessor_include(
+	verilog_include_directive * VerilogCode::verilog_preprocessor_include(
 		char * filename,
 		unsigned int lineNumber
 	){
@@ -187,7 +188,7 @@ namespace yy {
 	/*
 	@brief Instructs the preprocessor to register a new macro definition.
 	*/
-	void verilog_preprocessor_macro_define(
+	void VerilogCode::verilog_preprocessor_macro_define(
 		unsigned int line,  //!< The line the defininition comes from.
 		char * macro_name,  //!< The macro identifier.
 		char * macro_text,  //!< The value the macro expands to.
@@ -237,7 +238,7 @@ namespace yy {
 	/*!
 	@brief Removes a macro definition from the preprocessors lookup table.
 	*/
-	void verilog_preprocessor_macro_undefine(
+	void VerilogCode::verilog_preprocessor_macro_undefine(
 		char * macro_name //!< The name of the macro to remove.
 	){
 		ast_hashtable_delete(
@@ -249,8 +250,7 @@ namespace yy {
 	}
 
 	//! Creates and returns a new conditional context.
-	verilog_preprocessor_conditional_context *
-		verilog_preprocessor_new_conditional_context(
+	verilog_preprocessor_conditional_context * VerilogCode::verilog_preprocessor_new_conditional_context(
 		char        * condition,          //!< The definition to check for.
 		int           line_number         //!< Where the `ifdef came from.
 	){
@@ -267,7 +267,7 @@ namespace yy {
 	@brief Handles an ifdef statement being encountered.
 	@param [in] macro_name - The macro to test if defined or not.
 	*/
-	void verilog_preprocessor_ifdef (
+	void VerilogCode::verilog_preprocessor_ifdef (
 		char * macro_name,
 		unsigned int lineno,
 		bool is_ndef
@@ -313,7 +313,7 @@ namespace yy {
 	@brief Handles an elseif statement being encountered.
 	@param [in] macro_name - The macro to test if defined or not.
 	*/
-	void verilog_preprocessor_elseif(char * macro_name, unsigned int lineno)
+	void VerilogCode::verilog_preprocessor_elseif(char * macro_name, unsigned int lineno)
 	{
 		verilog_preprocessor_conditional_context * tocheck = (verilog_preprocessor_conditional_context *)ast_stack_peek(yy_preproc->ifdefs);
 
@@ -354,7 +354,7 @@ namespace yy {
 	/*!
 	@brief Handles an else statement being encountered.
 	*/
-	void verilog_preprocessor_else  (unsigned int lineno)
+	void VerilogCode::verilog_preprocessor_else  (unsigned int lineno)
 	{
 		verilog_preprocessor_conditional_context * tocheck = (verilog_preprocessor_conditional_context *) ast_stack_peek(yy_preproc->ifdefs);
 		verilog_preprocessor_conditional_context * parent = (verilog_preprocessor_conditional_context *) ast_stack_peek2(yy_preproc->ifdefs);
@@ -400,7 +400,7 @@ namespace yy {
 	/*!
 	@brief Handles an else statement being encountered.
 	*/
-	void verilog_preprocessor_endif (unsigned int lineno)
+	void VerilogCode::verilog_preprocessor_endif (unsigned int lineno)
 	{
 		verilog_preprocessor_conditional_context * tocheck = (verilog_preprocessor_conditional_context *) ast_stack_pop(yy_preproc->ifdefs);
 

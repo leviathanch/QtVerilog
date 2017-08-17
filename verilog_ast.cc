@@ -590,7 +590,7 @@ should be:
 behaviour of a left-recursive grammar.
 @todo Better implement repetition of elements.
 */
-  void                ast_extend_concatenation(ast_concatenation * element,
+  void               VerilogCode::ast_extend_concatenation(ast_concatenation * element,
                                                ast_expression * repeat,
                                                void * data)
   {
@@ -973,7 +973,7 @@ statement.
 @param new_statement - The new statement to add at the end of the existing
 if-then conditions, but before any else_condtion.
 */
-  void  ast_extend_if_else(
+  void  VerilogCode::ast_extend_if_else(
       ast_if_else     * conditional_statements,
       ast_list        * new_statements
       )
@@ -1009,7 +1009,7 @@ if-then conditions, but before any else_condtion.
 @param expression - the expression to monitor the waveforms of.
 @bug Assertion (commented out) fires in some circumstances.
 */
-  ast_event_expression * ast_new_event_expression(
+  ast_event_expression * VerilogCode::ast_new_event_expression(
       ast_edge trigger_edge,
       ast_expression * expression
       )
@@ -1041,7 +1041,7 @@ if-then conditions, but before any else_condtion.
 @brief Creates a new event expression node, which is itself a sequence of
 sub-expressions.
 */
-  ast_event_expression * ast_new_event_expression_sequence(
+  ast_event_expression * VerilogCode::ast_new_event_expression_sequence(
       ast_event_expression * left,
       ast_event_expression * right
       )
@@ -2616,7 +2616,7 @@ will be returned.
 @returns A copy of the identifiers full name, as a null terminated character
 array.
 */
-  char * ast_identifier_tostring(ast_identifier id)
+  char * VerilogCode::ast_identifier_tostring(ast_identifier id)
   {
     char * tr = ast_strdup(id->identifier);
     ast_identifier walker = id;
@@ -2648,7 +2648,7 @@ array.
   }
 
   ast_identifier VerilogCode::ast_new_identifier(
-      char         * identifier,
+	  QString identifier,
       unsigned int   from_line
       ){
     ast_identifier tr = (ast_identifier)ast_calloc(1,sizeof(struct ast_identifier_t));

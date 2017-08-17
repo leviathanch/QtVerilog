@@ -10,13 +10,14 @@
 #include "string.h"
 #include "stdio.h"
 
+#include "verilogcode.h"
 #include "verilog_ast_common.hh"
 
 namespace yy {
   /*!
 @brief Creates and returns a pointer to a new linked list.
 */
-  ast_list * ast_list_new ()
+  ast_list * VerilogCode::ast_list_new ()
   {
     ast_list * tr = (ast_list *)ast_calloc(1, sizeof(ast_list));
     tr->head          = NULL;
@@ -32,7 +33,7 @@ namespace yy {
 @note Does not free the memory of the data elements in the list, only
 the list construct itself.
 */
-  void       ast_list_free(ast_list * list)
+  void       VerilogCode::ast_list_free(ast_list * list)
   {
     if(list->items > 0)
       {
@@ -57,7 +58,7 @@ the list construct itself.
   /*!
 @brief Adds a new item to the end of a linked list.
 */
-  void       ast_list_append(ast_list * list, void * data)
+  void       VerilogCode::ast_list_append(ast_list * list, const void * data)
   {
     if(list->items == 0)
       {
@@ -84,7 +85,7 @@ the list construct itself.
   /*!
 @brief Removes the i'th item from a linked list.
 */
-  void      ast_list_remove_at(ast_list * list, unsigned int i)
+  void      VerilogCode::ast_list_remove_at(ast_list * list, unsigned int i)
   {
     if(i > list->items - 1)
       {
@@ -122,7 +123,7 @@ the list construct itself.
   /*!
 @brief Adds a new item to the front of a linked list.
 */
-  void       ast_list_preappend(ast_list * list, void * data)
+  void       VerilogCode::ast_list_preappend(ast_list * list, void * data)
   {
     if(list->items == 0)
       {
@@ -153,7 +154,7 @@ the list construct itself.
 @details Returns a void* pointer. The programmer must be sure to cast this
 as the correct type.
 */
-  void *    ast_list_get(ast_list * list, unsigned int item)
+  const void *    VerilogCode::ast_list_get(ast_list * list, unsigned int item)
   {
     assert(list != NULL);
     if(item > list->items - 1)
@@ -193,7 +194,7 @@ contained within it.
 pointer has the same address as the supplied data pointer, the item is
 considered to be found.
 */
-  int ast_list_contains(
+  int VerilogCode::ast_list_contains(
       ast_list * list,
       void * data
       ){
@@ -233,7 +234,7 @@ considered to be found.
 to those in head. The tail argument is then released from memory, and the
 original head pointer is returned, with all data items still in tact.
 */
-  ast_list *    ast_list_concat(ast_list * head, ast_list * tail)
+  ast_list *    VerilogCode::ast_list_concat(ast_list * head, ast_list * tail)
   {
     assert(head != NULL);
     assert(tail != NULL);
@@ -274,7 +275,7 @@ original head pointer is returned, with all data items still in tact.
   /*!
 @brief Creates and returns a new stack object.
 */
-  ast_stack * ast_stack_new(){
+  ast_stack * VerilogCode::ast_stack_new(){
     ast_stack * tr = (ast_stack *)ast_calloc(1,sizeof(ast_stack));
     tr->depth = 0;
     return tr;
@@ -300,7 +301,7 @@ original head pointer is returned, with all data items still in tact.
 @param [inout] stack - The stack to push to.
 @param [in]    item  - The thing to push onto the stack.
 */
-  void ast_stack_push(
+  void VerilogCode::ast_stack_push(
       ast_stack * stack,
       void      * item
       ){
@@ -327,7 +328,7 @@ original head pointer is returned, with all data items still in tact.
 @brief Pop the top item from the top of the stack.
 @param [inout] stack - The stack to pop from.
 */
-  void * ast_stack_pop(
+  void * VerilogCode::ast_stack_pop(
 
       ast_stack * stack
       ){
@@ -352,7 +353,7 @@ original head pointer is returned, with all data items still in tact.
 @brief Peek at the top item on the top of the stack.
 @param [inout] stack - The stack to peek at
 */
-  void * ast_stack_peek(
+  void * VerilogCode::ast_stack_peek(
       ast_stack * stack
       ){
     assert(stack != NULL);
@@ -372,7 +373,7 @@ original head pointer is returned, with all data items still in tact.
 @brief Peek at the item *below* the top item on the top of the stack.
 @param [inout] stack - The stack to peek into
 */
-  void * ast_stack_peek2(
+  void * VerilogCode::ast_stack_peek2(
       ast_stack * stack
       ){
     assert(stack != NULL);
@@ -396,7 +397,7 @@ original head pointer is returned, with all data items still in tact.
   }
 
   //! Creates and returns a new hashtable.
-  ast_hashtable * ast_hashtable_new(){
+  ast_hashtable * VerilogCode::ast_hashtable_new(){
     ast_hashtable * tr = (ast_hashtable *)ast_calloc(1,sizeof(ast_hashtable));
 
     tr->size = 0;
@@ -406,7 +407,7 @@ original head pointer is returned, with all data items still in tact.
   }
 
   //! Frees an existing hashtable, but not it's contents, only the structure.
-  void  ast_hashtable_free(
+  void  VerilogCode::ast_hashtable_free(
       ast_hashtable * table  //!< The table to free.
       ){
     ast_list_free(table->elements);
@@ -415,7 +416,7 @@ original head pointer is returned, with all data items still in tact.
   }
 
   //! Inserts a new item into the hashtable.
-  ast_hashtable_result ast_hashtable_insert(
+  ast_hashtable_result VerilogCode::ast_hashtable_insert(
       ast_hashtable * table, //!< The table to insert into.
       char          * key,   //!< The key to insert with.
       void          * value  //!< The data being added.
@@ -443,7 +444,7 @@ original head pointer is returned, with all data items still in tact.
   }
 
   //! Returns an item from the hashtable.
-  ast_hashtable_result ast_hashtable_get(
+  ast_hashtable_result VerilogCode::ast_hashtable_get(
       ast_hashtable * table, //!< The table to fetch from.
       char          * key,   //!< The key of the data to fetch.
       void         ** value  //!< [out] The data being returned.
@@ -464,7 +465,7 @@ original head pointer is returned, with all data items still in tact.
   }
 
   //! Removes a key value pair from the hashtable.
-  ast_hashtable_result ast_hashtable_delete(
+  ast_hashtable_result VerilogCode::ast_hashtable_delete(
       ast_hashtable * table, //!< The table to delete from.
       char          * key    //!< The key to delete.
       ){
@@ -484,7 +485,7 @@ original head pointer is returned, with all data items still in tact.
   }
 
   //! Updates an existing item in the hashtable.
-  ast_hashtable_result ast_hashtable_update(
+  ast_hashtable_result VerilogCode::ast_hashtable_update(
       ast_hashtable * table, //!< The table to update.
       char          * key,   //!< The key to update with.
       void          * value  //!< The new data item to update.

@@ -43,7 +43,6 @@ HEADERS += \
        	verilog_ast_mem.hh \
 	verilog_preprocessor.hh \
 	verilogcode.h \
-	verilogflexlexer.h \
 	verilogscanner.hh
 
 FORMS += \

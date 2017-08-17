@@ -8,6 +8,7 @@
 #include <stdio.h>
 
 #include "verilog_ast_util.hh"
+#include "verilogcode.h"
 
 namespace yy {
   /*!
@@ -16,7 +17,7 @@ one that matches the passed identifer.
 @returns The matching module declaration, or NULL if no such declaration
 exists.
 */
-  ast_module_declaration * verilog_find_module_declaration(
+  ast_module_declaration * VerilogCode::verilog_find_module_declaration(
       verilog_source_tree * source,
       ast_identifier module_name
       ){
@@ -39,7 +40,7 @@ exists.
 @brief searches across an entire verilog source tree, resolving module
 identifiers to their declarations.
 */
-  void verilog_resolve_modules(
+  void VerilogCode::verilog_resolve_modules(
       verilog_source_tree * source
       ){
     assert(source != NULL);
@@ -105,7 +106,7 @@ identifiers to their declarations.
 @brief Returns a list of module instantiations, representing the different
 types of module which this parent instantiates.
 */
-  ast_list * verilog_module_get_children(
+  ast_list * VerilogCode::verilog_module_get_children(
       ast_module_declaration * module
       ){
     ast_list * tr = ast_list_new();
@@ -160,7 +161,7 @@ module children.
 to which the passed module belongs.
 @see verilog_module_get_children
 */
-  ast_hashtable * verilog_modules_get_children(
+  ast_hashtable * VerilogCode::verilog_modules_get_children(
       verilog_source_tree * source
       ){
     ast_hashtable * tr = ast_hashtable_new();
