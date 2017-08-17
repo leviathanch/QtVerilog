@@ -13,8 +13,8 @@ namespace yy {
 class VerilogScanner : public yyFlexLexer
 {
 public:
-	VerilogScanner(std::istream* arg_yyin = 0, std::ostream* arg_yyout = 0);
 	VerilogScanner();
+	VerilogScanner(std::ifstream input);
 	int yylex(YYSTYPE* yylval, YYLTYPE* yylloc, yy::VerilogCode* code);
 };
 }

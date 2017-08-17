@@ -15,19 +15,6 @@ namespace yy {
 @ingroup ast-utility
 */
 
-  //! The total number of memory allocations made.
-  unsigned int memory_allocations = 0;
-
-  //! The total number of bytes ever allocated using ast_alloc
-  size_t       total_allocated = 0;
-
-  //! Head of the linked list of allocated memory.
-  ast_memory * memory_head = NULL;
-
-  //! Walker for the linked list of allocated memory.
-  ast_memory * walker = NULL;
-
-
   /*!
 @brief A simple wrapper around calloc.
 @details Makes it very easy to clean up afterward using the @ref ast_free_all
@@ -36,7 +23,7 @@ function.
 @param [in] size - The size of each element being allocated.
 @returns A pointer to the start of the block of memory allocated.
 */
-  void * ast_calloc(size_t num, size_t size)
+  void * VerilogCode::ast_calloc(size_t num, size_t size)
   {
     // This is the memory the user asked for.
     void * data = calloc(num,size);
@@ -74,7 +61,7 @@ function.
 @post @ref walker and @ref head are NULL. All memory allocated by ast_calloc
 has been freed.
 */
-  void ast_free_all()
+  void VerilogCode::ast_free_all()
   {
     printf("Freeing data for %u memory allocations.\n", memory_allocations);
     size_t total_freed = 0;
@@ -98,12 +85,12 @@ has been freed.
 
   char * VerilogCode::ast_strdup(QString in)
   {
-	QByteArray array = in.toLocal8Bit();
-	char* buffer = array.data();
-	int len = strlen(buffer);
-	char * tr = (char *)ast_calloc(len+1,sizeof(char));
-	memcpy(tr,buffer,len);
-	return tr;
+        QByteArray array = in.toLocal8Bit();
+        char* buffer = array.data();
+        int len = strlen(buffer);
+        char * tr = (char *)ast_calloc(len+1,sizeof(char));
+        memcpy(tr,buffer,len);
+        return tr;
   }
 
   char * VerilogCode::ast_strdup(char * in)

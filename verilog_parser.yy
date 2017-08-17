@@ -4877,3 +4877,7 @@ escaped_hierarchical_branch :
 white_space : SPACE | TAB | NEWLINE;
 
 %%
+
+void yy::VerilogParser::error(const location_type &l, const std::string &m)
+{
+}
