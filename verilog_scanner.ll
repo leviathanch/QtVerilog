@@ -319,41 +319,41 @@ TERNARY             "?"
 <in_comment>.|\n       {/* IGNORE                            */}
 <in_comment>{COMMENT_END} {BEGIN(INITIAL);                     }
 
-{CD_CELLDEFINE}          {yy::verilog_preproc_enter_cell_define();}
-{CD_ENDCELLDEFINE}       {yy::verilog_preproc_exit_cell_define();}
+{CD_CELLDEFINE}          {code->verilog_preproc_enter_cell_define();}
+{CD_ENDCELLDEFINE}       {code->verilog_preproc_exit_cell_define();}
 
 {CD_DEFAULT_NETTYPE}     {BEGIN(in_default_nettype);}
 <in_default_nettype>{TRIAND}  {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIAND );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIAND );
     }
 <in_default_nettype>{TRIOR}   {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIOR  );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIOR  );
     }
 <in_default_nettype>{TRIREG}     {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIREG );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_TRIREG );
     }
 <in_default_nettype>{TRI0}     {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_TRI    );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_TRI    );
     }
 <in_default_nettype>{TRI}     {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_TRI    );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_TRI    );
     }
 <in_default_nettype>{WIRE}    {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_WIRE   );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_WIRE   );
     }
 <in_default_nettype>{WAND}    {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_WAND   );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_WAND   );
     }
 <in_default_nettype>{WOR}     {
     BEGIN(INITIAL);
-	yy::verilog_preproc_default_net(yy_preproc->token_count, yylineno, yy::NET_TYPE_WOR    );
+        code->verilog_preproc_default_net(code->yy_preproc->token_count, yylineno, yy::NET_TYPE_WOR    );
     }
 
 {CD_TIMESCALE}           {
@@ -365,7 +365,7 @@ TERNARY             "?"
     BEGIN(in_ts_2);
 }
 <in_ts_1>{NUM_UNSIGNED}      {
-	yy_preproc->timescale.scale = yylval->string;
+        code->yy_preproc->timescale.scale = yylval->string;
 }
 <in_ts_2>{DIV}               {
     BEGIN(in_ts_3);
@@ -376,17 +376,17 @@ TERNARY             "?"
     BEGIN(INITIAL);
 }
 <in_ts_3>{NUM_UNSIGNED}      {
-	yy_preproc->timescale.precision = yylval->string;
+        code->yy_preproc->timescale.precision = yylval->string;
 }
 {CD_RESETALL}            {
-    yy::verilog_preprocessor_resetall();
+    code->verilog_preprocessor_resetall();
 }
 
 {CD_IFDEF}               {
     BEGIN(in_ifdef);
 }
 <in_ifdef>{SIMPLE_ID}    {
-        yy::verilog_preprocessor_ifdef(yytext,yylineno,false);
+        code->verilog_preprocessor_ifdef(yytext,yylineno,false);
     BEGIN(INITIAL);
 }
 
@@ -394,7 +394,7 @@ TERNARY             "?"
     BEGIN(in_ifndef);
 }
 <in_ifndef>{SIMPLE_ID}   {
-        yy::verilog_preprocessor_ifdef(yytext,yylineno,true);
+        code->verilog_preprocessor_ifdef(yytext,yylineno,true);
     BEGIN(INITIAL);
 }
 
@@ -402,16 +402,16 @@ TERNARY             "?"
     BEGIN(in_elseif);
 }
 <in_elseif>{SIMPLE_ID}   {
-    yy::verilog_preprocessor_elseif(yytext, yylineno);
+    code->verilog_preprocessor_elseif(yytext, yylineno);
     BEGIN(INITIAL);
 }
 
 {CD_ELSE}                {
-    yy::verilog_preprocessor_else(yylineno);
+    code->verilog_preprocessor_else(yylineno);
 }
 
 {CD_ENDIF}               {
-    yy::verilog_preprocessor_endif(yylineno);
+    code->verilog_preprocessor_endif(yylineno);
 }
 
 {CD_INCLUDE}             {
@@ -420,7 +420,7 @@ TERNARY             "?"
 <in_include>{STRING}     {
     YY_BUFFER_STATE cur = YY_CURRENT_BUFFER;
 
-    yy::verilog_include_directive * id = yy::verilog_preprocessor_include(yytext,yylineno);
+    yy::verilog_include_directive * id = code->verilog_preprocessor_include(yytext,yylineno);
 
     // Now, we need to look for the file, open it as a buffer, and then
     // switch to it.
@@ -454,17 +454,17 @@ TERNARY             "?"
 <in_line_3>{NUM_UNSIGNED} {BEGIN(INITIAL);}
 
 {CD_NOUNCONNECTED_DRIVE} {
-    yy::verilog_preprocessor_nounconnected_drive(yy::STRENGTH_NONE);
+    code->verilog_preprocessor_nounconnected_drive(yy::STRENGTH_NONE);
 }
 {CD_UNCONNECTED_DRIVE}   {
     BEGIN(in_unconnected_drive);
 }
 <in_unconnected_drive>{PULL0} {
-    yy::verilog_preprocessor_nounconnected_drive(yy::STRENGTH_PULL0);
+    code->verilog_preprocessor_nounconnected_drive(yy::STRENGTH_PULL0);
     BEGIN(INITIAL);
 }
 <in_unconnected_drive>{PULL1} {
-    yy::verilog_preprocessor_nounconnected_drive(yy::STRENGTH_PULL1);
+    code->verilog_preprocessor_nounconnected_drive(yy::STRENGTH_PULL1);
     BEGIN(INITIAL);
 }
 
@@ -473,7 +473,7 @@ TERNARY             "?"
 }
 
 <in_define>{SIMPLE_ID}   {
-	yy_preproc->scratch = yy::ast_strdup(yytext);
+        code->yy_preproc->scratch = code->ast_strdup(yytext);
     BEGIN(in_define_t);
 }
 
@@ -481,18 +481,18 @@ TERNARY             "?"
     if(yyleng == 1)
     {
         // Macro has no value, and is just a newline character.
-        yy::verilog_preprocessor_macro_define(
+        code->verilog_preprocessor_macro_define(
             yylineno-1,
-			yy_preproc->scratch,
+                        code->yy_preproc->scratch,
             NULL,
             0); // -1 to avoid including the newline.
     }
     else
     {
         // Macro has a proper value.
-        yy::verilog_preprocessor_macro_define(
+        code->verilog_preprocessor_macro_define(
             yylineno-1,
-			yy_preproc->scratch,
+                        code->yy_preproc->scratch,
             yytext+1,
             yyleng-2); // -1 to avoid including the newline.
     }
@@ -504,7 +504,7 @@ TERNARY             "?"
 }
 
 <in_undef>{SIMPLE_ID}  {
-    yy::verilog_preprocessor_macro_undefine(yytext);
+    code->verilog_preprocessor_macro_undefine(yytext);
     BEGIN(INITIAL);
 }
 
@@ -514,7 +514,7 @@ TERNARY             "?"
     // Look for the macro entry.
     verilog_macro_directive * macro = NULL;
     char * macroName = (yytext)+1;
-	yy::ast_hashtable_result r = yy::ast_hashtable_get(yy_preproc->macrodefines,
+        yy::ast_hashtable_result r = yy::ast_hashtable_get(code->yy_preproc->macrodefines,
                                                macroName,
                                                (void**)&macro);
 
@@ -718,15 +718,15 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {XOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_XOR);}
 
 {SYSTEM_ID}            {
-	yylval->identifier = yy::ast_new_identifier(yytext,yylineno);
+	yylval->identifier = code->ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SYSTEM_ID);
 }
 {ESCAPED_ID}           {
-	yylval->identifier = yy::ast_new_identifier(yytext,yylineno);
+	yylval->identifier = code->ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::ESCAPED_ID);
 }
 {SIMPLE_ID}            {
-	yylval->identifier = yy::ast_new_identifier(yytext,yylineno);
+	yylval->identifier = code->ast_new_identifier(yytext,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
@@ -742,7 +742,7 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 
 	// We are exiting a file, so pop from the the preprocessor stack of files
 	// being parsed.
-	yy::ast_stack_pop(yy_preproc->current_file);
+	code->ast_stack_pop(code->yy_preproc->current_file);
 
 
 	if ( !YY_CURRENT_BUFFER )

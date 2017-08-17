@@ -770,13 +770,13 @@ namespace yy {
 
 grammar_begin :
   library_text {
-		code->add_library($1);
+                code->add_library($1);
 }
 | config_declaration {
-		code->add_config($1);
+                code->add_config($1);
 }
 | source_text {
-		code->add_source($1);
+                code->add_source($1);
 }
 | {
     // Do nothing, it's an empty file.
@@ -802,48 +802,48 @@ actual_argument : expression
 
 library_text :
   library_descriptions{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | library_text library_descriptions{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
 library_descriptions :
   library_declaration{
-    $$ = yy::ast_new_library_description(yy::LIB_LIBRARY);
+    $$ = code->ast_new_library_description(yy::LIB_LIBRARY);
     $$->library = $1;
   }
 | include_statement{
-    $$ = yy::ast_new_library_description(yy::LIB_INCLUDE);
+    $$ = code->ast_new_library_description(yy::LIB_INCLUDE);
     $$->include = $1;
   }
 | config_declaration{
-    $$ = yy::ast_new_library_description(yy::LIB_CONFIG);
+    $$ = code->ast_new_library_description(yy::LIB_CONFIG);
     $$->config = $1;
   }
 ;
 
 library_declaration :
   KW_LIBRARY library_identifier file_path_specs SEMICOLON{
-    $$ = yy::ast_new_library_declaration($2,$3,yy::ast_list_new());
+    $$ = code->ast_new_library_declaration($2,$3,code->ast_list_new());
   }
 | KW_LIBRARY library_identifier file_path_specs KW_INCDIR file_path_specs
   SEMICOLON{
-    $$ = yy::ast_new_library_declaration($2,$3,$5);
+    $$ = code->ast_new_library_declaration($2,$3,$5);
   }
 ;
 
 file_path_specs :
   file_path_spec{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | file_path_specs COMMA file_path_spec{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
@@ -860,7 +860,7 @@ include_statement : KW_INCLUDE file_path_spec SEMICOLON{$$=$2;}
 config_declaration :
  KW_CONFIG config_identifier SEMICOLON design_statement
  config_rule_statement_os KW_ENDCONFIG{
-    $$ = yy::ast_new_config_declaration($2,$4,$5);
+    $$ = code->ast_new_config_declaration($2,$4,$5);
   }
 ;
 
@@ -875,58 +875,58 @@ lib_cell_identifier_os :
     $$ = $1;
   }
 | library_identifier DOT cell_identifier{
-    $$ = yy::ast_append_identifier($1,$3);
+    $$ = code->ast_append_identifier($1,$3);
 }
 | lib_cell_identifier_os cell_identifier{
     if($1 == NULL){
         $$ = $2;
     } else {
-        $$ = yy::ast_append_identifier($1,$2);
+        $$ = code->ast_append_identifier($1,$2);
     }
 }
 | lib_cell_identifier_os library_identifier DOT cell_identifier{
     if($1 == NULL){
-        $$ = yy::ast_append_identifier($2,$4);
+        $$ = code->ast_append_identifier($2,$4);
     } else {
-                $$ = yy::ast_append_identifier($1,yy::ast_append_identifier($2,$4));
+                $$ = code->ast_append_identifier($1,code->ast_append_identifier($2,$4));
     }
 }
 ;
 
 config_rule_statement_os : {
-    $$ = yy::ast_list_new();
+    $$ = code->ast_list_new();
 }
 | config_rule_statement{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | config_rule_statement_os config_rule_statement{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
 config_rule_statement :
   KW_DEFAULT liblist_clause{
-    $$ = yy::ast_new_config_rule_statement(true,NULL,NULL);
+    $$ = code->ast_new_config_rule_statement(true,NULL,NULL);
     $$->multiple_clauses = true;
     $$->clauses = $2;
   }
 | inst_clause liblist_clause{
-    $$ = yy::ast_new_config_rule_statement(false,NULL,NULL);
+    $$ = code->ast_new_config_rule_statement(false,NULL,NULL);
     $$->multiple_clauses = true;
     $$->clauses = $2;
   }
 | inst_clause use_clause{
-    $$ = yy::ast_new_config_rule_statement(false,$1,$2);
+    $$ = code->ast_new_config_rule_statement(false,$1,$2);
   }
 | cell_clause liblist_clause{
-    $$ = yy::ast_new_config_rule_statement(false,NULL,NULL);
+    $$ = code->ast_new_config_rule_statement(false,NULL,NULL);
     $$->multiple_clauses = true;
     $$->clauses = $2;
   }
 | cell_clause use_clause{
-    $$ = yy::ast_new_config_rule_statement(false,$1,$2);
+    $$ = code->ast_new_config_rule_statement(false,$1,$2);
   }
 ;
 
@@ -937,7 +937,7 @@ inst_name   :
   topmodule_identifier instance_identifier_os{
     $$ = $1;
     if($2 != NULL)
-        yy::ast_append_identifier($$,$2);
+        code->ast_append_identifier($$,$2);
   }
 ;
 
@@ -949,7 +949,7 @@ instance_identifier_os  :
         $$ = $3;
     } else {
         $$ = $1;
-        yy::ast_append_identifier($$,$3);
+        code->ast_append_identifier($$,$3);
     }
 }
 ;
@@ -960,7 +960,7 @@ cell_clause :
   }
 | KW_CELL library_identifier DOT cell_identifier{
     $$ = $2;
-    yy::ast_append_identifier($$,$4);
+    code->ast_append_identifier($$,$4);
 }
 ;
 
@@ -968,25 +968,25 @@ liblist_clause  : KW_LIBLIST library_identifier_os{$$ = $2;}
                 ;
 
 library_identifier_os :
-  {$$ = yy::ast_list_new();}
+  {$$ = code->ast_list_new();}
 | library_identifier{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | library_identifier_os library_identifier{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
 use_clause :
   KW_USE library_identifier DOT cell_identifier COLON KW_CONFIG{
     $$ = $2;
-    yy::ast_append_identifier($$,$4);
+    code->ast_append_identifier($$,$4);
   }
 | KW_USE library_identifier DOT cell_identifier{
     $$ = $2;
-    yy::ast_append_identifier($$,$4);
+    code->ast_append_identifier($$,$4);
   }
 | KW_USE cell_identifier COLON KW_CONFIG{
     $$ = $2;
@@ -1000,22 +1000,22 @@ use_clause :
 
 source_text :
   description {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | source_text description{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
 description :
   module_declaration{
-    $$ = yy::ast_new_source_item(yy::SOURCE_MODULE);
+    $$ = code->ast_new_source_item(yy::SOURCE_MODULE);
     $$->module = $1;
 }
 | udp_declaration     {
-    $$ = yy::ast_new_source_item(yy::SOURCE_UDP);
+    $$ = code->ast_new_source_item(yy::SOURCE_UDP);
     $$->udp = $1;
 }
 ;
@@ -1029,7 +1029,7 @@ module_declaration :
   SEMICOLON
   non_port_module_item_os
   KW_ENDMODULE{
-    $$ = yy::ast_new_module_declaration($1,$3,$4,$5,$7);
+    $$ = code->ast_new_module_declaration($1,$3,$4,$5,$7);
 }
 | attribute_instances
   module_keyword
@@ -1041,7 +1041,7 @@ module_declaration :
   KW_ENDMODULE{
     // Old style of port declaration, don't pass them directly into the
     // function.
-    $$ = yy::ast_new_module_declaration($1,$3,$4,NULL,$7);
+    $$ = code->ast_new_module_declaration($1,$3,$4,NULL,$7);
 }
 ;
 
@@ -1052,7 +1052,7 @@ module_keyword     : KW_MODULE
 /* A.1.4 Module parameters and ports */
 
 module_parameter_port_list  : {
-    $$ = yy::ast_list_new();
+    $$ = code->ast_list_new();
 }
 | HASH OPEN_BRACKET module_params CLOSE_BRACKET{
     $$ = $3;
@@ -1061,16 +1061,16 @@ module_parameter_port_list  : {
 
 module_params     :
   parameter_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$, $1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$, $1);
   }
 | module_params COMMA parameter_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
-list_of_ports   : {$$ = yy::ast_list_new();}
+list_of_ports   : {$$ = code->ast_list_new();}
 | OPEN_BRACKET ports CLOSE_BRACKET {
     $$ = $2;
 }
@@ -1078,7 +1078,7 @@ list_of_ports   : {$$ = yy::ast_list_new();}
 
 list_of_port_declarations   :
   OPEN_BRACKET CLOSE_BRACKET{
-    $$ = yy::ast_list_new();
+    $$ = code->ast_list_new();
   }
 | OPEN_BRACKET port_declarations CLOSE_BRACKET{
     $$ = $2;
@@ -1089,56 +1089,56 @@ port_declarations :
   port_declarations COMMA port_dir port_declaration_l{
     $$ = $1;
     $4->direction = $3;
-    yy::ast_list_append($$,$4);
+    code->ast_list_append($$,$4);
 }
 | port_declarations COMMA identifier_csv port_dir port_declaration_l{
     $$ = $1;
     $5->direction = $4;
-    yy::ast_list_append($$,$5);
+    code->ast_list_append($$,$5);
 }
 | port_dir port_declaration_l{
-    $$ = yy::ast_list_new();
+    $$ = code->ast_list_new();
     $2->direction = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
 port_declaration_l:
   net_type_o signed_o range_o port_identifier{
-    yy::ast_list * names = yy::ast_list_new();
-    yy::ast_list_append(names, $4);
-        $$ = yy::ast_new_port_declaration(yy::PORT_NONE, $1, $2, false,false,NULL,names);
+    yy::ast_list * names = code->ast_list_new();
+    code->ast_list_append(names, $4);
+        $$ = code->ast_new_port_declaration(yy::PORT_NONE, $1, $2, false,false,NULL,names);
 }
 |            signed_o range_o port_identifier{
-    yy::ast_list * names = yy::ast_list_new();
-    yy::ast_list_append(names, $3);
-        $$ = yy::ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, $1,    false,false,NULL,names);
+    yy::ast_list * names = code->ast_list_new();
+    code->ast_list_append(names, $3);
+        $$ = code->ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, $1,    false,false,NULL,names);
 }
 | KW_REG     signed_o range_o port_identifier eq_const_exp_o{
-    yy::ast_list * names = yy::ast_list_new();
-    yy::ast_list_append(names, $4);
-    $$ = yy::ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, false, true,false,NULL,names);
+    yy::ast_list * names = code->ast_list_new();
+    code->ast_list_append(names, $4);
+    $$ = code->ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, false, true,false,NULL,names);
 }
 | output_variable_type_o      port_identifier{
-    yy::ast_list * names = yy::ast_list_new();
-    yy::ast_list_append(names, $2);
-    $$ = yy::ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, false, false,true,NULL,names);
+    yy::ast_list * names = code->ast_list_new();
+    code->ast_list_append(names, $2);
+    $$ = code->ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, false, false,true,NULL,names);
 }
 | output_variable_type        port_identifier eq_const_exp_o{
-    yy::ast_list * names = yy::ast_list_new();
-    yy::ast_list_append(names, $2);
-    $$ = yy::ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, false, false,true,NULL,names);
+    yy::ast_list * names = code->ast_list_new();
+    code->ast_list_append(names, $2);
+    $$ = code->ast_new_port_declaration(yy::PORT_NONE, yy::NET_TYPE_NONE, false, false,true,NULL,names);
 }
 ;
 
-identifier_csv    : {$$ = yy::ast_list_new();}
+identifier_csv    : {$$ = code->ast_list_new();}
 | identifier{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | COMMA identifier identifier_csv{
     $$ = $3;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
@@ -1154,14 +1154,14 @@ port_declaration  :
 | output_declaration {$$ = $1;}
 ;
 
-ports           : {$$ = yy::ast_list_new();}
+ports           : {$$ = code->ast_list_new();}
 | ports COMMA port{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 | port {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 ;
 
@@ -1176,12 +1176,12 @@ port            :
 
 port_expression :
   port_reference {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | port_expression COMMA port_reference{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
@@ -1199,25 +1199,25 @@ port_reference  :
 
 /* A.1.5 Module Items */
 
-module_item_os : {$$ = yy::ast_list_new();}
+module_item_os : {$$ = code->ast_list_new();}
 | module_item{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | module_item_os module_item{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
-non_port_module_item_os : {$$ = yy::ast_list_new();}
+non_port_module_item_os : {$$ = code->ast_list_new();}
  | non_port_module_item{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
  }
  | non_port_module_item_os non_port_module_item{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
  }
 ;
 
@@ -1226,27 +1226,27 @@ module_item :
     $$ = $1;
  }
  | port_declaration SEMICOLON{
-    $$ = yy::ast_new_module_item(NULL, yy::MOD_ITEM_PORT_DECLARATION);
+    $$ = code->ast_new_module_item(NULL, yy::MOD_ITEM_PORT_DECLARATION);
     $$->port_declaration = $1;
  }
  | attribute_instances generated_instantiation{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_GENERATED_INSTANTIATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_GENERATED_INSTANTIATION);
     $$->generated_instantiation = $2;
  }
  | attribute_instances local_parameter_declaration{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
     $$->parameter_declaration = $2;
  }
  | attribute_instances parameter_declaration SEMICOLON{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
     $$->parameter_declaration = $2;
  }
  | attribute_instances specify_block{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_SPECIFY_BLOCK);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_SPECIFY_BLOCK);
     $$->specify_block = $2;
  }
  | attribute_instances specparam_declaration{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_SPECPARAM_DECLARATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_SPECPARAM_DECLARATION);
     $$->specparam_declaration = $2;
  }
  ;
@@ -1256,100 +1256,100 @@ module_or_generate_item :
     $$ = $2;
   }
 | attribute_instances parameter_override{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_OVERRIDE);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_OVERRIDE);
     $$->parameter_override = $2;
   }
 | attribute_instances continuous_assign{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_CONTINOUS_ASSIGNMENT);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_CONTINOUS_ASSIGNMENT);
     $$->continuous_assignment = $2->continuous;
   }
 | attribute_instances gate_instantiation{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_GATE_INSTANTIATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_GATE_INSTANTIATION);
     $$->gate_instantiation = $2;
   }
 | attribute_instances udp_instantiation{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_UDP_INSTANTIATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_UDP_INSTANTIATION);
     $$->udp_instantiation = $2;
   }
 | attribute_instances module_instantiation{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_MODULE_INSTANTIATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_MODULE_INSTANTIATION);
     $$->module_instantiation = $2;
   }
 | attribute_instances initial_construct{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_INITIAL_CONSTRUCT);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_INITIAL_CONSTRUCT);
     $$->initial_construct = $2;
   }
 | attribute_instances always_construct{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_ALWAYS_CONSTRUCT);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_ALWAYS_CONSTRUCT);
     $$->always_construct = $2;
   }
 ;
 
 module_or_generate_item_declaration :
    net_declaration{
-    $$ = yy::ast_new_module_item(NULL,yy::MOD_ITEM_NET_DECLARATION);
+    $$ = code->ast_new_module_item(NULL,yy::MOD_ITEM_NET_DECLARATION);
     $$->net_declaration = $1;
  }
  | reg_declaration{
-    $$ = yy::ast_new_module_item(NULL,yy::MOD_ITEM_REG_DECLARATION);
+    $$ = code->ast_new_module_item(NULL,yy::MOD_ITEM_REG_DECLARATION);
     $$->reg_declaration = $1;
  }
  | integer_declaration{
-    $$ = yy::ast_new_module_item(NULL, yy::MOD_ITEM_INTEGER_DECLARATION);
+    $$ = code->ast_new_module_item(NULL, yy::MOD_ITEM_INTEGER_DECLARATION);
     $$->integer_declaration = $1;
  }
  | real_declaration{
-    $$ = yy::ast_new_module_item(NULL,yy::MOD_ITEM_REAL_DECLARATION);
+    $$ = code->ast_new_module_item(NULL,yy::MOD_ITEM_REAL_DECLARATION);
     $$->real_declaration = $1;
  }
  | time_declaration{
-    $$ = yy::ast_new_module_item(NULL,yy::MOD_ITEM_TIME_DECLARATION);
+    $$ = code->ast_new_module_item(NULL,yy::MOD_ITEM_TIME_DECLARATION);
     $$->time_declaration = $1;
  }
  | realtime_declaration{
-    $$ = yy::ast_new_module_item(NULL, yy::MOD_ITEM_REALTIME_DECLARATION);
+    $$ = code->ast_new_module_item(NULL, yy::MOD_ITEM_REALTIME_DECLARATION);
     $$->realtime_declaration = $1;
  }
  | event_declaration{
-    $$ = yy::ast_new_module_item(NULL,yy::MOD_ITEM_EVENT_DECLARATION);
+    $$ = code->ast_new_module_item(NULL,yy::MOD_ITEM_EVENT_DECLARATION);
     $$->event_declaration = $1;
  }
  | genvar_declaration{
-    $$ = yy::ast_new_module_item(NULL,yy::MOD_ITEM_GENVAR_DECLARATION);
+    $$ = code->ast_new_module_item(NULL,yy::MOD_ITEM_GENVAR_DECLARATION);
     $$->genvar_declaration = $1;
  }
  | task_declaration{
-    $$ = yy::ast_new_module_item(NULL, yy::MOD_ITEM_TASK_DECLARATION);
+    $$ = code->ast_new_module_item(NULL, yy::MOD_ITEM_TASK_DECLARATION);
     $$->task_declaration = $1;
  }
  | function_declaration{
-    $$ = yy::ast_new_module_item(NULL, yy::MOD_ITEM_FUNCTION_DECLARATION);
+    $$ = code->ast_new_module_item(NULL, yy::MOD_ITEM_FUNCTION_DECLARATION);
     $$->function_declaration = $1;
  }
  ;
 
 non_port_module_item :
   attribute_instances generated_instantiation{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_GENERATED_INSTANTIATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_GENERATED_INSTANTIATION);
     $$->generated_instantiation = $2;
   }
 | attribute_instances local_parameter_declaration{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
     $$->parameter_declaration = $2;
 }
 | attribute_instances module_or_generate_item{
     $$ = $2;
 }
 | attribute_instances parameter_declaration SEMICOLON{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_PARAMETER_DECLARATION);
     $$->parameter_declaration = $2;
 }
 | attribute_instances specify_block{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_SPECIFY_BLOCK);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_SPECIFY_BLOCK);
     $$->specify_block = $2;
 }
 | attribute_instances specparam_declaration{
-    $$ = yy::ast_new_module_item($1, yy::MOD_ITEM_PORT_DECLARATION);
+    $$ = code->ast_new_module_item($1, yy::MOD_ITEM_PORT_DECLARATION);
     $$->specparam_declaration = $2;
 }
 ;
@@ -1365,43 +1365,43 @@ range_o  : range {$$=$1;}    | {$$=NULL;} ;
 
 local_parameter_declaration :
   KW_LOCALPARAM signed_o range_o list_of_param_assignments SEMICOLON{
-    $$ = yy::ast_new_parameter_declarations($4,$2,true,$3, yy::PARAM_GENERIC);
+    $$ = code->ast_new_parameter_declarations($4,$2,true,$3, yy::PARAM_GENERIC);
   }
 | KW_LOCALPARAM KW_INTEGER       list_of_param_assignments SEMICOLON{
-    $$ = yy::ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_INTEGER);
+    $$ = code->ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_INTEGER);
   }
 | KW_LOCALPARAM KW_REAL          list_of_param_assignments SEMICOLON{
-    $$ = yy::ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_REAL);
+    $$ = code->ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_REAL);
   }
 | KW_LOCALPARAM KW_REALTIME      list_of_param_assignments SEMICOLON{
-    $$ = yy::ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_REALTIME);
+    $$ = code->ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_REALTIME);
   }
 | KW_LOCALPARAM KW_TIME          list_of_param_assignments SEMICOLON{
-    $$ = yy::ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_TIME);
+    $$ = code->ast_new_parameter_declarations($3,false,true,NULL, yy::PARAM_TIME);
   }
 ;
 
 parameter_declaration :
   KW_PARAMETER signed_o range_o list_of_param_assignments {
-    $$ = yy::ast_new_parameter_declarations($4,$2,false,$3, yy::PARAM_GENERIC);
+    $$ = code->ast_new_parameter_declarations($4,$2,false,$3, yy::PARAM_GENERIC);
   }
 | KW_PARAMETER KW_INTEGER       list_of_param_assignments {
-    $$ = yy::ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_INTEGER);
+    $$ = code->ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_INTEGER);
   }
 | KW_PARAMETER KW_REAL          list_of_param_assignments {
-    $$ = yy::ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_REAL);
+    $$ = code->ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_REAL);
   }
 | KW_PARAMETER KW_REALTIME      list_of_param_assignments {
-    $$ = yy::ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_REALTIME);
+    $$ = code->ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_REALTIME);
   }
 | KW_PARAMETER KW_TIME          list_of_param_assignments {
-    $$ = yy::ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_TIME);
+    $$ = code->ast_new_parameter_declarations($3,false,false,NULL, yy::PARAM_TIME);
   }
 ;
 
 specparam_declaration :
   KW_SPECPARAM range_o list_of_specparam_assignments SEMICOLON{
-    $$ = yy::ast_new_parameter_declarations($3,false,false,$2, yy::PARAM_SPECPARAM);
+    $$ = code->ast_new_parameter_declarations($3,false,false,$2, yy::PARAM_SPECPARAM);
   }
 ;
 
@@ -1412,25 +1412,25 @@ reg_o       : KW_REG   {$$=1;}| {$$=0;};
 
 inout_declaration :
   KW_INOUT net_type_o signed_o range_o list_of_port_identifiers{
-$$ = yy::ast_new_port_declaration( yy::PORT_INOUT, $2,$3,false,false,$4,$5);
+$$ = code->ast_new_port_declaration( yy::PORT_INOUT, $2,$3,false,false,$4,$5);
   }
 ;
 
 input_declaration :
   KW_INPUT net_type_o signed_o range_o list_of_port_identifiers{
-$$ = yy::ast_new_port_declaration( yy::PORT_INPUT, $2,$3,false,false,$4,$5);
+$$ = code->ast_new_port_declaration( yy::PORT_INPUT, $2,$3,false,false,$4,$5);
   }
 ;
 
 output_declaration:
   KW_OUTPUT net_type_o signed_o range_o list_of_port_identifiers{
-$$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT, $2,$3,false,false,$4,$5);
+$$ = code->ast_new_port_declaration( yy::PORT_OUTPUT, $2,$3,false,false,$4,$5);
   }
 | KW_OUTPUT reg_o signed_o range_o list_of_port_identifiers{
-$$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT, yy::NET_TYPE_NONE,$3,$2,false,$4,$5);
+$$ = code->ast_new_port_declaration( yy::PORT_OUTPUT, yy::NET_TYPE_NONE,$3,$2,false,$4,$5);
   }
 | KW_OUTPUT output_variable_type_o list_of_port_identifiers{
-    $$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT,  yy::NET_TYPE_NONE,
+    $$ = code->ast_new_port_declaration( yy::PORT_OUTPUT,  yy::NET_TYPE_NONE,
         false,
         false,
         true,
@@ -1438,7 +1438,7 @@ $$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT, yy::NET_TYPE_NONE,$3,$2,fals
         $3);
   }
 | KW_OUTPUT output_variable_type list_of_variable_port_identifiers{
-    $$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT,  yy::NET_TYPE_NONE,
+    $$ = code->ast_new_port_declaration( yy::PORT_OUTPUT,  yy::NET_TYPE_NONE,
         false,
         false,
         true,
@@ -1446,7 +1446,7 @@ $$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT, yy::NET_TYPE_NONE,$3,$2,fals
         $3);
   }
 | KW_OUTPUT KW_REG signed_o range_o list_of_variable_port_identifiers{
-    $$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT,
+    $$ = code->ast_new_port_declaration( yy::PORT_OUTPUT,
                                    yy::NET_TYPE_NONE,
                                   $3, true,
                                   false,
@@ -1457,27 +1457,27 @@ $$ = yy::ast_new_port_declaration( yy::PORT_OUTPUT, yy::NET_TYPE_NONE,$3,$2,fals
 /* A.2.1.3 Type declarations */
 
 event_declaration   : KW_EVENT list_of_event_identifiers SEMICOLON {
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_EVENT);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_EVENT);
     $$->identifiers = $2;
 };
 genvar_declaration  : KW_GENVAR list_of_genvar_identifiers SEMICOLON {
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_GENVAR);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_GENVAR);
     $$->identifiers = $2;
 };
 integer_declaration : KW_INTEGER list_of_variable_identifiers SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_INTEGER);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_INTEGER);
     $$->identifiers = $2;
 } ;
 time_declaration    : KW_TIME list_of_variable_identifiers SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_TIME);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_TIME);
     $$->identifiers = $2;
 } ;
 real_declaration    : KW_REAL list_of_real_identifiers SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_REAL);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_REAL);
     $$->identifiers = $2;
 } ;
 realtime_declaration: KW_REALTIME list_of_real_identifiers SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_REALTIME);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_REALTIME);
     $$->identifiers = $2;
 } ;
 
@@ -1548,11 +1548,11 @@ net_dec_p_range :
 
 net_dec_p_delay :
   list_of_net_identifiers  SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_NET);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_NET);
     $$->identifiers = $1;
   }
 | list_of_net_decl_assignments  SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_NET);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_NET);
     $$->identifiers = $1;
   }
 ;
@@ -1579,7 +1579,7 @@ reg_dec_p_signed    :
 ;
 
 reg_dec_p_range     : list_of_variable_identifiers SEMICOLON{
-    $$ = yy::ast_new_type_declaration(yy::DECLARE_REG);
+    $$ = code->ast_new_type_declaration(yy::DECLARE_REG);
     $$->identifiers = $1;
 }
                     ;
@@ -1608,20 +1608,20 @@ real_type : real_identifier {$$=$1; /* TODO FIXME */}
           | real_identifier dimension dimensions{
     $$=$1;
     $$->range_or_idx = yy::ID_HAS_RANGES;
-    yy::ast_list_preappend($3,$2);
+    code->ast_list_preappend($3,$2);
     $$->ranges = $3;
   }          ;
 
 dimensions          :
   dimension {
-    $$=yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$=code->ast_list_new();
+    code->ast_list_append($$,$1);
    }
  | dimensions dimension {
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
    }
- | {$$ = yy::ast_list_new();}
+ | {$$ = code->ast_list_new();}
  ;
 
 variable_type :
@@ -1634,7 +1634,7 @@ variable_type :
 | variable_identifier dimension dimensions{
     $$=$1;
     $$->range_or_idx = yy::ID_HAS_RANGES;
-    yy::ast_list_preappend($3,$2);
+    code->ast_list_preappend($3,$2);
     $$->ranges = $3;
   }
 ;
@@ -1643,22 +1643,22 @@ variable_type :
 
 drive_strength      :
   strength0 COMMA strength1 CLOSE_BRACKET{
-      $$ = yy::ast_new_pull_stregth($1,$3);
+      $$ = code->ast_new_pull_stregth($1,$3);
   }
 | strength1 COMMA strength0 CLOSE_BRACKET{
-      $$ = yy::ast_new_pull_stregth($1,$3);
+      $$ = code->ast_new_pull_stregth($1,$3);
   }
 | strength0 COMMA KW_HIGHZ1 CLOSE_BRACKET{
-      $$ = yy::ast_new_pull_stregth($1,yy::STRENGTH_HIGHZ1);
+      $$ = code->ast_new_pull_stregth($1,yy::STRENGTH_HIGHZ1);
   }
 | strength1 COMMA KW_HIGHZ0 CLOSE_BRACKET{
-      $$ = yy::ast_new_pull_stregth($1,yy::STRENGTH_HIGHZ0);
+      $$ = code->ast_new_pull_stregth($1,yy::STRENGTH_HIGHZ0);
   }
 | KW_HIGHZ0 COMMA strength1 CLOSE_BRACKET{
-      $$ = yy::ast_new_pull_stregth(yy::STRENGTH_HIGHZ0, $3);
+      $$ = code->ast_new_pull_stregth(yy::STRENGTH_HIGHZ0, $3);
   }
 | KW_HIGHZ1 COMMA strength0 CLOSE_BRACKET{
-      $$ = yy::ast_new_pull_stregth(yy::STRENGTH_HIGHZ1, $3);
+      $$ = code->ast_new_pull_stregth(yy::STRENGTH_HIGHZ1, $3);
   }
 ;
 
@@ -1685,45 +1685,45 @@ charge_strength : OPEN_BRACKET KW_SMALL CLOSE_BRACKET  {$$=yy::CHARGE_SMALL;}
 
 delay3 :
   HASH delay_value{
-    $$ = yy::ast_new_delay3($2,$2,$2);
+    $$ = code->ast_new_delay3($2,$2,$2);
   }
 | HASH OPEN_BRACKET delay_value CLOSE_BRACKET{
-    $$ = yy::ast_new_delay3($3,$3,$3);
+    $$ = code->ast_new_delay3($3,$3,$3);
   }
 | HASH OPEN_BRACKET delay_value COMMA delay_value CLOSE_BRACKET{
-    $$ = yy::ast_new_delay3($3,NULL,$5);
+    $$ = code->ast_new_delay3($3,NULL,$5);
   }
 | HASH OPEN_BRACKET delay_value COMMA delay_value COMMA delay_value CB{
-    $$ = yy::ast_new_delay3($3,$5,$7);
+    $$ = code->ast_new_delay3($3,$5,$7);
   }
-| {$$ = yy::ast_new_delay3(NULL,NULL,NULL);}
+| {$$ = code->ast_new_delay3(NULL,NULL,NULL);}
 ;
 
 delay2    :
   HASH delay_value{
-    $$ = yy::ast_new_delay2($2,$2);
+    $$ = code->ast_new_delay2($2,$2);
   }
 | HASH OPEN_BRACKET delay_value CLOSE_BRACKET{
-    $$ = yy::ast_new_delay2($3,$3);
+    $$ = code->ast_new_delay2($3,$3);
   }
 | HASH OPEN_BRACKET delay_value COMMA delay_value CLOSE_BRACKET{
-    $$ = yy::ast_new_delay2($3,$5);
+    $$ = code->ast_new_delay2($3,$5);
   }
-| {$$ = yy::ast_new_delay2(NULL,NULL);}
+| {$$ = code->ast_new_delay2(NULL,NULL);}
 ;
 
 delay_value :
   unsigned_number {
-      $$ = yy::ast_new_delay_value(yy::DELAY_VAL_NUMBER, $1);
+      $$ = code->ast_new_delay_value(yy::DELAY_VAL_NUMBER, $1);
   }
 | parameter_identifier{
-      $$ = yy::ast_new_delay_value(yy::DELAY_VAL_PARAMETER, $1);
+      $$ = code->ast_new_delay_value(yy::DELAY_VAL_PARAMETER, $1);
   }
 | specparam_identifier{
-      $$ = yy::ast_new_delay_value(yy::DELAY_VAL_SPECPARAM, $1);
+      $$ = code->ast_new_delay_value(yy::DELAY_VAL_SPECPARAM, $1);
   }
 | mintypmax_expression{
-      $$ = yy::ast_new_delay_value(yy::DELAY_VAL_MINTYPMAX, $1);
+      $$ = code->ast_new_delay_value(yy::DELAY_VAL_MINTYPMAX, $1);
   }
 ;
 
@@ -1735,115 +1735,115 @@ dimensions_o        : dimensions {$$ = $1;}
 
 list_of_event_identifiers :
   event_identifier dimensions_o{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_event_identifiers COMMA event_identifier dimensions_o{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_genvar_identifiers:
   genvar_identifier{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_genvar_identifiers COMMA genvar_identifier{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_net_decl_assignments :
   net_decl_assignment{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_net_decl_assignments COMMA net_decl_assignment{
     $$= $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_net_identifiers      :
   net_identifier dimensions_o{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_net_identifiers COMMA net_identifier dimensions_o{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_param_assignments    :
    param_assignment{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
    }
  | list_of_param_assignments COMMA param_assignment{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
  }
  | list_of_param_assignments COMMA KW_PARAMETER param_assignment{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
  }
  ;
 
 list_of_port_identifiers     :
   port_identifier{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | port_identifier OPEN_SQ_BRACKET constant_expression CLOSE_SQ_BRACKET {
-    yy::ast_identifier_set_index($1,$3);
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    code->ast_identifier_set_index($1,$3);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | list_of_port_identifiers COMMA port_identifier{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 | list_of_port_identifiers COMMA port_identifier OPEN_SQ_BRACKET
   constant_expression CLOSE_SQ_BRACKET {
-    yy::ast_identifier_set_index($3,$5);
+    code->ast_identifier_set_index($3,$5);
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_real_identifiers     :
   real_type{
-      $$ = yy::ast_list_new();
-      yy::ast_list_append($$,$1);
+      $$ = code->ast_list_new();
+      code->ast_list_append($$,$1);
   }
 | list_of_real_identifiers COMMA real_type{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_specparam_assignments:
   specparam_assignment{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_specparam_assignments COMMA specparam_assignment{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 list_of_variable_identifiers :
   variable_type{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_variable_identifiers COMMA variable_type{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
@@ -1854,14 +1854,14 @@ eq_const_exp_o :
 
 list_of_variable_port_identifiers :
   port_identifier eq_const_exp_o {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,
-        yy::ast_new_single_assignment(yy::ast_new_lvalue_id(yy::VAR_IDENTIFIER,$1),$2));
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,
+        code->ast_new_single_assignment(code->ast_new_lvalue_id(yy::VAR_IDENTIFIER,$1),$2));
   }
 | list_of_variable_port_identifiers COMMA port_identifier eq_const_exp_o{
     $$ = $1;
-    yy::ast_list_append($$,
-        yy::ast_new_single_assignment(yy::ast_new_lvalue_id(yy::VAR_IDENTIFIER,$3),$4));
+    code->ast_list_append($$,
+        code->ast_new_single_assignment(code->ast_new_lvalue_id(yy::VAR_IDENTIFIER,$3),$4));
 }
 ;
 
@@ -1869,20 +1869,20 @@ list_of_variable_port_identifiers :
 
 net_decl_assignment     :
   net_identifier EQ expression {
-    $$ = yy::ast_new_single_assignment(yy::ast_new_lvalue_id(yy::NET_IDENTIFIER,$1),$3);
+    $$ = code->ast_new_single_assignment(code->ast_new_lvalue_id(yy::NET_IDENTIFIER,$1),$3);
   }
 | net_identifier{
-    $$ = yy::ast_new_single_assignment(yy::ast_new_lvalue_id(yy::NET_IDENTIFIER,$1),NULL);
+    $$ = code->ast_new_single_assignment(code->ast_new_lvalue_id(yy::NET_IDENTIFIER,$1),NULL);
 }
 ;
 
 param_assignment        : parameter_identifier EQ constant_expression {
-    $$ = yy::ast_new_single_assignment(yy::ast_new_lvalue_id(yy::PARAM_ID,$1),$3);
+    $$ = code->ast_new_single_assignment(code->ast_new_lvalue_id(yy::PARAM_ID,$1),$3);
 };
 
 specparam_assignment    :
   specparam_identifier EQ constant_mintypmax_expression{
-    $$= yy::ast_new_single_assignment(yy::ast_new_lvalue_id(yy::SPECPARAM_ID,$1),$3);
+    $$= code->ast_new_single_assignment(code->ast_new_lvalue_id(yy::SPECPARAM_ID,$1),$3);
   }
 | pulse_control_specparam{
     $<pulse_control_specparam>$ = $1;
@@ -1896,12 +1896,12 @@ error_limit_value_o     : COMMA error_limit_value {$$=$2;}
 pulse_control_specparam :
   KW_PATHPULSE EQ OPEN_BRACKET reject_limit_value error_limit_value_o
   CLOSE_BRACKET SEMICOLON {
-    $$ = yy::ast_new_pulse_control_specparam($4,$5);
+    $$ = code->ast_new_pulse_control_specparam($4,$5);
   }
 | KW_PATHPULSE specify_input_terminal_descriptor '$'
   specify_output_terminal_descriptor EQ OPEN_BRACKET reject_limit_value
   error_limit_value_o CLOSE_BRACKET SEMICOLON{
-    $$ = yy::ast_new_pulse_control_specparam($7,$8);
+    $$ = code->ast_new_pulse_control_specparam($7,$8);
     $$->input_terminal = $2;
     $$->output_terminal = $4;
   }
@@ -1915,12 +1915,12 @@ limit_value             : constant_mintypmax_expression {$$=$1;};
 
 dimension : OPEN_SQ_BRACKET constant_expression COLON constant_expression
 CLOSE_SQ_BRACKET{
-    $$ = yy::ast_new_range($2,$4);
+    $$ = code->ast_new_range($2,$4);
 };
 
 range     : OPEN_SQ_BRACKET constant_expression COLON constant_expression
 CLOSE_SQ_BRACKET{
-    $$ = yy::ast_new_range($2,$4);
+    $$ = code->ast_new_range($2,$4);
 };
 
 /* A.2.6 Function Declarations */
@@ -1930,47 +1930,47 @@ automatic_o         : KW_AUTOMATIC {$$=true;} | {$$=false;};
 function_declaration :
   KW_FUNCTION automatic_o signed_o range_or_type_o function_identifier
   SEMICOLON function_item_declarations function_statement KW_ENDFUNCTION{
-    $$ = yy::ast_new_function_declaration($2,$3,true,$4,$5,$7,$8);
+    $$ = code->ast_new_function_declaration($2,$3,true,$4,$5,$7,$8);
   }
 | KW_FUNCTION automatic_o signed_o range_or_type_o function_identifier
   OPEN_BRACKET function_port_list CLOSE_BRACKET SEMICOLON
   block_item_declarations function_statement KW_ENDFUNCTION{
-    $$ = yy::ast_new_function_declaration($2,$3,false,$4,$5,$10,$11);
+    $$ = code->ast_new_function_declaration($2,$3,false,$4,$5,$10,$11);
   }
 ;
 
 block_item_declarations    :
   block_item_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | block_item_declarations block_item_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
-| {$$ = yy::ast_list_new();}
+| {$$ = code->ast_list_new();}
 ;
 
 function_item_declarations :
    function_item_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
    }
  | function_item_declarations function_item_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
  }
- | {$$ = yy::ast_list_new();}
+ | {$$ = code->ast_list_new();}
  ;
 
 function_item_declaration  :
   block_item_declaration {
-    $$ = yy::ast_new_function_item_declaration();
+    $$ = code->ast_new_function_item_declaration();
     $$->is_port_declaration = false;
     $$->block_item = $1;
 }
 | tf_input_declaration SEMICOLON{
-    $$ = yy::ast_new_function_item_declaration();
+    $$ = code->ast_new_function_item_declaration();
     $$->is_port_declaration = true;
     $$->port_declaration    = $1;
 }
@@ -1979,15 +1979,15 @@ function_item_declaration  :
 function_port_list         :
 attribute_instances tf_input_declaration tf_input_declarations{
     $$ = $3;
-    yy::ast_list_preappend($$,$2);
+    code->ast_list_preappend($$,$2);
 };
 
 tf_input_declarations      : {
-    $$ = yy::ast_list_new();
+    $$ = code->ast_list_new();
 }
 | COMMA attribute_instances tf_input_declaration tf_input_declarations{
     $$ = $4;
-    yy::ast_list_preappend($$,$3);
+    code->ast_list_preappend($$,$3);
 }
 ;
 
@@ -1995,23 +1995,23 @@ range_or_type_o            : range_or_type {$$=$1;} | {$$=NULL;};
 
 range_or_type              :
   range      {
-    $$ = yy::ast_new_range_or_type(true);
+    $$ = code->ast_new_range_or_type(true);
     $$->range = $1;
   }
 | KW_INTEGER{
-    $$ = yy::ast_new_range_or_type(false);
+    $$ = code->ast_new_range_or_type(false);
     $$->type = yy::PORT_TYPE_INTEGER;
   }
 | KW_REAL{
-    $$ = yy::ast_new_range_or_type(false);
+    $$ = code->ast_new_range_or_type(false);
     $$->type = yy::PORT_TYPE_REAL;
   }
 | KW_REALTIME{
-    $$ = yy::ast_new_range_or_type(false);
+    $$ = code->ast_new_range_or_type(false);
     $$->type = yy::PORT_TYPE_REALTIME;
   }
 | KW_TIME{
-    $$ = yy::ast_new_range_or_type(false);
+    $$ = code->ast_new_range_or_type(false);
     $$->type = yy::PORT_TYPE_TIME;
   }
 ;
@@ -2021,44 +2021,44 @@ range_or_type              :
 task_declaration    :
   KW_TASK automatic_o task_identifier SEMICOLON task_item_declarations
   statement KW_ENDTASK{
-    $$ = yy::ast_new_task_declaration($2,$3,NULL,$5,$6);
+    $$ = code->ast_new_task_declaration($2,$3,NULL,$5,$6);
   }
 | KW_TASK automatic_o task_identifier OPEN_BRACKET task_port_list
   CLOSE_BRACKET SEMICOLON block_item_declarations statement KW_ENDTASK{
-    $$ = yy::ast_new_task_declaration($2,$3,$5,$8,$9);
+    $$ = code->ast_new_task_declaration($2,$3,$5,$8,$9);
   }
 ;
 
 task_item_declarations :
- { $$ = yy::ast_list_new();}
+ { $$ = code->ast_list_new();}
 | task_item_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | task_item_declarations task_item_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
  }
 ;
 
 task_item_declaration :
   block_item_declaration{
-    $$ = yy::ast_new_function_item_declaration();
+    $$ = code->ast_new_function_item_declaration();
     $$->is_port_declaration = false;
     $$->block_item = $1;
 }
 | attribute_instances tf_input_declaration SEMICOLON{
-    $$ = yy::ast_new_function_item_declaration();
+    $$ = code->ast_new_function_item_declaration();
     $$->is_port_declaration = true;
     $$->port_declaration = $2;
 }
 | attribute_instances tf_output_declaration SEMICOLON{
-    $$ = yy::ast_new_function_item_declaration();
+    $$ = code->ast_new_function_item_declaration();
     $$->is_port_declaration = true;
     $$->port_declaration = $2;
 }
 | attribute_instances tf_inout_declaration SEMICOLON{
-    $$ = yy::ast_new_function_item_declaration();
+    $$ = code->ast_new_function_item_declaration();
     $$->is_port_declaration = true;
     $$->port_declaration = $2;
 }
@@ -2066,12 +2066,12 @@ task_item_declaration :
 
 task_port_list  :
    task_port_item{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
  | task_port_list COMMA task_port_item{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
  }
  ;
 
@@ -2083,28 +2083,28 @@ task_port_item  :
 
 tf_input_declaration :
   KW_INPUT reg_o signed_o range_o list_of_port_identifiers{
-    $$ = yy::ast_new_task_port(yy::PORT_INPUT, $2,$3,$4,yy::PORT_TYPE_NONE,$5);
+    $$ = code->ast_new_task_port(yy::PORT_INPUT, $2,$3,$4,yy::PORT_TYPE_NONE,$5);
   }
 | KW_INPUT task_port_type_o list_of_port_identifiers{
-    $$ = yy::ast_new_task_port(yy::PORT_INPUT,false,false,NULL,$2,$3);
+    $$ = code->ast_new_task_port(yy::PORT_INPUT,false,false,NULL,$2,$3);
 }
 ;
 
 tf_output_declaration :
   KW_OUTPUT reg_o signed_o range_o list_of_port_identifiers{
-    $$ = yy::ast_new_task_port(yy::PORT_OUTPUT, $2,$3,$4,yy::PORT_TYPE_NONE,$5);
+    $$ = code->ast_new_task_port(yy::PORT_OUTPUT, $2,$3,$4,yy::PORT_TYPE_NONE,$5);
   }
 | KW_OUTPUT task_port_type_o list_of_port_identifiers{
-    $$ = yy::ast_new_task_port(yy::PORT_OUTPUT,false,false,NULL, $2,$3);
+    $$ = code->ast_new_task_port(yy::PORT_OUTPUT,false,false,NULL, $2,$3);
 }
 ;
 
 tf_inout_declaration :
   KW_INOUT reg_o signed_o range_o list_of_port_identifiers{
-    $$ = yy::ast_new_task_port(yy::PORT_INOUT, $2,$3,$4,yy::PORT_TYPE_NONE,$5);
+    $$ = code->ast_new_task_port(yy::PORT_INOUT, $2,$3,$4,yy::PORT_TYPE_NONE,$5);
   }
 | KW_INOUT task_port_type_o list_of_port_identifiers{
-    $$ = yy::ast_new_task_port(yy::PORT_INOUT,false,false,NULL,$2,$3);
+    $$ = code->ast_new_task_port(yy::PORT_INOUT,false,false,NULL,$2,$3);
 }
 ;
 
@@ -2120,53 +2120,53 @@ task_port_type   : KW_TIME      {$$ = yy::PORT_TYPE_TIME;}
 
 block_item_declaration :
   attribute_instances block_reg_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_REG, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_REG, $1);
     $$->reg = $2;
   }
 | attribute_instances event_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
     $$->event_or_var = $2;
   }
 | attribute_instances integer_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
     $$->event_or_var = $2;
   }
 | attribute_instances local_parameter_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_PARAM, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_PARAM, $1);
     $$->parameters = $2;
   }
 | attribute_instances parameter_declaration SEMICOLON{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_PARAM, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_PARAM, $1);
     $$->parameters = $2;
   }
 | attribute_instances real_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
     $$->event_or_var = $2;
   }
 | attribute_instances realtime_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
     $$->event_or_var = $2;
   }
 | attribute_instances time_declaration{
-    $$ = yy::ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
+    $$ = code->ast_new_block_item_declaration(yy::BLOCK_ITEM_TYPE, $1);
     $$->event_or_var = $2;
   }
 ;
 
 block_reg_declaration :
   KW_REG signed_o range_o list_of_block_variable_identifiers SEMICOLON{
-    $$ = yy::ast_new_block_reg_declaration($2,$3,$4);
+    $$ = code->ast_new_block_reg_declaration($2,$3,$4);
   }
 ;
 
 list_of_block_variable_identifiers :
   block_variable_type{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_block_variable_identifiers COMMA block_variable_type{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
@@ -2180,40 +2180,40 @@ delay2_o : delay2 {$$=$1;}| {$$=NULL;};
 
 gate_instantiation      :
   cmos_switchtype cmos_switch_instances SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_CMOS);
-    $$->switches = yy::ast_new_switches($1,$2);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_CMOS);
+    $$->switches = code->ast_new_switches($1,$2);
   }
 | mos_switchtype mos_switch_instances SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_MOS);
-    $$->switches = yy::ast_new_switches($1,$2);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_MOS);
+    $$->switches = code->ast_new_switches($1,$2);
   }
 | pass_switchtype pass_switch_instances SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_PASS);
-    $$->switches = yy::ast_new_switches($1,$2);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_PASS);
+    $$->switches = code->ast_new_switches($1,$2);
   }
 | gate_enable SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_ENABLE);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_ENABLE);
     $$->enable = $1;
   }
 | gate_n_output SEMICOLON {
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_N_OUT);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_N_OUT);
     $$->n_out = $1;
   }
 | gate_pass_en_switch SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_PASS_EN);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_PASS_EN);
     $$->pass_en = $1;
   }
 | gate_n_input SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_N_IN);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_N_IN);
     $$->n_in = $1;
   }
 | KW_PULLDOWN pulldown_strength_o pull_gate_instances SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_PULL_UP);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_PULL_UP);
     $$->pull_strength  = $2;
     $$->pull_gates     = $3;
   }
 | KW_PULLUP pullup_strength_o pull_gate_instances SEMICOLON{
-    $$ = yy::ast_new_gate_instantiation(yy::GATE_PULL_DOWN);
+    $$ = code->ast_new_gate_instantiation(yy::GATE_PULL_DOWN);
     $$->pull_strength  = $2;
     $$->pull_gates     = $3;
   }
@@ -2226,20 +2226,20 @@ CB : CLOSE_BRACKET;
 
 gate_n_output :
   gatetype_n_output n_output_gate_instances{
-    $$ = yy::ast_new_n_output_gate_instances($1,NULL,NULL,$2);
+    $$ = code->ast_new_n_output_gate_instances($1,NULL,NULL,$2);
   }
 | gatetype_n_output OB drive_strength delay2 n_output_gate_instances{
-    $$ = yy::ast_new_n_output_gate_instances($1,$4,$3,$5);
+    $$ = code->ast_new_n_output_gate_instances($1,$4,$3,$5);
   }
 | gatetype_n_output OB drive_strength n_output_gate_instances{
-    $$ = yy::ast_new_n_output_gate_instances($1,NULL,$3,$4);
+    $$ = code->ast_new_n_output_gate_instances($1,NULL,$3,$4);
   }
 | gatetype_n_output delay2 n_output_gate_instances {
-    $$ = yy::ast_new_n_output_gate_instances($1,$2,NULL,$3);
+    $$ = code->ast_new_n_output_gate_instances($1,$2,NULL,$3);
   }
 | gatetype_n_output OB output_terminal COMMA input_terminal CB
   gate_n_output_a_id{
-    $$ = yy::ast_new_n_output_gate_instances($1,NULL,NULL,$7);
+    $$ = code->ast_new_n_output_gate_instances($1,NULL,NULL,$7);
   }
 ;
 
@@ -2253,20 +2253,20 @@ gatetype_n_output       : KW_BUF {$$ = yy::N_OUT_BUF;}
 
 n_output_gate_instances :
   n_output_gate_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | n_output_gate_instances COMMA
   n_output_gate_instance{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
 n_output_gate_instance  :
   name_of_gate_instance OPEN_BRACKET output_terminals COMMA
   input_terminal CLOSE_BRACKET{
-    $$ = yy::ast_new_n_output_gate_instance($1,$3,$5);
+    $$ = code->ast_new_n_output_gate_instance($1,$3,$5);
   }
 ;
 
@@ -2275,47 +2275,47 @@ n_output_gate_instance  :
 gate_enable : enable_gatetype enable_gate_instances;
 /*gate_enable :
   enable_gatetype enable_gate_instances{
-    $$ = yy::ast_new_enable_gate_instances($1,NULL,NULL,$2);
+    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,$2);
 }
 | enable_gatetype OB drive_strength delay2 enable_gate_instances{
-    $$ = yy::ast_new_enable_gate_instances($1,NULL,NULL,$5);
+    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,$5);
 }
 | enable_gatetype OB drive_strength enable_gate_instances{
-    $$ = yy::ast_new_enable_gate_instances($1,NULL,$3,$4);
+    $$ = code->ast_new_enable_gate_instances($1,NULL,$3,$4);
 }
 | enable_gatetype OB output_terminal COMMA input_terminal COMMA
   enable_terminal CB COMMA n_output_gate_instances{
-    yy::ast_enable_gate_instance * gate = yy::ast_new_enable_gate_instance(yy::ast_new_identifier("unamed_gate",yylineno), $3,$7,$5);
-    yy::ast_list_preappend($10,gate);
-    $$ = yy::ast_new_enable_gate_instances($1,NULL,NULL,$10);
+    yy::ast_enable_gate_instance * gate = code->ast_new_enable_gate_instance(code->ast_new_identifier("unamed_gate",yylineno), $3,$7,$5);
+    code->ast_list_preappend($10,gate);
+    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,$10);
 }
 | enable_gatetype OB output_terminal COMMA input_terminal COMMA
   enable_terminal CB{
-    yy::ast_enable_gate_instance * gate = yy::ast_new_enable_gate_instance(yy::ast_new_identifier("unamed_gate",yylineno), $3,$7,$5);
-    yy::ast_list * list = yy::ast_list_new();
-    yy::ast_list_append(list,gate);
-    $$ = yy::ast_new_enable_gate_instances($1,NULL,NULL,list);
+    yy::ast_enable_gate_instance * gate = code->ast_new_enable_gate_instance(code->ast_new_identifier("unamed_gate",yylineno), $3,$7,$5);
+    yy::ast_list * list = code->ast_list_new();
+    code->ast_list_append(list,gate);
+    $$ = code->ast_new_enable_gate_instances($1,NULL,NULL,list);
 }
 | enable_gatetype delay3 enable_gate_instances{
-    $$ = yy::ast_new_enable_gate_instances($1,$2,NULL,$3);
+    $$ = code->ast_new_enable_gate_instances($1,$2,NULL,$3);
 }
 ;*/
 
 enable_gate_instances :
   enable_gate_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | enable_gate_instances COMMA enable_gate_instance {
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 enable_gate_instance  :
 name_of_gate_instance OPEN_BRACKET output_terminal COMMA
 input_terminal COMMA enable_terminal CLOSE_BRACKET{
-    $$ = yy::ast_new_enable_gate_instance($1,$3,$7,$5);
+    $$ = code->ast_new_enable_gate_instance($1,$3,$7,$5);
 }
 ;
 
@@ -2329,30 +2329,30 @@ enable_gatetype     : KW_BUFIF0 {$$ = yy::EN_BUFIF0;}
 
 gate_n_input :
   gatetype_n_input n_input_gate_instances{
-    $$ = yy::ast_new_n_input_gate_instances($1,NULL,NULL,$2);
+    $$ = code->ast_new_n_input_gate_instances($1,NULL,NULL,$2);
   }
 | gatetype_n_input OB drive_strength delay2 n_input_gate_instances{
-    $$ = yy::ast_new_n_input_gate_instances($1,NULL,$3,$5);
+    $$ = code->ast_new_n_input_gate_instances($1,NULL,$3,$5);
   }
 | gatetype_n_input OB drive_strength n_input_gate_instances {
-    $$ = yy::ast_new_n_input_gate_instances($1,NULL,$3,$4);
+    $$ = code->ast_new_n_input_gate_instances($1,NULL,$3,$4);
   }
 | gatetype_n_input OB output_terminal COMMA input_terminals CB {
-    yy::ast_n_input_gate_instance * gate = yy::ast_new_n_input_gate_instance(yy::ast_new_identifier("unamed_gate",yylineno), $5,$3);
-    yy::ast_list * list = yy::ast_list_new();
-    yy::ast_list_append(list,gate);
-    $$ = yy::ast_new_n_input_gate_instances($1,NULL,NULL,list);
+    yy::ast_n_input_gate_instance * gate = code->ast_new_n_input_gate_instance(code->ast_new_identifier("unamed_gate",yylineno), $5,$3);
+    yy::ast_list * list = code->ast_list_new();
+    code->ast_list_append(list,gate);
+    $$ = code->ast_new_n_input_gate_instances($1,NULL,NULL,list);
   }
 | gatetype_n_input OB output_terminal COMMA input_terminals CB
   COMMA n_input_gate_instances{
 
-    yy::ast_n_input_gate_instance * gate = yy::ast_new_n_input_gate_instance(yy::ast_new_identifier("unamed_gate",yylineno), $5,$3);
+    yy::ast_n_input_gate_instance * gate = code->ast_new_n_input_gate_instance(code->ast_new_identifier("unamed_gate",yylineno), $5,$3);
     yy::ast_list * list = $8;
-    yy::ast_list_preappend(list,gate);
-    $$ = yy::ast_new_n_input_gate_instances($1,NULL,NULL,list);
+    code->ast_list_preappend(list,gate);
+    $$ = code->ast_new_n_input_gate_instances($1,NULL,NULL,list);
   }
 | gatetype_n_input delay3 n_input_gate_instances{
-    $$ = yy::ast_new_n_input_gate_instances($1,$2,NULL,$3);
+    $$ = code->ast_new_n_input_gate_instances($1,$2,NULL,$3);
 }
              ;
 
@@ -2369,27 +2369,27 @@ gatetype_n_input    : KW_AND  { $$ = yy::N_IN_AND ;}
 
 gate_pass_en_switch :
   KW_TRANIF0  delay2 pass_enable_switch_instances{
-      $$ = yy::ast_new_pass_enable_switches(yy::PASS_EN_TRANIF0,$2,$3);
+      $$ = code->ast_new_pass_enable_switches(yy::PASS_EN_TRANIF0,$2,$3);
   }
 | KW_TRANIF1  delay2 pass_enable_switch_instances{
-      $$ = yy::ast_new_pass_enable_switches(yy::PASS_EN_TRANIF1,$2,$3);
+      $$ = code->ast_new_pass_enable_switches(yy::PASS_EN_TRANIF1,$2,$3);
   }
 | KW_RTRANIF1 delay2 pass_enable_switch_instances{
-      $$ = yy::ast_new_pass_enable_switches(yy::PASS_EN_RTRANIF0,$2,$3);
+      $$ = code->ast_new_pass_enable_switches(yy::PASS_EN_RTRANIF0,$2,$3);
   }
 | KW_RTRANIF0 delay2 pass_enable_switch_instances{
-      $$ = yy::ast_new_pass_enable_switches(yy::PASS_EN_RTRANIF1,$2,$3);
+      $$ = code->ast_new_pass_enable_switches(yy::PASS_EN_RTRANIF1,$2,$3);
   }
 ;
 
 pass_enable_switch_instances :
   pass_enable_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | pass_enable_switch_instances COMMA pass_enable_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 ;
 
@@ -2397,7 +2397,7 @@ pass_enable_switch_instances :
 pass_enable_switch_instance  :
  name_of_gate_instance OPEN_BRACKET inout_terminal COMMA inout_terminal COMMA
  enable_terminal CLOSE_BRACKET{
-    $$ = yy::ast_new_pass_enable_switch($1,$3,$5,$7);
+    $$ = code->ast_new_pass_enable_switch($1,$3,$5,$7);
  }
 ;
 
@@ -2406,70 +2406,70 @@ pass_enable_switch_instance  :
 
 pull_gate_instances :
   pull_gate_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | pull_gate_instances COMMA pull_gate_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 ;
 
 pass_switch_instances :
   pass_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | pass_switch_instances COMMA pass_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 ;
 
 n_input_gate_instances :
    n_input_gate_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
  | n_input_gate_instances COMMA n_input_gate_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
  ;
 
 mos_switch_instances :
   mos_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | mos_switch_instances COMMA mos_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 ;
 
 cmos_switch_instances :
   cmos_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | cmos_switch_instances COMMA cmos_switch_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 ;
 
 
 pull_gate_instance           :
   name_of_gate_instance OPEN_BRACKET output_terminal CLOSE_BRACKET{
-    $$ = yy::ast_new_pull_gate_instance($1,$3);
+    $$ = code->ast_new_pull_gate_instance($1,$3);
   }
 ;
 
 pass_switch_instance         :
   name_of_gate_instance OPEN_BRACKET inout_terminal COMMA inout_terminal
   CLOSE_BRACKET{
-    $$ = yy::ast_new_pass_switch_instance($1,$3,$5);
+    $$ = code->ast_new_pass_switch_instance($1,$3,$5);
   }
 ;
 
@@ -2477,43 +2477,43 @@ pass_switch_instance         :
 n_input_gate_instance        :
   name_of_gate_instance OPEN_BRACKET output_terminal COMMA input_terminals
   CLOSE_BRACKET{
-    $$ = yy::ast_new_n_input_gate_instance($1,$5,$3);
+    $$ = code->ast_new_n_input_gate_instance($1,$5,$3);
   }
 ;
 
 mos_switch_instance          :
   name_of_gate_instance OPEN_BRACKET output_terminal COMMA input_terminal
   COMMA enable_terminal CLOSE_BRACKET {
-    $$ = yy::ast_new_mos_switch_instance($1,$3,$7,$5);
+    $$ = code->ast_new_mos_switch_instance($1,$3,$7,$5);
   }
 ;
 
 cmos_switch_instance         :
   name_of_gate_instance OPEN_BRACKET output_terminal COMMA input_terminal
   COMMA ncontrol_terminal COMMA pcontrol_terminal CLOSE_BRACKET{
-    $$ = yy::ast_new_cmos_switch_instance($1,$3,$7,$9,$5);
+    $$ = code->ast_new_cmos_switch_instance($1,$3,$7,$9,$5);
   }
 ;
 
 output_terminals             :
   output_terminals COMMA output_terminal{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
  | output_terminal{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
  ;
 
 input_terminals              :
 input_terminal{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | input_terminals COMMA input_terminal{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
@@ -2521,42 +2521,42 @@ input_terminal{
 
 pulldown_strength_o : pulldown_strength {$$=$1;}
 | {
-$$ = yy::ast_new_primitive_pull_strength(yy::PULL_NONE,yy::STRENGTH_NONE,yy::STRENGTH_NONE);
+$$ = code->ast_new_primitive_pull_strength(yy::PULL_NONE,yy::STRENGTH_NONE,yy::STRENGTH_NONE);
 };
 
 pulldown_strength           :
    OPEN_BRACKET strength0 COMMA strength1 CLOSE_BRACKET{
-    $$ = yy::ast_new_primitive_pull_strength(yy::PULL_DOWN,$2,$4);
+    $$ = code->ast_new_primitive_pull_strength(yy::PULL_DOWN,$2,$4);
  }
  | OPEN_BRACKET strength1 COMMA strength0 CLOSE_BRACKET{
-    $$ = yy::ast_new_primitive_pull_strength(yy::PULL_DOWN,$2,$4);
+    $$ = code->ast_new_primitive_pull_strength(yy::PULL_DOWN,$2,$4);
  }
  | OPEN_BRACKET strength1 CLOSE_BRACKET{
-    $$ = yy::ast_new_primitive_pull_strength(yy::PULL_DOWN,$2,$2);
+    $$ = code->ast_new_primitive_pull_strength(yy::PULL_DOWN,$2,$2);
  }
  ;
 
 pullup_strength_o : pullup_strength {$$=$1;}
 | {
-$$ = yy::ast_new_primitive_pull_strength(yy::PULL_NONE,yy::STRENGTH_NONE,yy::STRENGTH_NONE);
+$$ = code->ast_new_primitive_pull_strength(yy::PULL_NONE,yy::STRENGTH_NONE,yy::STRENGTH_NONE);
 };
 
 pullup_strength             :
    OPEN_BRACKET strength0 COMMA strength1 CLOSE_BRACKET{
-    $$ = yy::ast_new_primitive_pull_strength(yy::PULL_UP,$2,$4);
+    $$ = code->ast_new_primitive_pull_strength(yy::PULL_UP,$2,$4);
  }
  | OPEN_BRACKET strength1 COMMA strength0 CLOSE_BRACKET{
-    $$ = yy::ast_new_primitive_pull_strength(yy::PULL_UP,$2,$4);
+    $$ = code->ast_new_primitive_pull_strength(yy::PULL_UP,$2,$4);
  }
  | OPEN_BRACKET strength1 CLOSE_BRACKET{
-    $$ = yy::ast_new_primitive_pull_strength(yy::PULL_UP,$2,$2);
+    $$ = code->ast_new_primitive_pull_strength(yy::PULL_UP,$2,$2);
  }
  ;
 
 
 name_of_gate_instance   :
   gate_instance_identifier range_o {$$ = $1;}
-| {$$ = yy::ast_new_identifier("Unnamed gate instance", yylineno);}
+| {$$ = code->ast_new_identifier("Unnamed gate instance", yylineno);}
 ;
 
 /* A.3.3 primitive terminals */
@@ -2571,20 +2571,20 @@ output_terminal     : net_lvalue {$$=$1;};
 /* A.3.4 primitive gate and switch types */
 
 cmos_switchtype     :
-  KW_CMOS  delay3 {$$ = yy::ast_new_switch_gate_d3(yy::SWITCH_CMOS ,$2);}
-| KW_RCMOS delay3 {$$ = yy::ast_new_switch_gate_d3(yy::SWITCH_RCMOS,$2);}
+  KW_CMOS  delay3 {$$ = code->ast_new_switch_gate_d3(yy::SWITCH_CMOS ,$2);}
+| KW_RCMOS delay3 {$$ = code->ast_new_switch_gate_d3(yy::SWITCH_RCMOS,$2);}
 ;
 
 mos_switchtype      :
-  KW_NMOS  delay3 {$$ = yy::ast_new_switch_gate_d3(yy::SWITCH_NMOS ,$2);}
-| KW_PMOS  delay3 {$$ = yy::ast_new_switch_gate_d3(yy::SWITCH_PMOS ,$2);}
-| KW_RNMOS delay3 {$$ = yy::ast_new_switch_gate_d3(yy::SWITCH_RNMOS,$2);}
-| KW_RPMOS delay3 {$$ = yy::ast_new_switch_gate_d3(yy::SWITCH_RPMOS,$2);}
+  KW_NMOS  delay3 {$$ = code->ast_new_switch_gate_d3(yy::SWITCH_NMOS ,$2);}
+| KW_PMOS  delay3 {$$ = code->ast_new_switch_gate_d3(yy::SWITCH_PMOS ,$2);}
+| KW_RNMOS delay3 {$$ = code->ast_new_switch_gate_d3(yy::SWITCH_RNMOS,$2);}
+| KW_RPMOS delay3 {$$ = code->ast_new_switch_gate_d3(yy::SWITCH_RPMOS,$2);}
 ;
 
 pass_switchtype     :
-  KW_TRAN  delay2 {$$ = yy::ast_new_switch_gate_d2(yy::SWITCH_TRAN ,$2);}
-| KW_RTRAN delay2 {$$ = yy::ast_new_switch_gate_d2(yy::SWITCH_RTRAN,$2);}
+  KW_TRAN  delay2 {$$ = code->ast_new_switch_gate_d2(yy::SWITCH_TRAN ,$2);}
+| KW_RTRAN delay2 {$$ = code->ast_new_switch_gate_d2(yy::SWITCH_RTRAN,$2);}
 ;
 
 /* A.4.1 module instantiation */
@@ -2592,10 +2592,10 @@ pass_switchtype     :
 module_instantiation:
   module_identifier HASH delay_value parameter_value_assignment_o module_instances
   SEMICOLON{
-     $$ = yy::ast_new_module_instantiation($1,$4,$5);
+     $$ = code->ast_new_module_instantiation($1,$4,$5);
    }
 | module_identifier parameter_value_assignment_o module_instances SEMICOLON{
-     $$ = yy::ast_new_module_instantiation($1,$2,$3);
+     $$ = code->ast_new_module_instantiation($1,$2,$3);
    }
 ;
 
@@ -2613,32 +2613,32 @@ list_of_parameter_assignments :
 
 ordered_parameter_assignments :
   ordered_parameter_assignment{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | ordered_parameter_assignments COMMA ordered_parameter_assignment{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 named_parameter_assignments   :
   named_parameter_assignment{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | named_parameter_assignments COMMA named_parameter_assignment{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
 module_instances : module_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | module_instances COMMA module_instance{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
@@ -2648,13 +2648,13 @@ ordered_parameter_assignment : expression{
 
 named_parameter_assignment :
 DOT parameter_identifier OPEN_BRACKET expression_o CLOSE_BRACKET {
-    $$ = yy::ast_new_named_port_connection($2,$4);
+    $$ = code->ast_new_named_port_connection($2,$4);
 }
 ;
 
 module_instance :
   name_of_instance OPEN_BRACKET list_of_port_connections CLOSE_BRACKET{
-    $$ = yy::ast_new_module_instance($1,$3);
+    $$ = code->ast_new_module_instance($1,$3);
   }
 ;
 
@@ -2668,23 +2668,23 @@ list_of_port_connections : {$$=NULL;}
 
 ordered_port_connections :
   ordered_port_connection{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | ordered_port_connections COMMA ordered_port_connection{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
 named_port_connections   :
   named_port_connection {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | named_port_connections COMMA named_port_connection{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
@@ -2699,7 +2699,7 @@ ordered_port_connection : attribute_instances expression_o{
 
 named_port_connection :
   DOT port_identifier OPEN_BRACKET expression_o CLOSE_BRACKET {
-    $$ = yy::ast_new_named_port_connection($2,$4);
+    $$ = code->ast_new_named_port_connection($2,$4);
   }
 ;
 
@@ -2710,18 +2710,18 @@ expression_o : expression {$$=$1;}
 
 generated_instantiation : KW_GENERATE generate_items KW_ENDGENERATE {
     QString id = QString("gen_%1").arg(yylineno);
-    yy::ast_identifier new_id = yy::ast_new_identifier(id,yylineno);
-    $$ = yy::ast_new_generate_block(new_id,$2);
+    yy::ast_identifier new_id = code->ast_new_identifier(id,yylineno);
+    $$ = code->ast_new_generate_block(new_id,$2);
 };
 
 generate_items :
   generate_item{
-      $$ = yy::ast_list_new();
-      yy::ast_list_append($$,$1);
+      $$ = code->ast_list_new();
+      code->ast_list_append($$,$1);
   }
 | generate_items generate_item{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
   }
 ;
 
@@ -2729,20 +2729,20 @@ generate_item_or_null: generate_item {$$=$1;}| {$$=NULL;};
 
 generate_item :
   generate_conditional_statement{
-    $$ = yy::ast_new_generate_item(yy::STM_CONDITIONAL,$1);
+    $$ = code->ast_new_generate_item(yy::STM_CONDITIONAL,$1);
   }
 | generate_case_statement{
-    $$ = yy::ast_new_generate_item(yy::STM_CASE,$1);
+    $$ = code->ast_new_generate_item(yy::STM_CASE,$1);
   }
 | generate_loop_statement{
-    $$ = yy::ast_new_generate_item(yy::STM_LOOP,$1);
+    $$ = code->ast_new_generate_item(yy::STM_LOOP,$1);
   }
 | generate_block{
-    $$ = yy::ast_new_generate_item(yy::STM_GENERATE,$1);
+    $$ = code->ast_new_generate_item(yy::STM_GENERATE,$1);
   }
 | module_or_generate_item{
     if($1 != NULL){
-        $$ = yy::ast_new_generate_item(yy::STM_MODULE_ITEM,$1);
+        $$ = code->ast_new_generate_item(yy::STM_MODULE_ITEM,$1);
     } else{
         $$ = NULL;
     }
@@ -2752,44 +2752,44 @@ generate_item :
 generate_conditional_statement :
   KW_IF OPEN_BRACKET constant_expression CLOSE_BRACKET generate_item_or_null
   KW_ELSE generate_item_or_null{
-    yy::ast_conditional_statement * c1 = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(c1,$7);
+    yy::ast_conditional_statement * c1 = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(c1,$7);
   }
 | KW_IF OPEN_BRACKET constant_expression CLOSE_BRACKET generate_item_or_null{
-    yy::ast_conditional_statement * c1 = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(c1,NULL);
+    yy::ast_conditional_statement * c1 = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(c1,NULL);
   }
 ;
 
 generate_case_statement :
 KW_CASE OPEN_BRACKET constant_expression CLOSE_BRACKET genvar_case_items
 KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3,$5,yy::CASE);
+    $$ = code->ast_new_case_statement($3,$5,yy::CASE);
 }
 ;
 
 genvar_case_items :
   genvar_case_item{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | genvar_case_items genvar_case_item{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
   }
 | {$$=NULL;}
 ;
 
 genvar_case_item :
   constant_expressions COLON generate_item_or_null{
-    $$ = yy::ast_new_case_item($1,$3);
+    $$ = code->ast_new_case_item($1,$3);
   }
 | KW_DEFAULT COLON generate_item_or_null{
-    $$ = yy::ast_new_case_item(NULL,$3);
+    $$ = code->ast_new_case_item(NULL,$3);
     $$->is_default = true;
   }
 | KW_DEFAULT generate_item_or_null{
-    $$ = yy::ast_new_case_item(NULL,$2);
+    $$ = code->ast_new_case_item(NULL,$2);
     $$->is_default = true;
   }
 ;
@@ -2799,23 +2799,23 @@ generate_loop_statement :
  constant_expression
  SEMICOLON genvar_assignment CLOSE_BRACKET KW_BEGIN COLON
  generate_block_identifier generate_items KW_END{
-    $$ = yy::ast_new_generate_loop_statement($12, $3,$7,$5);
+    $$ = code->ast_new_generate_loop_statement($12, $3,$7,$5);
  }
 ;
 
 genvar_assignment : genvar_identifier EQ constant_expression{
-    yy::ast_lvalue * lv = yy::ast_new_lvalue_id(yy::GENVAR_IDENTIFIER,$1);
-    $$ = yy::ast_new_single_assignment(lv, $3);
+    yy::ast_lvalue * lv = code->ast_new_lvalue_id(yy::GENVAR_IDENTIFIER,$1);
+    $$ = code->ast_new_single_assignment(lv, $3);
 };
 
 generate_block :
   KW_BEGIN generate_items KW_END{
     QString id = QString("gen_%1").arg(yylineno);
-    yy::ast_identifier new_id = yy::ast_new_identifier(id,yylineno);
-    $$ = yy::ast_new_generate_block(new_id, $2);
+    yy::ast_identifier new_id = code->ast_new_identifier(id,yylineno);
+    $$ = code->ast_new_generate_block(new_id, $2);
   }
 | KW_BEGIN COLON generate_block_identifier generate_items KW_END{
-    $$ = yy::ast_new_generate_block($3, $4);
+    $$ = code->ast_new_generate_block($3, $4);
   }
 ;
 
@@ -2831,23 +2831,23 @@ udp_declaration :
     yy::ast_list            * ports      = $8;
     yy::ast_udp_body        * body       = $9;
 
-    $$ = yy::ast_new_udp_declaration(attrs,id,ports,body);
+    $$ = code->ast_new_udp_declaration(attrs,id,ports,body);
 
   }
 | attribute_instances KW_PRIMITIVE udp_identifier OPEN_BRACKET
   udp_declaration_port_list CLOSE_BRACKET SEMICOLON udp_body KW_ENDPRIMITIVE{
-    $$ = yy::ast_new_udp_declaration($1,$3,$5,$8);
+    $$ = code->ast_new_udp_declaration($1,$3,$5,$8);
   }
 ;
 
 udp_port_declarations :
   udp_port_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | udp_port_declarations udp_port_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$1);
+    code->ast_list_append($$,$1);
   }
 ;
 
@@ -2855,35 +2855,35 @@ udp_port_declarations :
 
 udp_port_list : output_port_identifier COMMA input_port_identifiers{
     $$ = $3;
-    yy::ast_list_preappend($$,$1);
+    code->ast_list_preappend($$,$1);
 };
 
 input_port_identifiers :
   input_port_identifier{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | input_port_identifiers COMMA input_port_identifier{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
 udp_declaration_port_list :
   udp_output_declaration COMMA udp_input_declarations{
     $$ = $3;
-    yy::ast_list_preappend($$,$1);
+    code->ast_list_preappend($$,$1);
   }
 ;
 
 udp_input_declarations  :
   udp_input_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | udp_input_declarations udp_input_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$1);
+    code->ast_list_append($$,$1);
   }
 ;
 
@@ -2895,24 +2895,24 @@ udp_port_declaration :
 
 udp_output_declaration :
   attribute_instances KW_OUTPUT port_identifier{
-    $$ = yy::ast_new_udp_port(yy::PORT_OUTPUT, $3,$1,false, NULL);
+    $$ = code->ast_new_udp_port(yy::PORT_OUTPUT, $3,$1,false, NULL);
   }
 | attribute_instances KW_OUTPUT KW_REG port_identifier{
-    $$ = yy::ast_new_udp_port(yy::PORT_OUTPUT, $4,$1,true, NULL);
+    $$ = code->ast_new_udp_port(yy::PORT_OUTPUT, $4,$1,true, NULL);
   }
 |attribute_instances KW_OUTPUT KW_REG port_identifier EQ constant_expression{
-    $$ = yy::ast_new_udp_port(yy::PORT_OUTPUT, $4,$1,true, $6);
+    $$ = code->ast_new_udp_port(yy::PORT_OUTPUT, $4,$1,true, $6);
   }
 ;
 
 udp_input_declaration :
     attribute_instances KW_INPUT list_of_port_identifiers{
-        $$ = yy::ast_new_udp_input_port($3,$1);
+        $$ = code->ast_new_udp_input_port($3,$1);
     }
 ;
 
 udp_reg_declaration : attribute_instances KW_REG variable_identifier{
-        $$ = yy::ast_new_udp_port(yy::PORT_NONE,$3,$1,true,NULL);
+        $$ = code->ast_new_udp_port(yy::PORT_NONE,$3,$1,true,NULL);
     }
 ;
 
@@ -2920,52 +2920,52 @@ udp_reg_declaration : attribute_instances KW_REG variable_identifier{
 
 udp_body            :
   KW_TABLE combinational_entrys KW_ENDTABLE{
-    $$ = yy::ast_new_udp_combinatoral_body($2);
+    $$ = code->ast_new_udp_combinatoral_body($2);
   }
 | udp_initial_statement KW_TABLE sequential_entrys KW_ENDTABLE{
-    $$ = yy::ast_new_udp_sequential_body($1,$3);
+    $$ = code->ast_new_udp_sequential_body($1,$3);
   }
 | KW_TABLE sequential_entrys KW_ENDTABLE{
-    $$ = yy::ast_new_udp_sequential_body(NULL,$2);
+    $$ = code->ast_new_udp_sequential_body(NULL,$2);
   }
 ;
 
 sequential_entrys     : sequential_entry{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
 }
 | sequential_entrys sequential_entry{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 };
 
 combinational_entrys :
   combinational_entry{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | combinational_entrys combinational_entry{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
   }
 ;
 
 combinational_entry : level_symbols COLON output_symbol SEMICOLON{
-    $$ = yy::ast_new_udp_combinatoral_entry($1,$3);
+    $$ = code->ast_new_udp_combinatoral_entry($1,$3);
 };
 
 sequential_entry      :
   level_symbols   COLON level_symbol COLON next_state SEMICOLON{
-    $$ = yy::ast_new_udp_sequential_entry(yy::PREFIX_LEVELS, $1, $3, $5);
+    $$ = code->ast_new_udp_sequential_entry(yy::PREFIX_LEVELS, $1, $3, $5);
   }
 | edge_input_list COLON level_symbol COLON next_state SEMICOLON{
-    $$ = yy::ast_new_udp_sequential_entry(yy::PREFIX_EDGES, $1, $3, $5);
+    $$ = code->ast_new_udp_sequential_entry(yy::PREFIX_EDGES, $1, $3, $5);
   }
 ;
 
 udp_initial_statement :
     KW_INITIAL output_port_identifier EQ init_val SEMICOLON{
-        $$ = yy::ast_new_udp_initial_statement($2,$4);
+        $$ = code->ast_new_udp_initial_statement($2,$4);
     }
 ;
 
@@ -2977,17 +2977,17 @@ level_symbols_o       : level_symbols {$$=$1;} | {$$=NULL;} ;
 
 level_symbols         :
   level_symbol {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,&$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,&$1);
   }
 | level_symbols level_symbol{
     $$= $1;
-    yy::ast_list_append($$,&$2);
+    code->ast_list_append($$,&$2);
   }
 ;
 
 edge_input_list       :  level_symbols_o edge_indicator level_symbols_o{
-    $$ = yy::ast_list_new(); /** TODO FIX THIS */
+    $$ = code->ast_list_new(); /** TODO FIX THIS */
 };
 
 edge_indicator        :
@@ -3046,28 +3046,28 @@ edge_symbol : /* can be r,f,p,n or star in any case. */
 
 udp_instantiation :
   udp_identifier drive_strength_o delay2_o udp_instances SEMICOLON{
-    $$ = yy::ast_new_udp_instantiation($4,$1,$2,$3);
+    $$ = code->ast_new_udp_instantiation($4,$1,$2,$3);
   }
 ;
 
 udp_instances :
   udp_instance{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | udp_instances COMMA udp_instance{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
 }
 ;
 
 udp_instance :
   udp_instance_identifier range_o OPEN_BRACKET output_terminal COMMA
   input_terminals CLOSE_BRACKET{
-    $$ = yy::ast_new_udp_instance($1,$2,$4,$6);
+    $$ = code->ast_new_udp_instance($1,$2,$4,$6);
   }
  | OPEN_BRACKET output_terminal COMMA input_terminals CLOSE_BRACKET{
-    $$ = yy::ast_new_udp_instance(NULL,NULL,$2,$4);
+    $$ = code->ast_new_udp_instance(NULL,NULL,$2,$4);
   }
  ;
 
@@ -3076,23 +3076,23 @@ udp_instance :
 
 continuous_assign :
     KW_ASSIGN drive_strength_o delay3_o list_of_net_assignments SEMICOLON{
-      $$ = yy::ast_new_continuous_assignment($4,$2,$3);
+      $$ = code->ast_new_continuous_assignment($4,$2,$3);
     }
 ;
 
 list_of_net_assignments :
   net_assignment{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_net_assignments COMMA net_assignment{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
 net_assignment : net_lvalue EQ expression{
-    $$ = yy::ast_new_single_assignment($1,$3);
+    $$ = code->ast_new_single_assignment($1,$3);
 };
 
 /* A.6.2 Procedural blocks and assignments */
@@ -3101,39 +3101,39 @@ initial_construct   : KW_INITIAL statement{$$ = $2;};
 always_construct    : KW_ALWAYS statement {$$ = $2;};
 
 blocking_assignment : variable_lvalue EQ delay_or_event_control_o expression{
-    $$ = yy::ast_new_blocking_assignment($1,$4,$3);
+    $$ = code->ast_new_blocking_assignment($1,$4,$3);
 };
 
 nonblocking_assignment : variable_lvalue LTE delay_or_event_control_o
                       expression{
-    $$ = yy::ast_new_nonblocking_assignment($1,$4,$3);
+    $$ = code->ast_new_nonblocking_assignment($1,$4,$3);
 };
 
 delay_or_event_control_o : delay_or_event_control{$$=$1;} | {$$=NULL;};
 
 procedural_continuous_assignments :
   KW_ASSIGN variable_assignment{
-      $$ = yy::ast_new_hybrid_assignment(yy::HYBRID_ASSIGNMENT_ASSIGN, $2);
+      $$ = code->ast_new_hybrid_assignment(yy::HYBRID_ASSIGNMENT_ASSIGN, $2);
   }
 | KW_DEASSIGN variable_lvalue{
-      $$ = yy::ast_new_hybrid_lval_assignment(yy::HYBRID_ASSIGNMENT_DEASSIGN, $2);
+      $$ = code->ast_new_hybrid_lval_assignment(yy::HYBRID_ASSIGNMENT_DEASSIGN, $2);
   }
 | KW_FORCE variable_assignment{
-      $$ = yy::ast_new_hybrid_assignment(yy::HYBRID_ASSIGNMENT_FORCE_VAR, $2);
+      $$ = code->ast_new_hybrid_assignment(yy::HYBRID_ASSIGNMENT_FORCE_VAR, $2);
   }
 | KW_FORCE net_assignment{
-      $$ = yy::ast_new_hybrid_assignment(yy::HYBRID_ASSIGNMENT_FORCE_NET, $2);
+      $$ = code->ast_new_hybrid_assignment(yy::HYBRID_ASSIGNMENT_FORCE_NET, $2);
   }
 | KW_RELEASE variable_lvalue{
-      $$ = yy::ast_new_hybrid_lval_assignment(yy::HYBRID_ASSIGNMENT_RELEASE_VAR, $2);
+      $$ = code->ast_new_hybrid_lval_assignment(yy::HYBRID_ASSIGNMENT_RELEASE_VAR, $2);
   }
 | KW_RELEASE net_lvalue{
-      $$ = yy::ast_new_hybrid_lval_assignment(yy::HYBRID_ASSIGNMENT_RELEASE_NET, $2);
+      $$ = code->ast_new_hybrid_lval_assignment(yy::HYBRID_ASSIGNMENT_RELEASE_NET, $2);
   }
 ;
 
 function_blocking_assignment : variable_lvalue EQ expression{
-    $$ = yy::ast_new_single_assignment($1,$3);
+    $$ = code->ast_new_single_assignment($1,$3);
 };
 
 function_statement_or_null : function_statement {$$ =$1;}
@@ -3144,12 +3144,12 @@ function_statement_or_null : function_statement {$$ =$1;}
 
 block_item_declarations     :
   block_item_declaration{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | block_item_declarations block_item_declaration{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
@@ -3157,44 +3157,44 @@ function_statements_o   : function_statements {$$=$1;} | {$$=NULL;};
 
 function_statements     :
   function_statement{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | function_statements function_statement{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
 ;
 
 function_seq_block :
   KW_BEGIN function_statements_o KW_END{
-    $$ = yy::ast_new_statement_block(yy::BLOCK_FUNCTION_SEQUENTIAL,NULL,NULL,$2);
+    $$ = code->ast_new_statement_block(yy::BLOCK_FUNCTION_SEQUENTIAL,NULL,NULL,$2);
   }
 | KW_BEGIN COLON block_identifier block_item_declarations
   function_statements_o KW_END{
-    $$ = yy::ast_new_statement_block(yy::BLOCK_FUNCTION_SEQUENTIAL,$3,$4,$5);
+    $$ = code->ast_new_statement_block(yy::BLOCK_FUNCTION_SEQUENTIAL,$3,$4,$5);
   }
 ;
 
 variable_assignment : variable_lvalue EQ expression{
-    $$ = yy::ast_new_single_assignment($1,$3);
+    $$ = code->ast_new_single_assignment($1,$3);
 };
 
 par_block :
   KW_FORK statements_o KW_JOIN{
-    $$ = yy::ast_new_statement_block(yy::BLOCK_PARALLEL,NULL,NULL,$2);
+    $$ = code->ast_new_statement_block(yy::BLOCK_PARALLEL,NULL,NULL,$2);
   }
 | KW_FORK COLON block_identifier block_item_declarations statements_o KW_JOIN{
-    $$ = yy::ast_new_statement_block(yy::BLOCK_PARALLEL,$3,$4,$5);
+    $$ = code->ast_new_statement_block(yy::BLOCK_PARALLEL,$3,$4,$5);
   }
 ;
 
 seq_block :
   KW_BEGIN statements_o KW_END{
-    $$ = yy::ast_new_statement_block(yy::BLOCK_SEQUENTIAL,NULL,NULL,$2);
+    $$ = code->ast_new_statement_block(yy::BLOCK_SEQUENTIAL,NULL,NULL,$2);
   }
 | KW_BEGIN COLON block_identifier block_item_declarations statements_o KW_END{
-    $$ = yy::ast_new_statement_block(yy::BLOCK_SEQUENTIAL,$3,$4,$5);
+    $$ = code->ast_new_statement_block(yy::BLOCK_SEQUENTIAL,$3,$4,$5);
   }
 ;
 
@@ -3204,60 +3204,60 @@ statements_o : statements {$$=$1;} | {$$=NULL;} ;
 
 statements   :
 statement{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | statements statement{
     $$ = $1;
-    yy::ast_list_append($$,$2);
+    code->ast_list_append($$,$2);
 }
              ;
 
 statement :
   attribute_instances blocking_assignment SEMICOLON{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_ASSIGNMENT);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_ASSIGNMENT);
   }
 | attribute_instances task_enable{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_TASK_ENABLE);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_TASK_ENABLE);
   }
 | attribute_instances nonblocking_assignment SEMICOLON{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_ASSIGNMENT);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_ASSIGNMENT);
   }
 | attribute_instances case_statement{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_CASE);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_CASE);
   }
 | attribute_instances conditional_statement{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_CONDITIONAL);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_CONDITIONAL);
   }
 | attribute_instances disable_statement{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_DISABLE);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_DISABLE);
   }
 | attribute_instances event_trigger{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_EVENT_TRIGGER);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_EVENT_TRIGGER);
   }
 | attribute_instances loop_statement{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_LOOP);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_LOOP);
   }
 | attribute_instances par_block{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_BLOCK);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_BLOCK);
   }
 | attribute_instances procedural_continuous_assignments SEMICOLON{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_ASSIGNMENT);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_ASSIGNMENT);
   }
 | attribute_instances procedural_timing_control_statement{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_TIMING_CONTROL);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_TIMING_CONTROL);
   }
 | attribute_instances seq_block{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_BLOCK);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_BLOCK);
   }
 | attribute_instances system_function_call SEMICOLON{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_FUNCTION_CALL);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_FUNCTION_CALL);
   }
 | attribute_instances system_task_enable{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_TASK_ENABLE);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_TASK_ENABLE);
   }
 | attribute_instances wait_statement{
-    $$ = yy::ast_new_statement($1,false, $2, yy::STM_WAIT);
+    $$ = code->ast_new_statement($1,false, $2, yy::STM_WAIT);
   }
 ;
 
@@ -3268,28 +3268,28 @@ statement_or_null : statement {$$=$1;}
 
 function_statement :
   attribute_instances function_blocking_assignment SEMICOLON{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_ASSIGNMENT);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_ASSIGNMENT);
   }
 | attribute_instances function_case_statement{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_CASE);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_CASE);
   }
 | attribute_instances function_conditional_statement{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_CONDITIONAL);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_CONDITIONAL);
   }
 | attribute_instances function_loop_statement{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_LOOP);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_LOOP);
   }
 | attribute_instances function_seq_block{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_BLOCK);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_BLOCK);
   }
 | attribute_instances disable_statement{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_DISABLE);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_DISABLE);
   }
 | attribute_instances system_function_call SEMICOLON{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_FUNCTION_CALL);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_FUNCTION_CALL);
   }
 | attribute_instances system_task_enable{
-    $$ = yy::ast_new_statement($1,true, $2, yy::STM_TASK_ENABLE);
+    $$ = code->ast_new_statement($1,true, $2, yy::STM_TASK_ENABLE);
   }
 ;
 
@@ -3305,14 +3305,14 @@ procedural_timing_control_statement :
 
 delay_or_event_control :
   delay_control{
-    $$ = yy::ast_new_timing_control_statement_delay(
+    $$ = code->ast_new_timing_control_statement_delay(
          yy::TIMING_CTRL_DELAY_CONTROL,
          NULL,
          $1
     );
   }
 | event_control{
-    $$ = yy::ast_new_timing_control_statement_event(
+    $$ = code->ast_new_timing_control_statement_event(
          yy::TIMING_CTRL_EVENT_CONTROL,
          NULL,
          NULL,
@@ -3320,7 +3320,7 @@ delay_or_event_control :
     );
   }
 | KW_REPEAT OPEN_BRACKET expression CLOSE_BRACKET event_control{
-    $$ = yy::ast_new_timing_control_statement_event(
+    $$ = code->ast_new_timing_control_statement_event(
          yy::TIMING_CTRL_EVENT_CONTROL_REPEAT,
          $3,
          NULL,
@@ -3331,44 +3331,44 @@ delay_or_event_control :
 
 delay_control :
   HASH delay_value{
-    $$ = yy::ast_new_delay_ctrl_value($2);
+    $$ = code->ast_new_delay_ctrl_value($2);
   }
 | HASH OPEN_BRACKET mintypmax_expression CLOSE_BRACKET{
-    $$ = yy::ast_new_delay_ctrl_mintypmax($3);
+    $$ = code->ast_new_delay_ctrl_mintypmax($3);
   }
 ;
 
 
 disable_statement :
   KW_DISABLE hierarchical_task_identifier SEMICOLON{
-      $$ = yy::ast_new_disable_statement($2);
+      $$ = code->ast_new_disable_statement($2);
   }
 | KW_DISABLE hierarchical_block_identifier SEMICOLON{
-      $$ = yy::ast_new_disable_statement($2);
+      $$ = code->ast_new_disable_statement($2);
   }
 ;
 
 event_control :
   AT event_identifier{
-    yy::ast_primary * p = yy::ast_new_primary(yy::PRIMARY_IDENTIFIER);
+    yy::ast_primary * p = code->ast_new_primary(yy::PRIMARY_IDENTIFIER);
     p->value.identifier = $2;
-    yy::ast_expression * id = yy::ast_new_expression_primary(p);
-    yy::ast_event_expression *ct = yy::ast_new_event_expression((yy::ast_edge_e)yy::EVENT_CTRL_TRIGGERS,id);
-    $$ = yy::ast_new_event_control(yy::EVENT_CTRL_TRIGGERS, ct);
+    yy::ast_expression * id = code->ast_new_expression_primary(p);
+    yy::ast_event_expression *ct = code->ast_new_event_expression((yy::ast_edge_e)yy::EVENT_CTRL_TRIGGERS,id);
+    $$ = code->ast_new_event_control(yy::EVENT_CTRL_TRIGGERS, ct);
   }
 | AT OPEN_BRACKET event_expression CLOSE_BRACKET{
-    $$ = yy::ast_new_event_control(yy::EVENT_CTRL_TRIGGERS, $3);
+    $$ = code->ast_new_event_control(yy::EVENT_CTRL_TRIGGERS, $3);
   }
 | AT STAR{
-    $$ = yy::ast_new_event_control(yy::EVENT_CTRL_ANY, NULL);
+    $$ = code->ast_new_event_control(yy::EVENT_CTRL_ANY, NULL);
   }
 /* Add attribute_start here since the tokeniser may return it an it still be
  * valid.*/
 | AT ATTRIBUTE_START CLOSE_BRACKET {
-    $$ = yy::ast_new_event_control(yy::EVENT_CTRL_ANY, NULL);
+    $$ = code->ast_new_event_control(yy::EVENT_CTRL_ANY, NULL);
   }
 | AT OPEN_BRACKET STAR CLOSE_BRACKET{
-    $$ = yy::ast_new_event_control(yy::EVENT_CTRL_ANY, NULL);
+    $$ = code->ast_new_event_control(yy::EVENT_CTRL_ANY, NULL);
   }
 ;
 
@@ -3378,25 +3378,25 @@ event_trigger :
 
 event_expression :
   expression{
-    $$ = yy::ast_new_event_expression(yy::EDGE_ANY, $1);
+    $$ = code->ast_new_event_expression(yy::EDGE_ANY, $1);
 }
 | KW_POSEDGE expression{
-    $$ = yy::ast_new_event_expression(yy::EDGE_POS, $2);
+    $$ = code->ast_new_event_expression(yy::EDGE_POS, $2);
 }
 | KW_NEGEDGE expression{
-    $$ = yy::ast_new_event_expression(yy::EDGE_NEG, $2);
+    $$ = code->ast_new_event_expression(yy::EDGE_NEG, $2);
 }
 | event_expression KW_OR event_expression{
-    $$ = yy::ast_new_event_expression_sequence($1,$3);
+    $$ = code->ast_new_event_expression_sequence($1,$3);
 }
 | event_expression COMMA event_expression{
-    $$ = yy::ast_new_event_expression_sequence($1,$3);
+    $$ = code->ast_new_event_expression_sequence($1,$3);
 }
 ;
 
 wait_statement :
   KW_WAIT OPEN_BRACKET expression CLOSE_BRACKET statement_or_null{
-    $$ = yy::ast_new_wait_statement($3,$5);
+    $$ = code->ast_new_wait_statement($3,$5);
   }
 ;
 
@@ -3404,13 +3404,13 @@ wait_statement :
 
 conditional_statement :
   KW_IF OPEN_BRACKET expression CLOSE_BRACKET statement_or_null{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first,NULL);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first,NULL);
    }
 | KW_IF OPEN_BRACKET expression CLOSE_BRACKET statement_or_null KW_ELSE
   statement_or_null{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first,$7);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first,$7);
    }
 | if_else_if_statement {$$ = $1;}
 ;
@@ -3418,39 +3418,39 @@ conditional_statement :
 if_else_if_statement :
   KW_IF OPEN_BRACKET expression CLOSE_BRACKET statement_or_null
   else_if_statements{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first, NULL);
-    yy::ast_extend_if_else($$,$6);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first, NULL);
+    code->ast_extend_if_else($$,$6);
   }
 | KW_IF OPEN_BRACKET expression CLOSE_BRACKET statement_or_null
   else_if_statements KW_ELSE statement_or_null{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first, $8);
-    yy::ast_extend_if_else($$,$6);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first, $8);
+    code->ast_extend_if_else($$,$6);
   }
 ;
 
 else_if_statements :
   KW_ELSE KW_IF OPEN_BRACKET expression CLOSE_BRACKET statement_or_null{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$, yy::ast_new_conditional_statement($6,$4));
+    $$ = code->ast_list_new();
+    code->ast_list_append($$, code->ast_new_conditional_statement($6,$4));
   }
 | else_if_statements KW_ELSE KW_IF OPEN_BRACKET expression
   CLOSE_BRACKET statement_or_null{
     $$ = $1;
-    yy::ast_list_append($$,yy::ast_new_conditional_statement($7,$5));
+    code->ast_list_append($$,code->ast_new_conditional_statement($7,$5));
   }
 ;
 
 function_conditional_statement :
    KW_IF OPEN_BRACKET expression CLOSE_BRACKET function_statement_or_null{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first,NULL);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first,NULL);
    }
  | KW_IF OPEN_BRACKET expression CLOSE_BRACKET function_statement_or_null
    KW_ELSE function_statement_or_null{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first,$7);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first,$7);
    }
  | function_if_else_if_statement{
     $$ = $1;
@@ -3460,28 +3460,28 @@ function_conditional_statement :
 function_else_if_statements   :
   KW_ELSE KW_IF OPEN_BRACKET expression CLOSE_BRACKET
   function_statement_or_null{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$, yy::ast_new_conditional_statement($6,$4));
+    $$ = code->ast_list_new();
+    code->ast_list_append($$, code->ast_new_conditional_statement($6,$4));
   }
 | function_else_if_statements KW_ELSE KW_IF OPEN_BRACKET expression
   CLOSE_BRACKET function_statement_or_null{
     $$ = $1;
-    yy::ast_list_append($$,yy::ast_new_conditional_statement($7,$5));
+    code->ast_list_append($$,code->ast_new_conditional_statement($7,$5));
   }
 ;
 
 function_if_else_if_statement :
   KW_IF OPEN_BRACKET expression CLOSE_BRACKET function_statement_or_null
   function_else_if_statements{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first, NULL);
-    yy::ast_extend_if_else($$,$6);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first, NULL);
+    code->ast_extend_if_else($$,$6);
   }
 | KW_IF OPEN_BRACKET expression CLOSE_BRACKET function_statement_or_null
   function_else_if_statements KW_ELSE function_statement_or_null{
-    yy::ast_conditional_statement * first = yy::ast_new_conditional_statement($5,$3);
-    $$ = yy::ast_new_if_else(first, $8);
-    yy::ast_extend_if_else($$,$6);
+    yy::ast_conditional_statement * first = code->ast_new_conditional_statement($5,$3);
+    $$ = code->ast_new_if_else(first, $8);
+    code->ast_extend_if_else($$,$6);
   }
 ;
 
@@ -3489,41 +3489,41 @@ function_if_else_if_statement :
 
 case_statement  :
   KW_CASE OPEN_BRACKET expression CLOSE_BRACKET case_items KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3, $5, yy::CASE);
+    $$ = code->ast_new_case_statement($3, $5, yy::CASE);
   }
 | KW_CASEZ OPEN_BRACKET expression CLOSE_BRACKET case_items KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3, $5, yy::CASEZ);
+    $$ = code->ast_new_case_statement($3, $5, yy::CASEZ);
   }
 | KW_CASEX OPEN_BRACKET expression CLOSE_BRACKET case_items KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3, $5, yy::CASEX);
+    $$ = code->ast_new_case_statement($3, $5, yy::CASEX);
   }
 ;
 
 case_items      :
   case_item{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$, $1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$, $1);
   }
 | case_items case_item{
     $$ = $1;
-    yy::ast_list_append($$, $2);
+    code->ast_list_append($$, $2);
   }
                 ;
 
-expressions_o   : expressions {$$ = $1;} |{$$=yy::ast_list_new();}
+expressions_o   : expressions {$$ = $1;} |{$$=code->ast_list_new();}
                 ;
 
 
 case_item       :
   expressions COLON statement_or_null{
-    $$ = yy::ast_new_case_item($1,$3);
+    $$ = code->ast_new_case_item($1,$3);
   }
 | KW_DEFAULT statement_or_null{
-    $$ = yy::ast_new_case_item(NULL,$2);
+    $$ = code->ast_new_case_item(NULL,$2);
     $$->is_default = true;
   }
 | KW_DEFAULT COLON statement_or_null{
-    $$ = yy::ast_new_case_item(NULL,$3);
+    $$ = code->ast_new_case_item(NULL,$3);
     $$->is_default = true;
   }
 ;
@@ -3531,43 +3531,43 @@ case_item       :
 function_case_statement :
   KW_CASE OPEN_BRACKET expression CLOSE_BRACKET  function_case_items
   KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3, $5, yy::CASE);
+    $$ = code->ast_new_case_statement($3, $5, yy::CASE);
     $$->is_function = true;
   }
 | KW_CASEZ OPEN_BRACKET expression CLOSE_BRACKET function_case_items
   KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3, $5, yy::CASEZ);
+    $$ = code->ast_new_case_statement($3, $5, yy::CASEZ);
     $$->is_function = true;
   }
 | KW_CASEX OPEN_BRACKET expression CLOSE_BRACKET function_case_items
   KW_ENDCASE{
-    $$ = yy::ast_new_case_statement($3, $5, yy::CASEX);
+    $$ = code->ast_new_case_statement($3, $5, yy::CASEX);
     $$->is_function = true;
   }
 ;
 
 function_case_items     :
   function_case_item {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$, $1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$, $1);
   }
 | function_case_items function_case_item{
     $$ = $1;
-    yy::ast_list_append($$, $2);
+    code->ast_list_append($$, $2);
   }
 ;
 
 function_case_item      :
   expressions COLON function_statement_or_null{
-    $$ = yy::ast_new_case_item($1, $3);
+    $$ = code->ast_new_case_item($1, $3);
     $$->is_default = false;
   }
 | KW_DEFAULT function_statement_or_null{
-    $$ = yy::ast_new_case_item(NULL, $2);
+    $$ = code->ast_new_case_item(NULL, $2);
     $$->is_default = true;
   }
 | KW_DEFAULT COLON function_statement_or_null{
-    $$ = yy::ast_new_case_item(NULL, $3);
+    $$ = code->ast_new_case_item(NULL, $3);
     $$->is_default = true;
   }
 ;
@@ -3576,33 +3576,33 @@ function_case_item      :
 
 function_loop_statement :
   KW_FOREVER function_statement{
-    $$ = yy::ast_new_forever_loop_statement($2);
+    $$ = code->ast_new_forever_loop_statement($2);
   }
 | KW_REPEAT OPEN_BRACKET expression CLOSE_BRACKET function_statement{
-    $$ = yy::ast_new_repeat_loop_statement($5,$3);
+    $$ = code->ast_new_repeat_loop_statement($5,$3);
   }
 | KW_WHILE OPEN_BRACKET expression CLOSE_BRACKET function_statement{
-    $$ = yy::ast_new_while_loop_statement($5,$3);
+    $$ = code->ast_new_while_loop_statement($5,$3);
   }
 | KW_FOR OPEN_BRACKET variable_assignment SEMICOLON expression
   SEMICOLON variable_assignment  CLOSE_BRACKET function_statement{
-    $$ = yy::ast_new_for_loop_statement($9, $3, $7,$5);
+    $$ = code->ast_new_for_loop_statement($9, $3, $7,$5);
   }
 ;
 
 loop_statement          :
   KW_FOREVER statement{
-    $$ = yy::ast_new_forever_loop_statement($2);
+    $$ = code->ast_new_forever_loop_statement($2);
   }
 | KW_REPEAT OPEN_BRACKET expression CLOSE_BRACKET statement{
-    $$ = yy::ast_new_repeat_loop_statement($5,$3);
+    $$ = code->ast_new_repeat_loop_statement($5,$3);
   }
 | KW_WHILE OPEN_BRACKET expression CLOSE_BRACKET statement{
-    $$ = yy::ast_new_while_loop_statement($5,$3);
+    $$ = code->ast_new_while_loop_statement($5,$3);
   }
 | KW_FOR OPEN_BRACKET variable_assignment SEMICOLON expression SEMICOLON
   variable_assignment  CLOSE_BRACKET statement{
-    $$ = yy::ast_new_for_loop_statement($9, $3, $7,$5);
+    $$ = code->ast_new_for_loop_statement($9, $3, $7,$5);
   }
 ;
 
@@ -3611,20 +3611,20 @@ loop_statement          :
 
 system_task_enable      :
     system_task_identifier OPEN_BRACKET expressions CLOSE_BRACKET SEMICOLON {
-        $$ = yy::ast_new_task_enable_statement($3,$1,true);
+        $$ = code->ast_new_task_enable_statement($3,$1,true);
     }
 |   system_task_identifier SEMICOLON {
-        $$ = yy::ast_new_task_enable_statement(NULL,$1,true);
+        $$ = code->ast_new_task_enable_statement(NULL,$1,true);
     }
     ;
 
 task_enable             :
     hierarchical_task_identifier SEMICOLON{
-        $$ = yy::ast_new_task_enable_statement(NULL,$1,false);
+        $$ = code->ast_new_task_enable_statement(NULL,$1,false);
     }
 |   hierarchical_task_identifier OPEN_BRACKET expressions CLOSE_BRACKET
     SEMICOLON{
-        $$ = yy::ast_new_task_enable_statement($3,$1,false);
+        $$ = code->ast_new_task_enable_statement($3,$1,false);
     }
 ;
 
@@ -3634,16 +3634,16 @@ specify_block           : KW_SPECIFY specify_items_o KW_ENDSPECIFY {$$ = $2;}
                         ;
 
 specify_items_o         : specify_items {$$ = $1;}
-                        | {$$ = yy::ast_list_new();}
+                        | {$$ = code->ast_list_new();}
                         ;
 
 specify_items           : specify_item{
-                            $$ = yy::ast_list_new();
-                            yy::ast_list_append($$,$1);
+                            $$ = code->ast_list_new();
+                            code->ast_list_append($$,$1);
                         }
                         | specify_items specify_item{
                             $$ = $1;
-                            yy::ast_list_append($$,$2);
+                            code->ast_list_append($$,$2);
                         }
                         ;
 
@@ -3672,15 +3672,15 @@ path_declaration : simple_path_declaration          SEMICOLON {$$=$1;}
 simple_path_declaration :
   OPEN_BRACKET specify_input_terminal_descriptor polarity_verilog_operator_o EQ GT
   specify_output_terminal_descriptor CLOSE_BRACKET EQ path_delay_value{
-    $$ = yy::ast_new_path_declaration(yy::SIMPLE_PARALLEL_PATH);
-    $$->parallel = yy::ast_new_simple_parallel_path_declaration(
+    $$ = code->ast_new_path_declaration(yy::SIMPLE_PARALLEL_PATH);
+    $$->parallel = code->ast_new_simple_parallel_path_declaration(
         $2,$3,$6,$9
     );
   }
 | OPEN_BRACKET list_of_path_inputs polarity_verilog_operator_o STAR GT
   list_of_path_outputs CLOSE_BRACKET EQ path_delay_value{
-    $$ = yy::ast_new_path_declaration(yy::SIMPLE_FULL_PATH);
-    $$->full = yy::ast_new_simple_full_path_declaration(
+    $$ = code->ast_new_path_declaration(yy::SIMPLE_FULL_PATH);
+    $$->full = code->ast_new_simple_full_path_declaration(
         $2,$3,$6,$9
     );
   }
@@ -3689,23 +3689,23 @@ simple_path_declaration :
 
 list_of_path_inputs   :
   specify_input_terminal_descriptor {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_path_inputs COMMA specify_input_terminal_descriptor{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
 list_of_path_outputs  :
   specify_output_terminal_descriptor {
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | list_of_path_outputs COMMA specify_output_terminal_descriptor{
     $$ = $1;
-    yy::ast_list_append($$,$3);
+    code->ast_list_append($$,$3);
   }
 ;
 
@@ -3740,34 +3740,34 @@ path_delay_value : list_of_path_delay_expressions {$$=$1;}
 
 list_of_path_delay_expressions :
   path_delay_expression{
-    $$ = yy::ast_list_new();
-    yy::ast_list_append($$,$1);
+    $$ = code->ast_list_new();
+    code->ast_list_append($$,$1);
   }
 | path_delay_expression COMMA
   path_delay_expression {
-    $$ = yy::ast_list_new(); yy::ast_list_append($$,$1); yy::ast_list_append($$,$3);
+    $$ = code->ast_list_new(); code->ast_list_append($$,$1); code->ast_list_append($$,$3);
   }
 | path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression{
-    $$ = yy::ast_list_new(); yy::ast_list_append($$,$1); yy::ast_list_append($$,$3);
-    yy::ast_list_append($$,$5);
-  }
-| path_delay_expression COMMA
-  path_delay_expression COMMA
-  path_delay_expression COMMA
-  path_delay_expression COMMA
-  path_delay_expression COMMA
-  path_delay_expression{
-    $$ = yy::ast_list_new(); yy::ast_list_append($$,$1); yy::ast_list_append($$,$3);
-    yy::ast_list_append($$,$5); yy::ast_list_append($$,$7); yy::ast_list_append($$,$9);
-    yy::ast_list_append($$,$11);
+    $$ = code->ast_list_new(); code->ast_list_append($$,$1); code->ast_list_append($$,$3);
+    code->ast_list_append($$,$5);
   }
 | path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression COMMA
+  path_delay_expression{
+    $$ = code->ast_list_new(); code->ast_list_append($$,$1); code->ast_list_append($$,$3);
+    code->ast_list_append($$,$5); code->ast_list_append($$,$7); code->ast_list_append($$,$9);
+    code->ast_list_append($$,$11);
+  }
+| path_delay_expression COMMA
+  path_delay_expression COMMA
+  path_delay_expression COMMA
+  path_delay_expression COMMA
+  path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression COMMA
@@ -3775,11 +3775,11 @@ list_of_path_delay_expressions :
   path_delay_expression COMMA
   path_delay_expression COMMA
   path_delay_expression{
-    $$ = yy::ast_list_new();  yy::ast_list_append($$,$1);  yy::ast_list_append($$,$3);
-    yy::ast_list_append($$,$5);  yy::ast_list_append($$,$7);  yy::ast_list_append($$,$9);
-    yy::ast_list_append($$,$11); yy::ast_list_append($$,$13); yy::ast_list_append($$,$15);
-    yy::ast_list_append($$,$17); yy::ast_list_append($$,$19); yy::ast_list_append($$,$21);
-    yy::ast_list_append($$,$23);
+    $$ = code->ast_list_new();  code->ast_list_append($$,$1);  code->ast_list_append($$,$3);
+    code->ast_list_append($$,$5);  code->ast_list_append($$,$7);  code->ast_list_append($$,$9);
+    code->ast_list_append($$,$11); code->ast_list_append($$,$13); code->ast_list_append($$,$15);
+    code->ast_list_append($$,$17); code->ast_list_append($$,$19); code->ast_list_append($$,$21);
+    code->ast_list_append($$,$23);
 
   }
 ;
@@ -3790,16 +3790,16 @@ edge_sensitive_path_declaration :
   OPEN_BRACKET edge_identifier_o specify_input_terminal_descriptor EQ GT
   specify_output_terminal_descriptor polarity_verilog_operator_o COLON
   data_source_expression CLOSE_BRACKET EQ path_delay_value{
-    $$ = yy::ast_new_path_declaration(yy::EDGE_SENSITIVE_PARALLEL_PATH);
+    $$ = code->ast_new_path_declaration(yy::EDGE_SENSITIVE_PARALLEL_PATH);
     $$->es_parallel =
-        yy::ast_new_edge_sensitive_parallel_path_declaration($2,$3,$7,$6,$9,$12);
+        code->ast_new_edge_sensitive_parallel_path_declaration($2,$3,$7,$6,$9,$12);
   }
 | OPEN_BRACKET edge_identifier_o list_of_path_inputs STAR GT
   list_of_path_outputs polarity_verilog_operator_o COLON data_source_expression
   CLOSE_BRACKET EQ path_delay_value{
-    $$ = yy::ast_new_path_declaration(yy::EDGE_SENSITIVE_FULL_PATH);
+    $$ = code->ast_new_path_declaration(yy::EDGE_SENSITIVE_FULL_PATH);
     $$->es_full=
-        yy::ast_new_edge_sensitive_full_path_declaration($2,$3,$7,$6,$9,$12);
+        code->ast_new_edge_sensitive_full_path_declaration($2,$3,$7,$6,$9,$12);
   }
 ;
 
@@ -3862,34 +3862,34 @@ system_timing_check : {printf("%s:%d Not Supported\n",__FILE__,__LINE__);};
 concatenation :
   OPEN_SQ_BRACE expression concatenation_cont{
     $$ = $3;
-    yy::ast_extend_concatenation($3,NULL,$2);
+    code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 concatenation_cont :
   CLOSE_SQ_BRACE {
-      $$ = yy::ast_new_empty_concatenation(yy::CONCATENATION_EXPRESSION);
+      $$ = code->ast_new_empty_concatenation(yy::CONCATENATION_EXPRESSION);
   }
 | COMMA expression concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 constant_concatenation :
   OPEN_SQ_BRACE expression constant_concatenation_cont{
     $$ = $3;
-    yy::ast_extend_concatenation($3,NULL,$2);
+    code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 constant_concatenation_cont :
   CLOSE_SQ_BRACE{
-      $$ = yy::ast_new_empty_concatenation(yy::CONCATENATION_EXPRESSION);
+      $$ = code->ast_new_empty_concatenation(yy::CONCATENATION_EXPRESSION);
   }
 | COMMA expression concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
@@ -3918,17 +3918,17 @@ constant_multiple_concatenation :
 module_path_concatenation :
   OPEN_SQ_BRACE module_path_expression modpath_concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 modpath_concatenation_cont :
   CLOSE_SQ_BRACE{
-      $$ = yy::ast_new_empty_concatenation(yy::CONCATENATION_MODULE_PATH);
+      $$ = code->ast_new_empty_concatenation(yy::CONCATENATION_MODULE_PATH);
   }
 | COMMA module_path_expression modpath_concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
@@ -3942,47 +3942,47 @@ module_path_multiple_concatenation :
 net_concatenation :
   OPEN_SQ_BRACE net_concatenation_value net_concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 net_concatenation_cont :
   CLOSE_SQ_BRACE{
-      $$ = yy::ast_new_empty_concatenation(yy::CONCATENATION_NET);
+      $$ = code->ast_new_empty_concatenation(yy::CONCATENATION_NET);
   }
 | COMMA net_concatenation_value net_concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 sq_bracket_expressions :
   OPEN_SQ_BRACKET expression CLOSE_SQ_BRACKET{
-      $$ = yy::ast_list_new();
-      yy::ast_list_append($$,$2);
+      $$ = code->ast_list_new();
+      code->ast_list_append($$,$2);
   }
 | OPEN_SQ_BRACKET range_expression CLOSE_SQ_BRACKET{
-      $$ = yy::ast_list_new();
-      yy::ast_list_append($$,$2);
+      $$ = code->ast_list_new();
+      code->ast_list_append($$,$2);
   }
 | OPEN_SQ_BRACKET expression CLOSE_SQ_BRACKET sq_bracket_expressions{
       $$ = $4;
-      yy::ast_list_preappend($$,$2);
+      code->ast_list_preappend($$,$2);
   }
 ;
 
 net_concatenation_value : /* TODO - fix proper identifier stuff. */
   hierarchical_net_identifier {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | hierarchical_net_identifier sq_bracket_expressions {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | hierarchical_net_identifier sq_bracket_expressions range_expression {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | hierarchical_net_identifier range_expression {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | net_concatenation {
       $$ = $1;
@@ -3992,32 +3992,32 @@ net_concatenation_value : /* TODO - fix proper identifier stuff. */
 variable_concatenation :
   OPEN_SQ_BRACE variable_concatenation_value variable_concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 variable_concatenation_cont :
   CLOSE_SQ_BRACE{
-      $$ = yy::ast_new_empty_concatenation(yy::CONCATENATION_VARIABLE);
+      $$ = code->ast_new_empty_concatenation(yy::CONCATENATION_VARIABLE);
   }
 | COMMA variable_concatenation_value variable_concatenation_cont{
       $$ = $3;
-      yy::ast_extend_concatenation($3,NULL,$2);
+      code->ast_extend_concatenation($3,NULL,$2);
   }
 ;
 
 variable_concatenation_value : /* TODO - fix proper identifier stuff. */
   hierarchical_variable_identifier {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | hierarchical_variable_identifier sq_bracket_expressions {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | hierarchical_variable_identifier sq_bracket_expressions range_expression {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | hierarchical_variable_identifier range_expression {
-      $$ = yy::ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
+      $$ = code->ast_new_concatenation(yy::CONCATENATION_NET,NULL,$1);
   }
 | variable_concatenation {
       $$ = $1;
@@ -4029,54 +4029,54 @@ variable_concatenation_value : /* TODO - fix proper identifier stuff. */
 
 constant_expressions :
   constant_expression{
-        $$ = yy::ast_list_new();
-        yy::ast_list_append($$,$1);
+        $$ = code->ast_list_new();
+        code->ast_list_append($$,$1);
   }
 | constant_expressions COMMA constant_expression{
         $$ = $1;
-        yy::ast_list_append($$,$3);
+        code->ast_list_append($$,$3);
   }
 ;
 
 expressions :
   expression {
-        $$ = yy::ast_list_new();
-        yy::ast_list_append($$,$1);
+        $$ = code->ast_list_new();
+        code->ast_list_append($$,$1);
   }
 | expressions COMMA expression{
         $$ = $1;
-        yy::ast_list_append($$,$3);
+        code->ast_list_append($$,$3);
   }
 ;
 
 constant_function_call :
   function_identifier attribute_instances OPEN_BRACKET constant_expressions
   CLOSE_BRACKET{
-    $$ = yy::ast_new_function_call($1,false,false,$2,$4);
+    $$ = code->ast_new_function_call($1,false,false,$2,$4);
  }
 ;
 
 constant_function_call_pid :
   attribute_instances OPEN_BRACKET constant_expressions CLOSE_BRACKET{
-    $$ = yy::ast_new_function_call(NULL,true,false,$1,$3);
+    $$ = code->ast_new_function_call(NULL,true,false,$1,$3);
  }
 ;
 
 function_call : hierarchical_function_identifier
  attribute_instances OPEN_BRACKET expressions CLOSE_BRACKET{
-    $$ = yy::ast_new_function_call($1,false,false,$2,$4);
+    $$ = code->ast_new_function_call($1,false,false,$2,$4);
  }
 ;
 
 system_function_call :
   system_function_identifier{
-    $$ = yy::ast_new_function_call($1,false,true,NULL,NULL);
+    $$ = code->ast_new_function_call($1,false,true,NULL,NULL);
   }
 | system_function_identifier OPEN_BRACKET CLOSE_BRACKET{
-    $$ = yy::ast_new_function_call($1,false,true,NULL,NULL);
+    $$ = code->ast_new_function_call($1,false,true,NULL,NULL);
   }
 | system_function_identifier OPEN_BRACKET expressions CLOSE_BRACKET{
-    $$ = yy::ast_new_function_call($1,false,true,NULL,$3);
+    $$ = code->ast_new_function_call($1,false,true,NULL,$3);
   }
 ;
 
@@ -4085,235 +4085,235 @@ system_function_call :
 
 conditional_expression :
   expression TERNARY attribute_instances expression COLON expression{
-    $$ = yy::ast_new_conditional_expression($1,$4,$6,$3);
+    $$ = code->ast_new_conditional_expression($1,$4,$6,$3);
   }
 
 ;
 
 constant_expression:
-  constant_primary {$$ = yy::ast_new_expression_primary($1);}
+  constant_primary {$$ = code->ast_new_expression_primary($1);}
 | unary_verilog_operator attribute_instances constant_primary{
-    $$ = yy::ast_new_unary_expression($3,$1,$2,true);
+    $$ = code->ast_new_unary_expression($3,$1,$2,true);
   }
 | constant_expression PLUS  attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression MINUS attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression STAR  attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression DIV   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression MOD   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression L_EQ  attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression L_NEQ attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression C_EQ  attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression C_NEQ attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression L_AND attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression L_OR  attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression POW   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression LT    attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression LTE   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression GT    attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression GTE   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression B_AND attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression B_OR  attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression B_XOR attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression B_EQU attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression LSR   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression LSL   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression ASR   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression ASL   attribute_instances constant_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,true);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,true);
   }
 | constant_expression TERNARY attribute_instances constant_expression COLON
   constant_expression{
-    $$ = yy::ast_new_conditional_expression($1,$4,$6,$3);
+    $$ = code->ast_new_conditional_expression($1,$4,$6,$3);
   }
-| string { $$ = yy::ast_new_string_expression($1);}
+| string { $$ = code->ast_new_string_expression($1);}
 ;
 
 constant_mintypmax_expression :
   constant_expression{
-      $$ = yy::ast_new_mintypmax_expression(NULL,$1,NULL);
+      $$ = code->ast_new_mintypmax_expression(NULL,$1,NULL);
   }
 | constant_expression COLON constant_expression COLON constant_expression{
-      $$ = yy::ast_new_mintypmax_expression($1,$3,$5);
+      $$ = code->ast_new_mintypmax_expression($1,$3,$5);
   }
 ;
 
 constant_range_expression :
   constant_expression{
-    $$ = yy::ast_new_index_expression($1);
+    $$ = code->ast_new_index_expression($1);
   }
 
 | constant_expression COLON       constant_expression{
-    $$ = yy::ast_new_range_expression($1,$3);
+    $$ = code->ast_new_range_expression($1,$3);
   }
 | constant_expression IDX_PRT_SEL constant_expression{
-    $$ = yy::ast_new_range_expression($1,$3);
+    $$ = code->ast_new_range_expression($1,$3);
   }
 ;
 
 expression :
   primary {
-    $$ = yy::ast_new_expression_primary($1);
+    $$ = code->ast_new_expression_primary($1);
   }
 | unary_verilog_operator attribute_instances primary{
-    $$ = yy::ast_new_unary_expression($3,$1,$2, false);
+    $$ = code->ast_new_unary_expression($3,$1,$2, false);
   }
 | expression PLUS  attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression MINUS attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression STAR  attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression DIV   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression MOD   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression L_EQ  attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression L_NEQ attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression C_EQ  attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression C_NEQ attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression L_AND attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression L_OR  attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression POW   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression LT    attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression LTE   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression GT    attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression GTE   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression B_AND attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression B_OR  attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression B_XOR attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression B_NOR attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression B_NAND attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression B_EQU attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression LSR   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression LSL   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression ASR   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | expression ASL   attribute_instances expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | conditional_expression {$$=$1;}
-| string {$$ = yy::ast_new_string_expression($1);}
+| string {$$ = code->ast_new_string_expression($1);}
 ;
 
 mintypmax_expression :
   expression{
-      $$ = yy::ast_new_mintypmax_expression(NULL,$1,NULL);
+      $$ = code->ast_new_mintypmax_expression(NULL,$1,NULL);
   }
 | expression COLON expression COLON expression{
-      $$ = yy::ast_new_mintypmax_expression($1,$3,$5);
+      $$ = code->ast_new_mintypmax_expression($1,$3,$5);
   }
 ;
 
 module_path_conditional_expression :
   module_path_expression TERNARY attribute_instances module_path_expression
   COLON module_path_expression{
-    $$ = yy::ast_new_conditional_expression($1, $4, $6, $3);
+    $$ = code->ast_new_conditional_expression($1, $4, $6, $3);
     $$->type = yy::MODULE_PATH_CONDITIONAL_EXPRESSION;
   }
 ;
 
 module_path_expression :
   module_path_primary{
-    $$ = yy::ast_new_expression_primary($1);
+    $$ = code->ast_new_expression_primary($1);
     $$->type = yy::MODULE_PATH_PRIMARY_EXPRESSION;
   }
 | unary_module_path_verilog_operator attribute_instances module_path_primary{
-    $$ = yy::ast_new_unary_expression($3,$1,$2,false);
+    $$ = code->ast_new_unary_expression($3,$1,$2,false);
     $$->type = yy::MODULE_PATH_UNARY_EXPRESSION;
 }
 | module_path_expression binary_module_path_verilog_operator attribute_instances
   module_path_expression{
-    $$ = yy::ast_new_binary_expression($1,$4,$2,$3,false);
+    $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
     $$->type = yy::MODULE_PATH_BINARY_EXPRESSION;
   }
 | module_path_conditional_expression {$$ = $1;}
@@ -4321,12 +4321,12 @@ module_path_expression :
 
 module_path_mintypemax_expression :
   module_path_expression {
-      $$ = yy::ast_new_mintypmax_expression(NULL,$1,NULL);
+      $$ = code->ast_new_mintypmax_expression(NULL,$1,NULL);
       $$->type = yy::MODULE_PATH_MINTYPMAX_EXPRESSION;
   }
 | module_path_expression COLON module_path_expression COLON
   module_path_expression {
-      $$ = yy::ast_new_mintypmax_expression($1,$3,$5);
+      $$ = code->ast_new_mintypmax_expression($1,$3,$5);
       $$->type = yy::MODULE_PATH_MINTYPMAX_EXPRESSION;
   }
 
@@ -4334,14 +4334,14 @@ module_path_mintypemax_expression :
 
 range_expression :
   expression {
-    $$ = yy::ast_new_index_expression($1);
+    $$ = code->ast_new_index_expression($1);
   }
 | expression COLON       constant_expression{
-    $$ = yy::ast_new_range_expression($1,$3);
+    $$ = code->ast_new_range_expression($1,$3);
   }
 
 | expression IDX_PRT_SEL constant_expression %prec IDX_PRT_SEL{
-    $$ = yy::ast_new_range_expression($1,$3);
+    $$ = code->ast_new_range_expression($1,$3);
   }
 
 ;
@@ -4350,128 +4350,128 @@ range_expression :
 
 constant_primary :
   constant_concatenation {
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_CONCATENATION);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_CONCATENATION);
       $$->value.concatenation = $1;
 }
 | constant_function_call{
-      $$ = yy::ast_new_primary_function_call($1);
+      $$ = code->ast_new_primary_function_call($1);
 }
 | OPEN_BRACKET constant_mintypmax_expression CLOSE_BRACKET{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_MINMAX_EXP);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_MINMAX_EXP);
       $$->value.minmax = $2;
 }
 | constant_multiple_concatenation{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_CONCATENATION);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_CONCATENATION);
       $$->value.concatenation = $1;
 }
 | genvar_identifier{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier = $1;
 }
 | number{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_NUMBER);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_NUMBER);
       $$->value.number = $1;
 }
 | parameter_identifier{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier = $1;
 }
 | specparam_identifier{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier = $1;
 }
 | text_macro_usage{
-      $$ = yy::ast_new_constant_primary(yy::PRIMARY_MACRO_USAGE);
+      $$ = code->ast_new_constant_primary(yy::PRIMARY_MACRO_USAGE);
       $$->value.identifier = $1;
 }
 ;
 
 primary :
   number{
-      $$ = yy::ast_new_primary(yy::PRIMARY_NUMBER);
+      $$ = code->ast_new_primary(yy::PRIMARY_NUMBER);
       $$->value.number = $1;
   }
 | function_call{
-      $$ = yy::ast_new_primary_function_call($1);
+      $$ = code->ast_new_primary_function_call($1);
   }
 | hierarchical_identifier constant_function_call_pid{
       $2->function= $1;
-      $$ = yy::ast_new_primary_function_call($2);
+      $$ = code->ast_new_primary_function_call($2);
   }
 | SIMPLE_ID constant_function_call_pid{ // Weird quick, but it works.
       $2->function= $1;
-      $$ = yy::ast_new_primary_function_call($2);
+      $$ = code->ast_new_primary_function_call($2);
   }
 | system_function_call{
-      $$ = yy::ast_new_primary_function_call($1);
+      $$ = code->ast_new_primary_function_call($1);
   }
 | hierarchical_identifier sq_bracket_expressions{
-      $$ = yy::ast_new_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier = $1;
   }
 | hierarchical_identifier sq_bracket_expressions OPEN_SQ_BRACKET
   range_expression CLOSE_SQ_BRACKET{
-      $$ = yy::ast_new_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier = $1;
   }
 | concatenation{
-      $$ = yy::ast_new_primary(yy::PRIMARY_CONCATENATION);
+      $$ = code->ast_new_primary(yy::PRIMARY_CONCATENATION);
       $$->value.concatenation = $1;
   }
 | multiple_concatenation{
-      $$ = yy::ast_new_primary(yy::PRIMARY_CONCATENATION);
+      $$ = code->ast_new_primary(yy::PRIMARY_CONCATENATION);
       $$->value.concatenation = $1;
   }
 | hierarchical_identifier{
-      $$ = yy::ast_new_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier = $1;
   }
 | OPEN_BRACKET mintypmax_expression CLOSE_BRACKET{
-      $$ = yy::ast_new_primary(yy::PRIMARY_MINMAX_EXP);
+      $$ = code->ast_new_primary(yy::PRIMARY_MINMAX_EXP);
       $$->value.minmax = $2;
   }
 | text_macro_usage{
-      $$ = yy::ast_new_primary(yy::PRIMARY_MACRO_USAGE);
+      $$ = code->ast_new_primary(yy::PRIMARY_MACRO_USAGE);
       $$->value.macro = $1;
   }
 ;
 
 module_path_primary :
   number{
-      $$ = yy::ast_new_module_path_primary(yy::PRIMARY_NUMBER);
+      $$ = code->ast_new_module_path_primary(yy::PRIMARY_NUMBER);
       $$->value.number = $1;
   }
 
 | identifier{
-      $$ = yy::ast_new_module_path_primary(yy::PRIMARY_IDENTIFIER);
+      $$ = code->ast_new_module_path_primary(yy::PRIMARY_IDENTIFIER);
       $$->value.identifier= $1;
   }
 
 | module_path_concatenation{
-      $$ = yy::ast_new_module_path_primary(yy::PRIMARY_CONCATENATION);
+      $$ = code->ast_new_module_path_primary(yy::PRIMARY_CONCATENATION);
       $$->value.concatenation = $1;
   }
 
 | module_path_multiple_concatenation{
-      $$ = yy::ast_new_module_path_primary(yy::PRIMARY_CONCATENATION);
+      $$ = code->ast_new_module_path_primary(yy::PRIMARY_CONCATENATION);
       $$->value.concatenation = $1;
   }
 
 | function_call{
-      $$ = yy::ast_new_primary_function_call($1);
+      $$ = code->ast_new_primary_function_call($1);
   }
 | system_function_call{
-      $$ = yy::ast_new_primary_function_call($1);
+      $$ = code->ast_new_primary_function_call($1);
   }
 | constant_function_call{
-      $$ = yy::ast_new_primary_function_call($1);
+      $$ = code->ast_new_primary_function_call($1);
   }
 | OPEN_BRACKET module_path_mintypemax_expression CLOSE_BRACKET{
-      $$ = yy::ast_new_module_path_primary(yy::PRIMARY_MINMAX_EXP);
+      $$ = code->ast_new_module_path_primary(yy::PRIMARY_MINMAX_EXP);
       $$->value.minmax = $2;
   }
 | text_macro_usage{
-      $$ = yy::ast_new_module_path_primary(yy::PRIMARY_MACRO_USAGE);
+      $$ = code->ast_new_module_path_primary(yy::PRIMARY_MACRO_USAGE);
       $$->value.macro = $1;
   }
 ;
@@ -4486,41 +4486,41 @@ sq_bracket_constant_expressions :
 
 net_lvalue :
   hierarchical_net_identifier{
-    $$ = yy::ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
   }
 | hierarchical_net_identifier sq_bracket_constant_expressions{
-    $$ = yy::ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
   }
 | hierarchical_net_identifier sq_bracket_constant_expressions
   OPEN_SQ_BRACKET constant_range_expression CLOSE_SQ_BRACKET{
-    $$ = yy::ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
   }
 | hierarchical_net_identifier OPEN_SQ_BRACKET constant_range_expression
   CLOSE_SQ_BRACKET{
-    $$ = yy::ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::NET_IDENTIFIER, $1);
   }
 | net_concatenation {
-    $$ = yy::ast_new_lvalue_concat(yy::NET_CONCATENATION, $1);
+    $$ = code->ast_new_lvalue_concat(yy::NET_CONCATENATION, $1);
   }
 ;
 
 variable_lvalue :
   hierarchical_variable_identifier{
-    $$ = yy::ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
   }
 | hierarchical_variable_identifier sq_bracket_constant_expressions{
-    $$ = yy::ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
   }
 | hierarchical_variable_identifier sq_bracket_constant_expressions
   OPEN_SQ_BRACKET constant_range_expression CLOSE_SQ_BRACKET{
-    $$ = yy::ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
   }
 | hierarchical_variable_identifier OPEN_SQ_BRACKET constant_range_expression
   CLOSE_SQ_BRACKET{
-    $$ = yy::ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
+    $$ = code->ast_new_lvalue_id(yy::VAR_IDENTIFIER, $1);
   }
 | variable_concatenation{
-    $$ = yy::ast_new_lvalue_concat(yy::VAR_CONCATENATION, $1);
+    $$ = code->ast_new_lvalue_concat(yy::VAR_CONCATENATION, $1);
   }
 
 ;
@@ -4564,37 +4564,37 @@ binary_module_path_verilog_operator : L_EQ   {$$=$1;}
 
 unsigned_number :
   UNSIGNED_NUMBER {
-    $$ = yy::ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $1);
+    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $1);
   }
 ;
 
 number :
   NUM_REAL{
-    $$ = yy::ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,$1);
+    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,$1);
   }
 | BIN_BASE BIN_VALUE {
-    $$ = yy::ast_new_number(yy::BASE_BINARY, yy::REP_BITS, $2);
+    $$ = code->ast_new_number(yy::BASE_BINARY, yy::REP_BITS, $2);
 }
 | HEX_BASE HEX_VALUE {
-    $$ = yy::ast_new_number(yy::BASE_HEX, yy::REP_BITS, $2);
+    $$ = code->ast_new_number(yy::BASE_HEX, yy::REP_BITS, $2);
 }
 | OCT_BASE OCT_VALUE {
-    $$ = yy::ast_new_number(yy::BASE_OCTAL, yy::REP_BITS, $2);
+    $$ = code->ast_new_number(yy::BASE_OCTAL, yy::REP_BITS, $2);
 }
 | DEC_BASE UNSIGNED_NUMBER{
-    $$ = yy::ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $2);
+    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $2);
 }
 | UNSIGNED_NUMBER BIN_BASE BIN_VALUE {
-    $$ = yy::ast_new_number(yy::BASE_BINARY, yy::REP_BITS, $3);
+    $$ = code->ast_new_number(yy::BASE_BINARY, yy::REP_BITS, $3);
 }
 | UNSIGNED_NUMBER HEX_BASE HEX_VALUE {
-    $$ = yy::ast_new_number(yy::BASE_HEX, yy::REP_BITS, $3);
+    $$ = code->ast_new_number(yy::BASE_HEX, yy::REP_BITS, $3);
 }
 | UNSIGNED_NUMBER OCT_BASE OCT_VALUE {
-    $$ = yy::ast_new_number(yy::BASE_OCTAL, yy::REP_BITS, $3);
+    $$ = code->ast_new_number(yy::BASE_OCTAL, yy::REP_BITS, $3);
 }
 | UNSIGNED_NUMBER DEC_BASE UNSIGNED_NUMBER{
-    $$ = yy::ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $3);
+    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $3);
 }
 | unsigned_number {$$ = $1;}
 ;
@@ -4616,7 +4616,7 @@ list_of_attribute_instances :
   }
 | attribute_instances ATTRIBUTE_START attr_specs ATTRIBUTE_END{
     if($1 != NULL){
-        yy::ast_append_attribute($1, $3);
+        code->ast_append_attribute($1, $3);
         $$ = $1;
     } else {
         $$ = $3;
@@ -4630,15 +4630,15 @@ attr_specs : {$$ = NULL;}
            }
            | attr_specs COMMA attr_spec {
                // Append the new item to the existing list and return.
-               yy::ast_append_attribute($1,$3);
+               code->ast_append_attribute($1,$3);
                $$ = $1;
            }
            ;
 
 attr_spec : attr_name EQ constant_expression
-                {$$ = yy::ast_new_attributes($1,$3);}
+                {$$ = code->ast_new_attributes($1,$3);}
           | attr_name
-                {$$ = yy::ast_new_attributes($1, NULL);}
+                {$$ = code->ast_new_attributes($1, NULL);}
           ;
 
 attr_name : identifier {$$=$1;};
@@ -4658,13 +4658,13 @@ block_comment       : COMMENT_BLOCK {$$=$1;};
 escaped_arrayed_identifier      : escaped_identifier range_o{
     $$ = $1;
     if($2 != NULL){
-        yy::ast_identifier_set_range($$,$2);
+        code->ast_identifier_set_range($$,$2);
     }
 };
 
 escaped_hierarchical_identifier :
   escaped_hierarchical_branch escaped_hierarchical_identifiers{
-    $$ = yy::ast_append_identifier($1,$2);
+    $$ = code->ast_append_identifier($1,$2);
 }
 | escaped_hierarchical_branch {
     $$ = $1;
@@ -4675,10 +4675,10 @@ escaped_hierarchical_identifiers:
   DOT simple_hierarchical_identifier {$$=$2;}
 | DOT escaped_hierarchical_identifier {$$=$2;}
 | escaped_hierarchical_identifiers DOT simple_hierarchical_identifier {
-    $$=yy::ast_append_identifier($1,$3);
+    $$=code->ast_append_identifier($1,$3);
   }
 | escaped_hierarchical_identifier DOT escaped_hierarchical_identifiers {
-    $$=yy::ast_append_identifier($1,$3);
+    $$=code->ast_append_identifier($1,$3);
   }
 ;
 
@@ -4795,14 +4795,14 @@ escaped_identifier  : ESCAPED_ID {
 simple_arrayed_identifier       : simple_identifier range_o {
     $$ = $1;
     if($2 != NULL){
-        yy::ast_identifier_set_range($$,$2);
+        code->ast_identifier_set_range($$,$2);
     }
 };
 
 simple_hierarchical_identifier  :
   simple_hierarchical_branch {$$=$1;}
 | simple_hierarchical_branch DOT escaped_identifier {
-    $$ = yy::ast_append_identifier($1,$3);
+    $$ = code->ast_append_identifier($1,$3);
   }
 ;
 
@@ -4826,26 +4826,26 @@ simple_hierarchical_branch :
   }
 | SIMPLE_ID OPEN_SQ_BRACKET expression CLOSE_SQ_BRACKET{
       $$=$1;
-      yy::ast_identifier_set_index($$,$3);
+      code->ast_identifier_set_index($$,$3);
   }
 | SIMPLE_ID OPEN_SQ_BRACKET range_expression CLOSE_SQ_BRACKET{
       $$=$1;
-      yy::ast_identifier_set_index($$,$3);
+      code->ast_identifier_set_index($$,$3);
   }
 | simple_hierarchical_branch DOT simple_identifier{
-      $$ = yy::ast_append_identifier($1,$3);
+      $$ = code->ast_append_identifier($1,$3);
   }
 | simple_hierarchical_branch DOT SIMPLE_ID OPEN_SQ_BRACKET expression
   CLOSE_SQ_BRACKET {
       $$=$3;
-      yy::ast_identifier_set_index($$,$5);
-      $$ = yy::ast_append_identifier($1,$$);
+      code->ast_identifier_set_index($$,$5);
+      $$ = code->ast_append_identifier($1,$$);
   }
 | simple_hierarchical_branch DOT SIMPLE_ID OPEN_SQ_BRACKET range_expression
   CLOSE_SQ_BRACKET{
       $$=$3;
-      yy::ast_identifier_set_index($$,$5);
-      $$ = yy::ast_append_identifier($1,$$);
+      code->ast_identifier_set_index($$,$5);
+      $$ = code->ast_append_identifier($1,$$);
   }
 ;
 
@@ -4855,22 +4855,22 @@ in the closed brackets reduces to an "unsigned_number" */
 
 escaped_hierarchical_branch :
   escaped_hierarchical_branch DOT escaped_identifier {
-      $$ = yy::ast_append_identifier($1,$3);
+      $$ = code->ast_append_identifier($1,$3);
   }
 | escaped_hierarchical_branch DOT escaped_identifier OPEN_SQ_BRACKET
   expression CLOSE_SQ_BRACKET {
-      yy::ast_identifier_set_index($3,$5);
-      $$ = yy::ast_append_identifier($1,$3);
+      code->ast_identifier_set_index($3,$5);
+      $$ = code->ast_append_identifier($1,$3);
   }
 | escaped_identifier{
     $$=$1;
   }
 | escaped_identifier OPEN_SQ_BRACKET expression CLOSE_SQ_BRACKET{
-    yy::ast_identifier_set_index($1,$3);
+    code->ast_identifier_set_index($1,$3);
     $$=$1;
   }
 | escaped_identifier OPEN_SQ_BRACKET range_expression CLOSE_SQ_BRACKET{
-    yy::ast_identifier_set_index($1,$3);
+    code->ast_identifier_set_index($1,$3);
     $$=$1;
   };
 
