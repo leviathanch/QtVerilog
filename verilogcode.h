@@ -12,7 +12,7 @@ namespace yy {
 	class VerilogScanner;
 	class VerilogCode
 	{
-	private:
+	public:
 		/*!
 		  @brief Stores all information needed for the preprocessor.
 		  @details This does not usually need to be accessed by the programmer, and
@@ -39,7 +39,6 @@ namespace yy {
 		/// enable debug output in the bison parser
 		bool trace_parsing;
 
-	public:
 		/// construct a new parser driver context
 		VerilogCode();
 
@@ -86,7 +85,6 @@ namespace yy {
 		void add_config(ast_config_declaration *t);
 		void add_source(ast_list *t);
 
-	protected:
 		// Parser Wrapper
 		void verilog_parser_init();
 		int verilog_parse_buffer(char * to_parse, int length);
