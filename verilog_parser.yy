@@ -843,7 +843,7 @@ file_path_specs :
   }
 | file_path_specs COMMA file_path_spec{
     $$ = $1;
-    code->ast_list_append($$,$3);
+	code->ast_list_append($$,$3);
   }
 ;
 

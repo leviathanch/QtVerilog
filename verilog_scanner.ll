@@ -277,7 +277,7 @@ COMMENT_END         "*/"
 
 /* Strings */
 
-STRING              \".*\"
+STRING              [a-zA-Z0-9_<>\[\]:.?$/!]*[a-zA-Z_][a-zA-Z0-9_<>\[\]:.?$/!]*
 
 /* Operators */
 
@@ -721,7 +721,7 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
-{STRING}               {yylval->string= yytext;EMIT_TOKEN(yy::VerilogParser::token::STRING);}
+{STRING}               {yylval->string=yytext; EMIT_TOKEN(yy::VerilogParser::token::STRING);}
 
 <*>{NEWLINE}              {/*EMIT_TOKEN(yy::VerilogParser::token::NEWLINE); IGNORE */   }
 <*>{SPACE}                {/*EMIT_TOKEN(yy::VerilogParser::token::SPACE);   IGNORE */   }
@@ -747,8 +747,5 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 	}
 }
 
-  .                      {
-          EMIT_TOKEN(yy::VerilogParser::token::ANY);
-  }
 %%
-
+//. EMIT_TOKEN(yy::VerilogParser::token::ANY)
