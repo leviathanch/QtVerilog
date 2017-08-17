@@ -54,8 +54,8 @@ encountered.
 
   //! Describes a simulation timescale directive.
   typedef struct verilog_timescale_directive_t{
-    char * scale;       //!< The timescale to simulate on.
-    char * precision;   //!< Precision of each timestep.
+	std::string scale;       //!< The timescale to simulate on.
+	std::string precision;   //!< Precision of each timestep.
   } verilog_timescale_directive;
 
   // ----------------------- resetall directives --------------------------
