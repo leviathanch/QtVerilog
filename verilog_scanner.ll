@@ -16,6 +16,7 @@
 %option batch
 %option stack
 %option debug
+%option pointer
 /*%option yyclass="VerilogScanner"*/
 %option yywrap
 %option nounput

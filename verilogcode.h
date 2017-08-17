@@ -7,6 +7,7 @@
 
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
+#include "verilog_ast_common.hh"
 
 namespace yy {
 	class VerilogScanner;
@@ -33,20 +34,20 @@ namespace yy {
 		*/
 		verilog_source_tree * yy_verilog_source_tree;
 
-                //! The total number of memory allocations made.
-                unsigned int memory_allocations = 0;
+		//! The total number of memory allocations made.
+		unsigned int memory_allocations = 0;
 
-                //! The total number of bytes ever allocated using ast_alloc
-                size_t       total_allocated = 0;
+		//! The total number of bytes ever allocated using ast_alloc
+		size_t       total_allocated = 0;
 
-                //! Head of the linked list of allocated memory.
-                ast_memory * memory_head = NULL;
+		//! Head of the linked list of allocated memory.
+		ast_memory * memory_head = NULL;
 
-                //! Walker for the linked list of allocated memory.
-                ast_memory * walker = NULL;
+		//! Walker for the linked list of allocated memory.
+		ast_memory * walker = NULL;
 
-                /// enable debug output in the flex scanner
-                bool trace_scanning;
+		/// enable debug output in the flex scanner
+		bool trace_scanning;
 
 		/// enable debug output in the bison parser
 		bool trace_parsing;
@@ -56,6 +57,8 @@ namespace yy {
 
 		/// stream name (file or input stream) used for error messages.
 		QString streamname;
+
+		void showData();
 
 		/** Invoke the scanner and parser on a file. Use parse_stream with a
 		 * std::ifstream if detection of file reading errors is required.

@@ -1,5 +1,6 @@
 #include <string>
 #include <fstream>
+#include <istream>
 
 #include "verilogscanner.hh"
 #include "verilogcode.h"
@@ -9,24 +10,26 @@ namespace yy {
 	class VerilogScanner;
 	class VerilogParser;
 
-	VerilogCode::VerilogCode()
-	{
-	}
+	VerilogCode::VerilogCode() {}
 
 	bool VerilogCode::parse_file(QString filename)
 	{
+		bool ret;
 		streamname = filename;
-		std::ifstream input;
-		input.open(filename.toStdString());
-	  
-		//lexer = new VerilogScanner(input);
-		lexer = new VerilogScanner();
-		lexer->set_debug(trace_scanning);
+		std::filebuf fb;
+		if (fb.open (filename.toStdString(),std::ios::in)) {
+			std::istream is(&fb);
 
-		parser = new VerilogParser(this);
-		parser->set_debug_level(trace_parsing);
+			lexer = new VerilogScanner(&is);
+			lexer->set_debug(trace_scanning);
 
-		return parser->parse();
+			parser = new VerilogParser(this);
+			parser->set_debug_level(trace_parsing);
+
+			ret=parser->parse();
+		}
+		std::cout << "done parsing" << std::endl;
+		return ret;
 	}
 
 	void VerilogCode::error(const std::string& m)
@@ -59,6 +62,14 @@ namespace yy {
 				__FILE__,
 				toadd -> type);
 			}
+		}
+	}
+
+	void VerilogCode::showData()
+	{
+		verilog_source_tree *st = yy_verilog_source_tree;
+		ast_list* m = st->modules;
+		for(ast_list_element *e=m->head;e;e=e->next) {
 		}
 	}
 }

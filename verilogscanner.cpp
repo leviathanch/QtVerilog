@@ -1,11 +1,7 @@
 #include "verilogscanner.hh"
 
 namespace yy {
-	VerilogScanner::VerilogScanner()
-	{
-	}
-
-	VerilogScanner::VerilogScanner(std::ifstream input)
+	VerilogScanner::VerilogScanner(std::istream* in = 0) : yyFlexLexer(in, 0)
 	{
 	}
 }
