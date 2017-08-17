@@ -15,9 +15,9 @@ Syntax Tree (AST)
 
 extern yy::VerilogCode *code;
 
-#define yylex code->lexer->lex
-#define yylineno ((int) code->lexer->lineno())
-#define yytext code->lexer->YYText
+#define yylex lexer->lex
+#define yylineno ((int) lexer->lineno())
+#define yytext lexer->YYText
 
 namespace yy {
   /*!
@@ -25,7 +25,7 @@ namespace yy {
 meta data member.
 @param [inout] meta - A pointer to the metadata member to modify.
 */
-  void ast_set_meta_info(ast_metadata * meta)
+  void VerilogCode::ast_set_meta_info(ast_metadata * meta)
   {
     meta->line = yylineno;
     meta->file = verilog_preprocessor_current_file(yy_preproc);
@@ -34,8 +34,7 @@ meta data member.
   /*!
 @brief Creates and returns as a pointer a new attribute descriptor.
 */
-  ast_node_attributes * ast_new_attributes(ast_identifier name,
-                                           ast_expression * value)
+  ast_node_attributes * VerilogCode::ast_new_attributes(ast_identifier name, ast_expression * value)
   {
     ast_node_attributes * tr = (ast_node_attributes *)ast_calloc(1, sizeof(ast_node_attributes));
     tr->attr_name   = name;
@@ -50,8 +49,7 @@ meta data member.
                         attribute name,value pairs.
 @param [in]    toadd  - The new attribute to add.
 */
-  void ast_append_attribute(ast_node_attributes * parent,
-                            ast_node_attributes * toadd)
+  void VerilogCode::ast_append_attribute(ast_node_attributes * parent, ast_node_attributes * toadd)
   {
     // Add the new attribute to the end of the list.
 
@@ -67,7 +65,7 @@ meta data member.
        being a single identifier of either @ref NET_IDENTIFIER or
        @ref VAR_IDENTIFIER.
 */
-  ast_lvalue * ast_new_lvalue_id(ast_lvalue_type type, ast_identifier id)
+  ast_lvalue * VerilogCode::ast_new_lvalue_id(ast_lvalue_type type, ast_identifier id)
   {
     assert(type == NET_IDENTIFIER
            || type == VAR_IDENTIFIER
@@ -86,8 +84,7 @@ meta data member.
        being a concatenation holder of either @ref NET_CONCATENATION or
        @ref VAR_CONCATENATION.
 */
-  ast_lvalue * ast_new_lvalue_concat(ast_lvalue_type type,
-                                     ast_concatenation*concat)
+  ast_lvalue * VerilogCode::ast_new_lvalue_concat(ast_lvalue_type type, ast_concatenation*concat)
   {
     assert(type == NET_CONCATENATION
            || type == VAR_CONCATENATION);
@@ -103,9 +100,7 @@ meta data member.
 a string representation.
 @param [in] p - The expression primary to turn into a string.
 */
-  char * ast_primary_tostring(
-      ast_primary * p
-      ){
+  char * VerilogCode::ast_primary_tostring(ast_primary * p) {
     char * tr;
 
     switch (p->value_type)
@@ -137,7 +132,7 @@ a string representation.
 @brief Creates a new ast primary which is part of a constant expression tree
        with the supplied type and value.
 */
-  ast_primary * ast_new_constant_primary(ast_primary_value_type type)
+  ast_primary * VerilogCode::ast_new_constant_primary(ast_primary_value_type type)
   {
     ast_primary * tr = (ast_primary *)ast_calloc(1, sizeof(ast_primary));
 	ast_set_meta_info(&(tr->meta_info));
@@ -152,7 +147,7 @@ a string representation.
   /*!
 @brief Creates a new AST primary wrapper around a function call.
 */
-  ast_primary * ast_new_primary_function_call(ast_function_call * call)
+  ast_primary * VerilogCode::ast_new_primary_function_call(ast_function_call * call)
   {
     ast_primary * tr = (ast_primary *)ast_calloc(1, sizeof(ast_primary));
 	ast_set_meta_info(&(tr->meta_info));
@@ -170,7 +165,7 @@ a string representation.
 @brief Creates a new ast primary which is part of an expression tree
        with the supplied type and value.
 */
-  ast_primary * ast_new_primary(ast_primary_value_type type)
+  ast_primary * VerilogCode::ast_new_primary(ast_primary_value_type type)
   {
     ast_primary * tr = (ast_primary *)ast_calloc(1, sizeof(ast_primary));
 	ast_set_meta_info(&(tr->meta_info));
@@ -185,7 +180,7 @@ a string representation.
 @brief Creates a new ast primary which is part of a constant expression tree
        with the supplied type and value.
 */
-  ast_primary * ast_new_module_path_primary(ast_primary_value_type type)
+  ast_primary * VerilogCode::ast_new_module_path_primary(ast_primary_value_type type)
 
   {
     ast_primary * tr = (ast_primary *)ast_calloc(1, sizeof(ast_primary));
@@ -204,7 +199,7 @@ primary instance for the purposes of mirroring the expression tree gramamr.
 Whether or not the expression is constant is denoted by the type member
 of the passed primary.
 */
-  ast_expression * ast_new_expression_primary(ast_primary * p)
+  ast_expression * VerilogCode::ast_new_expression_primary(ast_primary * p)
   {
     assert(sizeof(ast_expression) != 0);
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
@@ -223,7 +218,7 @@ of the passed primary.
   }
 
   //! Returns the string representation of an operator;
-  char * ast_operator_tostring(ast_operator op)
+  char * VerilogCode::ast_operator_tostring(ast_operator op)
   {
     switch(op)
       {
@@ -268,9 +263,7 @@ a string representation.
 if exp is NULL.
 @param [in] exp - The expression to turn into a string.
 */
-  char * ast_expression_tostring(
-      ast_expression * exp
-      ){
+  char * VerilogCode::ast_expression_tostring(ast_expression * exp){
     if(exp == NULL){return "";}
     char * tr;
     char * lhs;
@@ -372,10 +365,7 @@ if exp is NULL.
   /*!
 @brief Creates a new unary expression with the supplied operation.
 */
-  ast_expression * ast_new_unary_expression(ast_primary    * operand,
-                                            ast_operator     operation,
-                                            ast_node_attributes * attr,
-                                            bool       constant)
+  ast_expression * VerilogCode::ast_new_unary_expression(ast_primary * operand, ast_operator operation, ast_node_attributes * attr, bool constant)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -399,8 +389,7 @@ if exp is NULL.
   /*!
 @brief Creates a new range expression with the supplied operands.
 */
-  ast_expression * ast_new_range_expression(ast_expression * left,
-                                            ast_expression * right)
+  ast_expression * VerilogCode::ast_new_range_expression(ast_expression * left, ast_expression * right)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -411,17 +400,13 @@ if exp is NULL.
     tr->aux           = NULL;
     tr->type          = RANGE_EXPRESSION_UP_DOWN;
 
-#ifdef VERILOG_PARSER_COVERAGE_ON
-    printf("Range Expression: '%s'\n", ast_expression_tostring(tr));
-#endif
-
     return tr;
   }
 
   /*!
 @brief Creates a new range index expression with the supplied operands.
 */
-  ast_expression * ast_new_index_expression(ast_expression * left)
+  ast_expression * VerilogCode::ast_new_index_expression(ast_expression * left)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -432,10 +417,6 @@ if exp is NULL.
     tr->aux           = NULL;
     tr->type          = RANGE_EXPRESSION_INDEX;
 
-#ifdef VERILOG_PARSER_COVERAGE_ON
-    printf("Index Expression: '%s'\n", ast_expression_tostring(tr));
-#endif
-
     return tr;
   }
 
@@ -444,11 +425,7 @@ if exp is NULL.
 and operands.
 @note Sets the type of the expression
 */
-  ast_expression * ast_new_binary_expression(ast_expression * left,
-                                             ast_expression * right,
-                                             ast_operator     operation,
-                                             ast_node_attributes * attr,
-                                             bool      constant)
+  ast_expression * VerilogCode::ast_new_binary_expression(ast_expression * left, ast_expression * right, ast_operator operation, ast_node_attributes * attr, bool constant)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -472,7 +449,7 @@ and operands.
   /*!
 @brief Creates a new string expression.
 */
-  ast_expression * ast_new_string_expression(ast_string string)
+  ast_expression * VerilogCode::ast_new_string_expression(ast_string string)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -498,10 +475,7 @@ and operands.
 @note The condition is stored in the aux member, if_true in left, and if_false
 on the right.
 */
-  ast_expression * ast_new_conditional_expression(ast_expression * condition,
-                                                  ast_expression * if_true,
-                                                  ast_expression * if_false,
-                                                  ast_node_attributes * attr)
+  ast_expression * VerilogCode::ast_new_conditional_expression(ast_expression * condition, ast_expression * if_true, ast_expression * if_false, ast_node_attributes * attr)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -520,9 +494,7 @@ on the right.
 @details If the mintypmax expression only specifies a typical value,
 then the min and max arguments should be NULL, and only typ set.
 */
-  ast_expression * ast_new_mintypmax_expression(ast_expression * min,
-                                                ast_expression * typ,
-                                                ast_expression * max)
+  ast_expression * VerilogCode::ast_new_mintypmax_expression(ast_expression * min, ast_expression * typ, ast_expression * max)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
 	ast_set_meta_info(&(tr->meta_info));
@@ -548,11 +520,7 @@ representing the various parameters to the function. If the function has
 no arguments, then it is an empty list, not NULL. If this is supplied as
 NULL, then an empty list is added automatically by the function.
 */
-  ast_function_call * ast_new_function_call(ast_identifier  id,
-                                            bool     constant,
-                                            bool     system,
-                                            ast_node_attributes * attr,
-                                            ast_list      * arguments)
+  ast_function_call * VerilogCode::ast_new_function_call(ast_identifier id, bool constant, bool system, ast_node_attributes * attr, ast_list * arguments)
   {
     ast_function_call * tr = (ast_function_call *)ast_calloc(1, sizeof(ast_function_call));
 	ast_set_meta_info(&(tr->meta_info));
@@ -587,9 +555,7 @@ should be:
     - CONCATENATION_MODULE_PATH         : TBD
 @todo Better implement repetition of elements.
 */
-  ast_concatenation * ast_new_concatenation(ast_concatenation_type type,
-                                            ast_expression * repeat,
-                                            void * first_value)
+  ast_concatenation * VerilogCode::ast_new_concatenation(ast_concatenation_type type, ast_expression * repeat, void * first_value)
   {
     ast_concatenation * tr = (ast_concatenation *)ast_calloc(1,sizeof(ast_concatenation));
 	ast_set_meta_info(&(tr->meta_info));
@@ -605,7 +571,7 @@ should be:
   /*!
 @brief Creates and returns a new empty concatenation of the specified type.
 */
-  ast_concatenation * ast_new_empty_concatenation(ast_concatenation_type type)
+  ast_concatenation * VerilogCode::ast_new_empty_concatenation(ast_concatenation_type type)
   {
     ast_concatenation * tr = (ast_concatenation *)ast_calloc(1,sizeof(ast_concatenation));
 	ast_set_meta_info(&(tr->meta_info));
@@ -637,7 +603,7 @@ behaviour of a left-recursive grammar.
 @brief Creates and returns a new path declaration type. Expects that the data
 be filled in manually;
 */
-  ast_path_declaration * ast_new_path_declaration(ast_path_declaration_type type)
+  ast_path_declaration * VerilogCode::ast_new_path_declaration(ast_path_declaration_type type)
   {
     ast_path_declaration * tr = (ast_path_declaration *)ast_calloc(1,sizeof(ast_path_declaration));
 	ast_set_meta_info(&(tr->meta_info));
@@ -651,13 +617,12 @@ be filled in manually;
   /*!
 @brief Creates and returns a pointer to a new simple parallel path declaration.
 */
-  ast_simple_parallel_path_declaration * ast_new_simple_parallel_path_declaration
-  (
-      ast_identifier      input_terminal,
-      ast_operator        polarity,
-      ast_identifier      output_terminal,
-      ast_list        *   delay_value
-      )
+  ast_simple_parallel_path_declaration * VerilogCode::ast_new_simple_parallel_path_declaration(
+		  ast_identifier input_terminal,
+		  ast_operator polarity,
+		  ast_identifier output_terminal,
+		  ast_list * delay_value
+		  )
   {
     ast_simple_parallel_path_declaration * tr = (ast_simple_parallel_path_declaration *)ast_calloc(1, sizeof(ast_simple_parallel_path_declaration));
 	ast_set_meta_info(&(tr->meta_info));
@@ -674,7 +639,7 @@ be filled in manually;
   /*!
 @brief Creates and returns a pointer to a new simple full path declaration.
 */
-  ast_simple_full_path_declaration * ast_new_simple_full_path_declaration
+  ast_simple_full_path_declaration * VerilogCode::ast_new_simple_full_path_declaration
   (
       ast_list        *   input_terminals,
       ast_operator        polarity,
@@ -697,8 +662,7 @@ be filled in manually;
   /*!
 @brief Describes a single edge sensitive path declaration
 */
-  ast_edge_sensitive_parallel_path_declaration *
-  ast_new_edge_sensitive_parallel_path_declaration(
+  ast_edge_sensitive_parallel_path_declaration * VerilogCode::ast_new_edge_sensitive_parallel_path_declaration(
       ast_edge            edge,               //!< edge_identifier
       ast_identifier      input_terminal,     //!< specify_input_terminal_descriptor
       ast_operator        polarity,           //!< polarity_operator
@@ -724,8 +688,7 @@ be filled in manually;
   /*!
 @brief Describes a parallel edge sensitive path declaration
 */
-  ast_edge_sensitive_full_path_declaration *
-  ast_new_edge_sensitive_full_path_declaration(
+  ast_edge_sensitive_full_path_declaration * VerilogCode::ast_new_edge_sensitive_full_path_declaration(
       ast_edge            edge,               //!< edge_identifier
       ast_list        *   input_terminal,     //!< list_of_path_inputs
       ast_operator        polarity,           //!< polarity_operator
@@ -751,7 +714,7 @@ be filled in manually;
   /*!
 @brief creates and returns a pointer to a new task-enable statement.
 */
-  ast_task_enable_statement * ast_new_task_enable_statement(
+  ast_task_enable_statement * VerilogCode::ast_new_task_enable_statement(
       ast_list        * expressions,
       ast_identifier    identifier,
       bool       is_system
@@ -773,7 +736,7 @@ be filled in manually;
 @param inner_statement - Pointer to the inner body of statements which
 make upt the loop body.
 */
-  ast_loop_statement * ast_new_forever_loop_statement(
+  ast_loop_statement * VerilogCode::ast_new_forever_loop_statement(
       ast_statement * inner_statement
       )
   {
@@ -800,7 +763,7 @@ loop iteration.
 @param continue_condition - Expression which governs whether the loop should
 continue or break.
 */
-  ast_loop_statement * ast_new_for_loop_statement(
+  ast_loop_statement * VerilogCode::ast_new_for_loop_statement(
       ast_statement  * inner_statement,
       ast_single_assignment * initial_condition,
       ast_single_assignment * modify_assignment,
@@ -830,7 +793,7 @@ loop iteration.
 @param continue_condition - Expression which governs whether the loop should
 continue or break.
 */
-  ast_loop_statement * ast_new_generate_loop_statement(
+  ast_loop_statement * VerilogCode::ast_new_generate_loop_statement(
       ast_list              * inner_statements,
       ast_single_assignment * initial_condition,
       ast_single_assignment * modify_assignment,
@@ -855,7 +818,7 @@ make upt the loop body.
 @param continue_condition - Expression which governs whether the loop should
 continue or break.
 */
-  ast_loop_statement * ast_new_while_loop_statement(
+  ast_loop_statement * VerilogCode::ast_new_while_loop_statement(
       ast_statement  * inner_statement,
       ast_expression * continue_condition
       )
@@ -879,7 +842,7 @@ make upt the loop body.
 @param continue_condition - Expression which governs whether the loop should
 continue or break.
 */
-  ast_loop_statement * ast_new_repeat_loop_statement(
+  ast_loop_statement * VerilogCode::ast_new_repeat_loop_statement(
       ast_statement  * inner_statement,
       ast_expression * continue_condition
       )
@@ -902,8 +865,7 @@ continue or break.
 @param conditions - The conditions on which the item is executed.
 @param body - Executes when any of the conditions are met.
 */
-  ast_case_item * ast_new_case_item(ast_list      * conditions,
-                                    ast_statement * body)
+  ast_case_item * VerilogCode::ast_new_case_item(ast_list * conditions, ast_statement * body)
   {
     ast_case_item * tr = (ast_case_item *)ast_calloc(1,sizeof(ast_case_item));
 	ast_set_meta_info(&(tr->meta_info));
@@ -921,7 +883,7 @@ continue or break.
 @param expression - The expression evaluated to select a case.
 @param cases - list of possible cases.
 */
-  ast_case_statement * ast_new_case_statement(ast_expression * expression,
+  ast_case_statement * VerilogCode::ast_new_case_statement(ast_expression * expression,
                                               ast_list       * cases,
                                               ast_case_statement_type type)
   {
@@ -962,7 +924,7 @@ continue or break.
 @param statement - what to run if the condition holds true.
 @param condtion  - the condition on which statement is run.
 */
-  ast_conditional_statement * ast_new_conditional_statement(
+  ast_conditional_statement * VerilogCode::ast_new_conditional_statement(
       ast_statement * statement,
       ast_expression * condition
       )
@@ -987,7 +949,7 @@ and uses the ast_extend_if_else function to append a new
 ast_conditional_statement to the end of a list of if-else conditions.
 Priority of exectuion is given to items added first.
 */
-  ast_if_else * ast_new_if_else(
+  ast_if_else * VerilogCode::ast_new_if_else(
       ast_conditional_statement * if_condition,
       ast_statement             * else_condition
       )
@@ -1027,7 +989,7 @@ if-then conditions, but before any else_condtion.
   /*!
 @brief Creates and returns a new wait statement.
 */
-  ast_wait_statement * ast_new_wait_statement(
+  ast_wait_statement * VerilogCode::ast_new_wait_statement(
       ast_expression * wait_for,
       ast_statement  * statement
       )
@@ -1098,7 +1060,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new event control specifier.
 */
-  ast_event_control * ast_new_event_control(
+  ast_event_control * VerilogCode::ast_new_event_control(
       ast_event_control_type type,
       ast_event_expression * expression
       )
@@ -1118,7 +1080,7 @@ sub-expressions.
   /*!
 @brief creates and returns a new delay control statement.
 */
-  ast_delay_ctrl * ast_new_delay_ctrl_value(ast_delay_value * value)
+  ast_delay_ctrl * VerilogCode::ast_new_delay_ctrl_value(ast_delay_value * value)
   {
     ast_delay_ctrl * tr = (ast_delay_ctrl *)ast_calloc(1,sizeof(ast_event_control));
 	ast_set_meta_info(&(tr->meta_info));
@@ -1132,7 +1094,7 @@ sub-expressions.
   /*!
 @brief creates and returns a new delay control statement.
 */
-  ast_delay_ctrl * ast_new_delay_ctrl_mintypmax(
+  ast_delay_ctrl * VerilogCode::ast_new_delay_ctrl_mintypmax(
       ast_expression * mintypmax
       )
   {
@@ -1148,7 +1110,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new timing control statement node.
 */
-  ast_timing_control_statement * ast_new_timing_control_statement_delay(
+  ast_timing_control_statement * VerilogCode::ast_new_timing_control_statement_delay(
       ast_timing_control_statement_type   type,
       ast_statement                     * statement,
       ast_delay_ctrl                    * delay_ctrl
@@ -1171,7 +1133,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new timing control statement node.
 */
-  ast_timing_control_statement * ast_new_timing_control_statement_event(
+  ast_timing_control_statement * VerilogCode::ast_new_timing_control_statement_event(
       ast_timing_control_statement_type   type,
       ast_expression                    * repeat,
       ast_statement                     * statement,
@@ -1195,7 +1157,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new assignment.
 */
-  ast_single_assignment * ast_new_single_assignment(
+  ast_single_assignment * VerilogCode::ast_new_single_assignment(
       ast_lvalue * lval,
       ast_expression * expression
       )
@@ -1212,7 +1174,7 @@ sub-expressions.
   /*!
 @brief Creates a new hybrid assignment of the specified type.
 */
-  ast_assignment * ast_new_hybrid_assignment(
+  ast_assignment * VerilogCode::ast_new_hybrid_assignment(
       ast_hybrid_assignment_type type,
       ast_single_assignment * assignment
       )
@@ -1232,7 +1194,7 @@ sub-expressions.
   /*!
 @brief Creates a new hybrid assignment of the specified type.
 */
-  ast_assignment * ast_new_hybrid_lval_assignment(
+  ast_assignment * VerilogCode::ast_new_hybrid_lval_assignment(
       ast_hybrid_assignment_type type,
       ast_lvalue *lval
       )
@@ -1251,7 +1213,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new blocking procedural assignment object.
 */
-  ast_assignment * ast_new_blocking_assignment(
+  ast_assignment * VerilogCode::ast_new_blocking_assignment(
       ast_lvalue * lval,
       ast_expression  * expression,
       ast_timing_control_statement* delay_or_event
@@ -1272,7 +1234,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new nonblocking procedural assignment object.
 */
-  ast_assignment * ast_new_nonblocking_assignment(
+  ast_assignment * VerilogCode::ast_new_nonblocking_assignment(
       ast_lvalue * lval,
       ast_expression  * expression,
       ast_timing_control_statement * delay_or_event
@@ -1294,7 +1256,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new continuous assignment object.
 */
-  ast_assignment * ast_new_continuous_assignment(
+  ast_assignment * VerilogCode::ast_new_continuous_assignment(
       ast_list * assignments,
       ast_drive_strength * strength,
       ast_delay3 * delay
@@ -1325,7 +1287,7 @@ sub-expressions.
   /*!
 @brief Creates and returns a new statement block of the specified type
 */
-  ast_statement_block * ast_new_statement_block(
+  ast_statement_block * VerilogCode::ast_new_statement_block(
       ast_block_type   type,
       ast_identifier   block_identifier,
       ast_list       * declarations,
@@ -1344,7 +1306,7 @@ sub-expressions.
   }
 
   //! Creates and returns a pointer to a new disable statement.
-  ast_disable_statement * ast_new_disable_statement(ast_identifier   id)
+  ast_disable_statement * VerilogCode::ast_new_disable_statement(ast_identifier id)
   {
     ast_disable_statement * tr = (ast_disable_statement *)ast_calloc(1, sizeof(ast_disable_statement));
 	ast_set_meta_info(&(tr->meta_info));
@@ -1357,7 +1319,7 @@ sub-expressions.
 @brief Creates a new AST statement and returns it.
 @note Requires the data field of the union to be filled out manually.
 */
-  ast_statement * ast_new_statement(
+  ast_statement * VerilogCode::ast_new_statement(
       ast_node_attributes * attr,
       bool         is_function_statement,
       void             *  data,
@@ -1382,7 +1344,7 @@ sub-expressions.
 @details
 @returns A pointer to the new port
 */
-  ast_udp_port * ast_new_udp_port(
+  ast_udp_port * VerilogCode::ast_new_udp_port(
       ast_port_direction    direction,
       ast_identifier        identifier,
       ast_node_attributes * attributes,
@@ -1407,7 +1369,7 @@ sub-expressions.
 @details
 @returns A pointer to the new port
 */
-  ast_udp_port * ast_new_udp_input_port(
+  ast_udp_port * VerilogCode::ast_new_udp_input_port(
       ast_list            * identifiers,
       ast_node_attributes * attributes
       )
@@ -1427,7 +1389,7 @@ sub-expressions.
 @details
 @returns A pointer to the new node.
 */
-  ast_udp_declaration * ast_new_udp_declaration(
+  ast_udp_declaration * VerilogCode::ast_new_udp_declaration(
       ast_node_attributes * attributes,
       ast_identifier        identifier,
       ast_list            * ports,
@@ -1452,7 +1414,7 @@ sub-expressions.
 @details
 @returns A pointer to the new instance.
 */
-  ast_udp_instance * ast_new_udp_instance(
+  ast_udp_instance * VerilogCode::ast_new_udp_instance(
       ast_identifier        identifier,
       ast_range           * range,
       ast_lvalue          * output,
@@ -1474,7 +1436,7 @@ sub-expressions.
 @details
 @returns A pointer to the new list.
 */
-  ast_udp_instantiation * ast_new_udp_instantiation(
+  ast_udp_instantiation * VerilogCode::ast_new_udp_instantiation(
       ast_list            * instances,
       ast_identifier        identifier,
       ast_drive_strength  * drive_strength,
@@ -1493,7 +1455,7 @@ sub-expressions.
 
 
   //! Creates a new initial statement node.
-  ast_udp_initial_statement * ast_new_udp_initial_statement(
+  ast_udp_initial_statement * VerilogCode::ast_new_udp_initial_statement(
       ast_identifier   output_port,
       ast_number     * initial_value
       ){
@@ -1507,7 +1469,7 @@ sub-expressions.
 
 
   //! Creates and returns a new sequential UDP body representation.
-  ast_udp_body * ast_new_udp_sequential_body(
+  ast_udp_body * VerilogCode::ast_new_udp_sequential_body(
       ast_udp_initial_statement * initial_statement,
       ast_list                  * sequential_entries
       ){
@@ -1522,7 +1484,7 @@ sub-expressions.
   }
 
   //! Creates and returns a new combinatorial UDP body representation.
-  ast_udp_body * ast_new_udp_combinatoral_body(
+  ast_udp_body * VerilogCode::ast_new_udp_combinatoral_body(
       ast_list                  * combinatorial_entries
       ){
     ast_udp_body * tr = (ast_udp_body *)ast_calloc(1,sizeof(ast_udp_body));
@@ -1535,7 +1497,7 @@ sub-expressions.
   }
 
   //! Creates a new combinatorial entry for a UDP node.
-  ast_udp_combinatorial_entry * ast_new_udp_combinatoral_entry(
+  ast_udp_combinatorial_entry * VerilogCode::ast_new_udp_combinatoral_entry(
       ast_list * input_levels,
       ast_udp_next_state output_symbol
       ){
@@ -1549,7 +1511,7 @@ sub-expressions.
   }
 
   //! Creates a new sequntial body entry for a UDP node.
-  ast_udp_sequential_entry * ast_new_udp_sequential_entry(
+  ast_udp_sequential_entry * VerilogCode::ast_new_udp_sequential_entry(
       ast_udp_seqential_entry_prefix prefix_type,
       ast_list    *                  levels_or_edges,
       ast_level_symbol               current_state,
@@ -1580,7 +1542,7 @@ to represent this as a statment in a generate block.
 constructor function rather than one per member of the union inside the
 ast_generate_item structure.
 */
-  ast_statement * ast_new_generate_item(
+  ast_statement * VerilogCode::ast_new_generate_item(
       ast_statement_type type,
       void    *          construct
       ){
@@ -1594,7 +1556,7 @@ ast_generate_item structure.
 
 
   //! Creates and returns a new block of generate items.
-  ast_generate_block * ast_new_generate_block(
+  ast_generate_block * VerilogCode::ast_new_generate_block(
       ast_identifier   identifier,
       ast_list       * generate_items
       ){
@@ -1612,7 +1574,7 @@ ast_generate_item structure.
 @brief Creates and returns a new set of module instances with shared
 parameters.
 */
-  ast_module_instantiation * ast_new_module_instantiation(
+  ast_module_instantiation * VerilogCode::ast_new_module_instantiation(
       ast_identifier          module_identifer,
       ast_list              * module_parameters,
       ast_list              * module_instances
@@ -1632,7 +1594,7 @@ parameters.
 @brief Creates and returns a new instance of a module with a given identifer
 and set of port connections.
 */
-  ast_module_instance * ast_new_module_instance(
+  ast_module_instance * VerilogCode::ast_new_module_instance(
       ast_identifier          instance_identifier,
       ast_list              * port_connections
       ){
@@ -1650,7 +1612,7 @@ and set of port connections.
 @param port_name - The port being assigned to.
 @param expression - The thing inside the module the port connects to.
 */
-  ast_port_connection * ast_new_named_port_connection(
+  ast_port_connection * VerilogCode::ast_new_named_port_connection(
       ast_identifier   port_name,
       ast_expression * expression
       ){
@@ -1665,7 +1627,7 @@ and set of port connections.
 
 
   //! Instances a new switch type with a delay3.
-  ast_switch_gate * ast_new_switch_gate_d3(
+  ast_switch_gate * VerilogCode::ast_new_switch_gate_d3(
       ast_switchtype type,
       ast_delay3    * delay
       ){
@@ -1680,7 +1642,7 @@ and set of port connections.
   }
 
   //! Instances a new switch type with a delay2.
-  ast_switch_gate * ast_new_switch_gate_d2(
+  ast_switch_gate * VerilogCode::ast_new_switch_gate_d2(
       ast_switchtype type,
       ast_delay2    * delay
       ){
@@ -1695,7 +1657,7 @@ and set of port connections.
   }
 
   //! Creates and returns a new structure describing primitive net strength.
-  ast_primitive_pull_strength * ast_new_primitive_pull_strength(
+  ast_primitive_pull_strength * VerilogCode::ast_new_primitive_pull_strength(
       ast_pull_direction       direction,
       ast_primitive_strength   strength_1,
       ast_primitive_strength   strength_0
@@ -1711,7 +1673,7 @@ and set of port connections.
   }
 
   /*! @brief Describes a single pull gate instance.*/
-  ast_pull_gate_instance * ast_new_pull_gate_instance(
+  ast_pull_gate_instance * VerilogCode::ast_new_pull_gate_instance(
       ast_identifier      name,
       ast_lvalue        * output_terminal
       ){
@@ -1725,7 +1687,7 @@ and set of port connections.
   }
 
   /*! @brief A single pass transistor instance.*/
-  ast_pass_switch_instance * ast_new_pass_switch_instance(
+  ast_pass_switch_instance * VerilogCode::ast_new_pass_switch_instance(
       ast_identifier      name,
       ast_lvalue        * terminal_1,
       ast_lvalue        * terminal_2
@@ -1741,7 +1703,7 @@ and set of port connections.
   }
 
   /*! @brief An N-input gate instance. e.g. 3-to-1 NAND.*/
-  ast_n_input_gate_instance * ast_new_n_input_gate_instance(
+  ast_n_input_gate_instance * VerilogCode::ast_new_n_input_gate_instance(
       ast_identifier      name,
       ast_list          * input_terminals,
       ast_lvalue        * output_terminal
@@ -1756,7 +1718,7 @@ and set of port connections.
   }
 
   /*! @brief A single Enable gate instance.*/
-  ast_enable_gate_instance * ast_new_enable_gate_instance(
+  ast_enable_gate_instance * VerilogCode::ast_new_enable_gate_instance(
       ast_identifier      name,
       ast_lvalue        * output_terminal,
       ast_expression    * enable_terminal,
@@ -1774,7 +1736,7 @@ and set of port connections.
   }
 
   /*! @brief A single MOS switch (transistor) instance.*/
-  ast_mos_switch_instance * ast_new_mos_switch_instance(
+  ast_mos_switch_instance * VerilogCode::ast_new_mos_switch_instance(
       ast_identifier      name,
       ast_lvalue        * output_terminal,
       ast_expression    * enable_terminal,
@@ -1792,7 +1754,7 @@ and set of port connections.
   }
 
   /*! @brief A single CMOS switch (transistor) instance.*/
-  ast_cmos_switch_instance * ast_new_cmos_switch_instance(
+  ast_cmos_switch_instance * VerilogCode::ast_new_cmos_switch_instance(
       ast_identifier      name,
       ast_lvalue        * output_terminal,
       ast_expression    * ncontrol_terminal,
@@ -1814,7 +1776,7 @@ and set of port connections.
   /*!
 @brief Creates and returns a new pass enable switch instance.
 */
-  ast_pass_enable_switch * ast_new_pass_enable_switch(
+  ast_pass_enable_switch * VerilogCode::ast_new_pass_enable_switch(
       ast_identifier      name,
       ast_lvalue        * terminal_1,
       ast_lvalue        * terminal_2,
@@ -1835,7 +1797,7 @@ and set of port connections.
   /*!
 @brief Creates and returns a collection of pass enable switches.
 */
-  ast_pass_enable_switches * ast_new_pass_enable_switches(
+  ast_pass_enable_switches * VerilogCode::ast_new_pass_enable_switches(
       ast_pass_enable_switchtype    type,
       ast_delay2                  * delay,
       ast_list                    * switches
@@ -1854,7 +1816,7 @@ and set of port connections.
   /*!
 @brief Creates collection of n-input gates with the same type and properties.
 */
-  ast_n_input_gate_instances * ast_new_n_input_gate_instances(
+  ast_n_input_gate_instances * VerilogCode::ast_new_n_input_gate_instances(
       ast_gatetype_n_input    type,
       ast_delay3            * delay,
       ast_drive_strength    * drive_strength,
@@ -1872,7 +1834,7 @@ and set of port connections.
   }
 
   //! Creates collection of enable gates with the same type and properties.
-  ast_enable_gate_instances * ast_new_enable_gate_instances(
+  ast_enable_gate_instances * VerilogCode::ast_new_enable_gate_instances(
       ast_gatetype_n_input    type_e,
       ast_delay3            * delay,
       ast_drive_strength    * drive_strength,
@@ -1894,7 +1856,7 @@ and set of port connections.
 @brief Creates and returns a new n_output gate instance.
 @see ast_n_output_gate_instances
 */
-  ast_n_output_gate_instance * ast_new_n_output_gate_instance(
+  ast_n_output_gate_instance * VerilogCode::ast_new_n_output_gate_instance(
       ast_identifier                name,
       ast_list                    * outputs,
       ast_expression              * input
@@ -1911,7 +1873,7 @@ and set of port connections.
   /*!
 @brief Creates and returns a set of n_output gates with the same properties.
 */
-  ast_n_output_gate_instances * ast_new_n_output_gate_instances(
+  ast_n_output_gate_instances * VerilogCode::ast_new_n_output_gate_instances(
       ast_n_output_gatetype         type,
       ast_delay2                  * delay,
       ast_drive_strength          * drive_strength,
@@ -1931,7 +1893,7 @@ and set of port connections.
   /*!
 @brief creat and return a new collection of AST switches.
 */
-  ast_switches * ast_new_switches(ast_switch_gate * type, ast_list * switches)
+  ast_switches * VerilogCode::ast_new_switches(ast_switch_gate * type, ast_list * switches)
   {
     ast_switches * tr = (ast_switches *)ast_calloc(1,sizeof(ast_switches));
 	ast_set_meta_info(&(tr->meta_info));
@@ -1943,7 +1905,7 @@ and set of port connections.
   }
 
   //! Create and return a new pull strength indicator for 1 and 0.
-  ast_pull_strength * ast_new_pull_stregth(
+  ast_pull_strength * VerilogCode::ast_new_pull_stregth(
       ast_primitive_strength strength_1,
       ast_primitive_strength strength_2
       ){
@@ -1961,7 +1923,7 @@ and set of port connections.
 @details Expects the data fields to be filled out manually after the structure
 is returned.
 */
-  ast_gate_instantiation * ast_new_gate_instantiation(ast_gate_type type)
+  ast_gate_instantiation * VerilogCode::ast_new_gate_instantiation(ast_gate_type type)
   {
     ast_gate_instantiation * tr = (ast_gate_instantiation *)ast_calloc(1,sizeof(ast_gate_instantiation));
 	ast_set_meta_info(&(tr->meta_info));
@@ -1976,7 +1938,7 @@ is returned.
 @param [in] range - Bit range
 @param [in] type - type of the parameters.
 */
-  ast_parameter_declarations * ast_new_parameter_declarations(
+  ast_parameter_declarations * VerilogCode::ast_new_parameter_declarations(
       ast_list        * assignments,
       bool       signed_values,
       bool       local,
@@ -2004,7 +1966,7 @@ is returned.
   /*!
 @brief Creates and returns a new port declaration representation.
 */
-  ast_port_declaration * ast_new_port_declaration(
+  ast_port_declaration * VerilogCode::ast_new_port_declaration(
       ast_port_direction  direction,      //!< [in] Input / output / inout etc.
       ast_net_type        net_type,       //!< [in] Wire/reg etc
       bool         net_signed,     //!< [in] Signed value?
@@ -2037,7 +1999,7 @@ known type, but must otherwise fill out the data members as they go along.
 All pointer members are initialised to NULL, and all boolean members will
 initially be false.
 */
-  ast_type_declaration * ast_new_type_declaration(ast_declaration_type type)
+  ast_type_declaration * VerilogCode::ast_new_type_declaration(ast_declaration_type type)
   {
     ast_type_declaration * tr = (ast_type_declaration *)ast_calloc(1,sizeof(ast_type_declaration));
 	ast_set_meta_info(&(tr->meta_info));
@@ -2063,7 +2025,7 @@ object and discards un-needed member fields.
 @returns A set of ast_net_declaration types as a list, one for each identifer
 in the original type declaration object.
 */
-  ast_list * ast_new_net_declaration(
+  ast_list * VerilogCode::ast_new_net_declaration(
       ast_type_declaration * type_dec
       ){
     assert(type_dec != NULL);
@@ -2100,7 +2062,7 @@ object and discards un-needed member fields.
 @returns A set of ast_reg_declaration types as a list, one for each identifer
 in the original type declaration object.
 */
-  ast_list * ast_new_reg_declaration(
+  ast_list * VerilogCode::ast_new_reg_declaration(
       ast_type_declaration * type_dec
       ){
     ast_list * tr = ast_list_new();
@@ -2129,7 +2091,7 @@ object and discards un-needed member fields.
 @returns A set of ast_var_declaration types as a list, one for each identifer
 in the original type declaration object.
 */
-  ast_list * ast_new_var_declaration(
+  ast_list * VerilogCode::ast_new_var_declaration(
       ast_type_declaration * type_dec
       ){
     ast_list * tr = ast_list_new();
@@ -2152,7 +2114,7 @@ in the original type declaration object.
   /*!
 @brief Create a new delay value.
 */
-  ast_delay_value * ast_new_delay_value(
+  ast_delay_value * VerilogCode::ast_new_delay_value(
       ast_delay_value_type type,
       void * data
       ){
@@ -2168,7 +2130,7 @@ in the original type declaration object.
   /*!
 @brief Create a new delay3 instance.
 */
-  ast_delay3 * ast_new_delay3(
+  ast_delay3 * VerilogCode::ast_new_delay3(
       ast_delay_value * min,
       ast_delay_value * avg,
       ast_delay_value * max
@@ -2186,7 +2148,7 @@ in the original type declaration object.
   /*!
 @brief Create a new delay2 instance.
 */
-  ast_delay2 * ast_new_delay2(
+  ast_delay2 * VerilogCode::ast_new_delay2(
       ast_delay_value * min,
       ast_delay_value * max
       ){
@@ -2203,7 +2165,7 @@ in the original type declaration object.
   /*!
 @brief Creates and returns a new pulse control data structure.
 */
-  ast_pulse_control_specparam * ast_new_pulse_control_specparam(
+  ast_pulse_control_specparam * VerilogCode::ast_new_pulse_control_specparam(
       ast_expression * reject_limit,
       ast_expression * error_limit
       ){
@@ -2219,7 +2181,7 @@ in the original type declaration object.
   /*!
 @brief Creates and returns a new range or dimension representation node.
 */
-  ast_range * ast_new_range(
+  ast_range * VerilogCode::ast_new_range(
       ast_expression * upper,
       ast_expression * lower
       ){
@@ -2237,7 +2199,7 @@ in the original type declaration object.
 @param [in] is_range - true if the contained object will be a range instance,
 else false.
 */
-  ast_range_or_type * ast_new_range_or_type(bool is_range)
+  ast_range_or_type * VerilogCode::ast_new_range_or_type(bool is_range)
   {
     ast_range_or_type * tr = (ast_range_or_type *)ast_calloc(1,sizeof(ast_range_or_type));
 	ast_set_meta_info(&(tr->meta_info));
@@ -2250,7 +2212,7 @@ else false.
   /*!
 @brief Creates and returns a function declaration node.
 */
-  ast_function_declaration * ast_new_function_declaration(
+  ast_function_declaration * VerilogCode::ast_new_function_declaration(
       bool         automatic,
       bool         is_signed,
       bool         function_or_block,
@@ -2278,7 +2240,7 @@ else false.
 @note All member fields must be filled out manaully. THis function just
 ensures the memory is allocated properly.
 */
-  ast_function_item_declaration * ast_new_function_item_declaration(){
+  ast_function_item_declaration * VerilogCode::ast_new_function_item_declaration(){
     return (ast_function_item_declaration *)ast_calloc(1,sizeof(ast_function_item_declaration));
   }
 
@@ -2286,7 +2248,7 @@ ensures the memory is allocated properly.
 @brief Creates and returns a new representation of a task or function
 argument.
 */
-  ast_task_port * ast_new_task_port(
+  ast_task_port * VerilogCode::ast_new_task_port(
       ast_port_direction direction,
       bool        reg,
       bool        is_signed,
@@ -2310,7 +2272,7 @@ argument.
   /*!
 @brief Creates and returns a new task declaration statement.
 */
-  ast_task_declaration * ast_new_task_declaration(
+  ast_task_declaration * VerilogCode::ast_new_task_declaration(
       bool         automatic,
       ast_identifier      identifier,
       ast_list        *   ports,
@@ -2332,7 +2294,7 @@ argument.
   /*!
 @brief Creates and returns a new block register declaration descriptor.
 */
-  ast_block_reg_declaration * ast_new_block_reg_declaration(
+  ast_block_reg_declaration * VerilogCode::ast_new_block_reg_declaration(
       bool   is_signed,
       ast_range   * range,
       ast_list    * identifiers
@@ -2351,7 +2313,7 @@ argument.
 @brief Creates and returns a new block item declaration of the specified type.
 @note Expects the relevant union member to be set manually.
 */
-  ast_block_item_declaration * ast_new_block_item_declaration(
+  ast_block_item_declaration * VerilogCode::ast_new_block_item_declaration(
       ast_block_item_declaration_type type,
       ast_node_attributes             * attributes
       ){
@@ -2368,7 +2330,7 @@ argument.
 @brief Creates and returns a new module item descriptor.
 @note Expects the relevant union member to be set based on the type manually.
 */
-  ast_module_item * ast_new_module_item(
+  ast_module_item * VerilogCode::ast_new_module_item(
       ast_node_attributes * attributes,
       ast_module_item_type  type
       ){
@@ -2385,7 +2347,7 @@ argument.
 @brief Takes a body statement (type = STM_BLK) and splits it into it's event
 trigger and statements.
 */
-  ast_statement_block * ast_extract_statement_block(
+  ast_statement_block * VerilogCode::ast_extract_statement_block(
       ast_statement_type  type,
       ast_statement     * body
       ){
@@ -2469,7 +2431,7 @@ trigger and statements.
 using the new style of port declaration, or NULL if the port declarations are
 contained within the module items list.
 */
-  ast_module_declaration * ast_new_module_declaration(
+  ast_module_declaration * VerilogCode::ast_new_module_declaration(
       ast_node_attributes * attributes,
       ast_identifier        identifier,
       ast_list            * parameters,
@@ -2633,7 +2595,7 @@ contained within the module items list.
   }
 
   //! Creates and returns a new source item representation.
-  ast_source_item * ast_new_source_item(ast_source_item_type type){
+  ast_source_item * VerilogCode::ast_new_source_item(ast_source_item_type type){
     ast_source_item * tr = (ast_source_item *)ast_calloc(1,sizeof(ast_source_item));
 	ast_set_meta_info(&(tr->meta_info));
 
@@ -2673,7 +2635,7 @@ array.
   /*!
 @brief Acts like strcmp but works on ast identifiers.
 */
-  int ast_identifier_cmp(
+  int VerilogCode::ast_identifier_cmp(
       ast_identifier a,
       ast_identifier b
       ){
@@ -2685,7 +2647,7 @@ array.
     return result;
   }
 
-  ast_identifier ast_new_identifier(
+  ast_identifier VerilogCode::ast_new_identifier(
       char         * identifier,
       unsigned int   from_line
       ){
@@ -2701,7 +2663,7 @@ array.
     return tr;
   }
 
-  ast_identifier ast_new_system_identifier(
+  ast_identifier VerilogCode::ast_new_system_identifier(
       char         * identifier,  //!< String text of the identifier.
       unsigned int   from_line    //!< THe line the idenifier came from.
       ){
@@ -2713,7 +2675,7 @@ array.
     return tr;
   }
 
-  ast_identifier ast_append_identifier(
+  ast_identifier VerilogCode::ast_append_identifier(
       ast_identifier parent,
       ast_identifier child
       ){
@@ -2742,7 +2704,7 @@ array.
   /*!
 @brief Creates and returns a new configuration rule statment node.
 */
-  ast_config_rule_statement * ast_new_config_rule_statement(
+  ast_config_rule_statement * VerilogCode::ast_new_config_rule_statement(
       bool    is_default,
       ast_identifier clause_1,    //!< The first grammar clause.
       ast_identifier clause_2     //!< The second grammar clause.
@@ -2756,7 +2718,7 @@ array.
     return tr;
   }
 
-  ast_config_declaration * ast_new_config_declaration(
+  ast_config_declaration * VerilogCode::ast_new_config_declaration(
       ast_identifier  identifier,
       ast_identifier  design_statement,
       ast_list      * rule_statements
@@ -2774,7 +2736,7 @@ array.
   /*!
 @brief Creates a new library declaration node.
 */
-  ast_library_declaration * ast_new_library_declaration(
+  ast_library_declaration * VerilogCode::ast_new_library_declaration(
       ast_identifier  identifier,
       ast_list      * file_paths,
       ast_list      * incdirs
@@ -2789,7 +2751,7 @@ array.
   }
 
   //! Creates and returns a new library description object.
-  ast_library_descriptions * ast_new_library_description(
+  ast_library_descriptions * VerilogCode::ast_new_library_description(
       ast_library_item_type type
       ){
     ast_library_descriptions * tr = (ast_library_descriptions *)ast_calloc(1,sizeof(ast_library_descriptions));
@@ -2805,7 +2767,7 @@ array.
 @brief Creates a new number representation object.
 @todo Implement proper representation converstion.
 */
-  ast_number * ast_new_number(
+  ast_number * VerilogCode::ast_new_number(
       ast_number_base base,   //!< What is the base of the number.
       ast_number_representation representation,   //!< How to interepret digits.
       char  * digits  //!< The string token representing the number.
@@ -2824,7 +2786,7 @@ array.
 @brief A utility function for converting an ast number into a string.
 @param [in] n - The number to turn into a string.
 */
-  char * ast_number_tostring(
+  char * VerilogCode::ast_number_tostring(
       ast_number * n
       ){
     assert(n!=NULL);
@@ -2856,21 +2818,12 @@ array.
 
   // ----------------------------------------------------------------------------
 
-
-  /*!
-@brief Global source tree object, used to store parsed constructs.
-@details This is a global variable, initialised prior to calling
-the verilog_parse function, into which all objects the parser finds are
-stored.
-*/
-  verilog_source_tree * yy_verilog_source_tree;
-
   /*!
 @brief Creates and returns a new, empty source tree.
 @details This should be called ahead of parsing anything, so we will
 have an object to put parsed constructs into.
 */
-  verilog_source_tree * verilog_new_source_tree()
+  verilog_source_tree * VerilogCode::verilog_new_source_tree()
   {
     verilog_source_tree * tr = (verilog_source_tree *)ast_calloc(1,sizeof(verilog_source_tree));
 
@@ -2886,7 +2839,7 @@ have an object to put parsed constructs into.
 @brief Releases a source tree object from memory.
 @param [in] tofree - The source tree to be free'd
 */
-  void verilog_free_source_tree(
+  void VerilogCode::verilog_free_source_tree(
       verilog_source_tree * tofree
       ){
     printf("ERROR: Function not implemented. Source tree at %p not freed.\n", tofree);

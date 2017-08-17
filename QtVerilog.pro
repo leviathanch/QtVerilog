@@ -26,25 +26,25 @@ SOURCES += \
 	main.cpp \
 	mainwindow.cpp \
 	verilogschematics.cpp \
-  	asttree.cpp \
 	verilogcode.cpp \
 	verilog_ast.cc \
 	verilog_ast_common.cc \
 	verilog_ast_mem.cc \
 	verilog_ast_util.cc \
-    verilogscanner.cpp
+	verilog_preprocessor.cc \
+	verilogscanner.cpp \
+	verilog_parser_wrapper.cc
 
 HEADERS += \
 	mainwindow.h \
 	verilogschematics.h \
-	asttree.hh \ 
 	verilog_ast_common.hh \
        	verilog_ast.hh \
        	verilog_ast_mem.hh \
 	verilog_preprocessor.hh \
 	verilogcode.h \
-    verilogflexlexer.h \
-    verilogscanner.hh
+	verilogflexlexer.h \
+	verilogscanner.hh
 
 FORMS += \
 	mainwindow.ui

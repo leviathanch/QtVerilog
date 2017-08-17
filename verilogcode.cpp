@@ -11,21 +11,18 @@ namespace yy {
 
 	VerilogCode::VerilogCode()
 	{
-		ast = new AstTree();
 	}
 
 	bool VerilogCode::parse_stream(std::istream& in, const std::string& sname)
 	{
 		streamname = sname;
 
-		VerilogScanner *scanner = new VerilogScanner(&in);
-		//scanner->set_debug(trace_scanning);
-		this->lexer = scanner;
+		lexer = new VerilogScanner(&in);
+		lexer->set_debug(trace_scanning);
 
-		//yy::VerilogParser parser(*this);
-		VerilogParser *parser = new VerilogParser(this, ast);
+		parser = new VerilogParser(this);
+		parser->set_debug_level(trace_parsing);
 
-		//parser.set_debug_level(trace_parsing);
 		return parser->parse();
 	}
 
@@ -45,5 +42,33 @@ namespace yy {
 	void VerilogCode::error(const std::string& m)
 	{
 		std::cerr << m << std::endl;
+	}
+
+	void VerilogCode::add_config(ast_config_declaration *t)
+	{
+		ast_list_append(yy_verilog_source_tree->configs, t);
+	}
+
+	void VerilogCode::add_library(ast_list *t)
+	{
+		yy_verilog_source_tree->libraries = ast_list_concat(this->yy_verilog_source_tree->libraries, t);
+	}
+
+	void VerilogCode::add_source(ast_list *t)
+	{
+		for(unsigned int i = 0; i < t->items; i ++) {
+			ast_source_item* toadd = (ast_source_item*)ast_list_get(t, i);
+			if(toadd->type == SOURCE_MODULE) {
+				ast_list_append(this->yy_verilog_source_tree -> modules, toadd->module);
+			} else if (toadd -> type == SOURCE_UDP) {
+				ast_list_append(this->yy_verilog_source_tree->primitives, toadd->udp);
+			} else {
+				// Do nothing / unknown / unsupported type.
+				printf("line %d of %s - Unknown source item type: %d",
+				__LINE__,
+				__FILE__,
+				toadd -> type);
+			}
+		}
 	}
 }

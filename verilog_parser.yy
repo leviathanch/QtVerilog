@@ -3,15 +3,13 @@
 %glr-parser
 %define "parser_class_name" {VerilogParser}
 %code requires {
-#include "asttree.hh"
 #include "verilogcode.h"
 namespace yy {
 	class VerilogScanner;
 	class VerilogCode;
-	class AstTree;
 };
 }
-%param {yy::VerilogCode *code} {yy::AstTree *ast }
+%param {yy::VerilogCode *code}
 %locations
 
 %code top{
@@ -21,12 +19,11 @@ namespace yy {
 
 #include "verilog_ast.hh"
 #include "verilog_preprocessor.hh"
-
-#include "verilogscanner.hh"
-
 }
 
 %{
+#include "verilogscanner.hh"
+
 #define yylex code->lexer->yylex
 #define yylineno (int)code->lexer->lineno()
 #define yytext code->lexer->YYText()
@@ -773,13 +770,13 @@ namespace yy {
 
 grammar_begin :
   library_text {
-        ast->add_library($1);
+		code->add_library($1);
 }
 | config_declaration {
-        ast->add_config($1);
+		code->add_config($1);
 }
 | source_text {
-        ast->add_source($1);
+		code->add_source($1);
 }
 | {
     // Do nothing, it's an empty file.

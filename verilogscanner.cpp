@@ -3,6 +3,5 @@
 namespace yy {
 	VerilogScanner::VerilogScanner()
 	{
-
 	}
 }
