@@ -7,8 +7,8 @@ MainWindow::MainWindow(QWidget *parent) :
 	ui(new Ui::MainWindow)
 {
 	VerilogSchematics *schematics = new VerilogSchematics();
-	ui->setupUi(this);
-	ui->workbench->addWidget(schematics);
+	//ui->setupUi(this);
+	//ui->workbench->addWidget(schematics);
 }
 
 MainWindow::~MainWindow()

@@ -22,7 +22,7 @@ namespace yy {
 		std::string stdfilename = filename.toStdString();
 		int stat;
 
-		trace_scanning = true;
+		trace_scanning = false;
 		trace_parsing = false;
 
 		streamname = filename;

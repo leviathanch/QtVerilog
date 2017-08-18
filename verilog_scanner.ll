@@ -202,10 +202,10 @@ EQ                  "="
 COLON               ":"
 IDX_PRT_SEL         "+:"|"-:"
 SEMICOLON           ";"
-OPEN_BRACKET        "\("
-CLOSE_BRACKET       "\)"
-OPEN_SQ_BRACKET     "\["
-CLOSE_SQ_BRACKET    "\]"
+OPEN_BRACKET        "("
+CLOSE_BRACKET       ")"
+OPEN_SQ_BRACKET     "["
+CLOSE_SQ_BRACKET    "]"
 OPEN_SQ_BRACE       "{"
 CLOSE_SQ_BRACE      "}"
 
@@ -313,7 +313,7 @@ TERNARY             "?"
 {ATTRIBUTE_END}        {EMIT_TOKEN(yy::VerilogParser::token::ATTRIBUTE_END);}
 
 {COMMENT_LINE}         {/*EMIT_TOKEN(yy::VerilogParser::token::COMMENT_LINE); IGNORE */}
-{COMMENT_BEGIN}        {BEGIN(in_comment);                    ;}
+{COMMENT_BEGIN}        {BEGIN(in_comment);}
 
 <in_comment>.|\n       {/* IGNORE                            */}
 <in_comment>{COMMENT_END} {BEGIN(INITIAL);                     }
@@ -358,8 +358,6 @@ TERNARY             "?"
 {CD_TIMESCALE}           {
     BEGIN(in_ts_1);
 }
-<in_ts_1>{NUM_UNSIGNED}      {
-}
 <in_ts_1>{SIMPLE_ID}         {
     BEGIN(in_ts_2);
 }
@@ -368,8 +366,6 @@ TERNARY             "?"
 }
 <in_ts_2>{DIV}               {
     BEGIN(in_ts_3);
-}
-<in_ts_3>{NUM_UNSIGNED}      {
 }
 <in_ts_3>{SIMPLE_ID}         {
     BEGIN(INITIAL);
@@ -524,10 +520,6 @@ TERNARY             "?"
     }
 }
 
-AT                   EMIT_TOKEN(yy::VerilogParser::token::AT)
-COMMA                EMIT_TOKEN(yy::VerilogParser::token::COMMA)
-HASH                 EMIT_TOKEN(yy::VerilogParser::token::HASH)
-DOT                  EMIT_TOKEN(yy::VerilogParser::token::DOT)
 EQ                   {yylval->verilog_operator = yy::OPERATOR_L_EQ; EMIT_TOKEN(yy::VerilogParser::token::EQ)}
 COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {IDX_PRT_SEL}          {EMIT_TOKEN(yy::VerilogParser::token::IDX_PRT_SEL);}
@@ -704,21 +696,39 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {XNOR}                 {EMIT_TOKEN(yy::VerilogParser::token::KW_XNOR);}
 {XOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_XOR);}
 
-{SYSTEM_ID}            {
-	yylval->identifier = code->ast_new_identifier(std::string(yytext),yylineno);
+{SYSTEM_ID}+ {
+	std::string id_name = std::string(yytext);
+	std::cout << "SYSTEM_ID: " << id_name << std::endl;
+	yylval->identifier = code->ast_new_identifier(id_name,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SYSTEM_ID);
 }
-{ESCAPED_ID}           {
-	yylval->identifier = code->ast_new_identifier(std::string(yytext),yylineno);
+
+{ESCAPED_ID}+ {
+	std::string id_name = std::string(yytext);
+	std::cout << "ESCAPED_ID: " <<id_name << std::endl;
+	yylval->identifier = code->ast_new_identifier(id_name,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::ESCAPED_ID);
 }
-{SIMPLE_ID}            {
-	yylval->identifier = code->ast_new_identifier(std::string(yytext),yylineno);
+
+{SIMPLE_ID}+ {
+	std::string id_name = std::string(yytext);
+	std::cout << "SIMPLE_ID: " <<id_name << std::endl;
+	yylval->identifier = code->ast_new_identifier(id_name,yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
-{STRING}               {yylval->str = new std::string(yytext); std::cout << *(yylval->str) << std::endl; EMIT_TOKEN(yy::VerilogParser::token::STRING);}
-{BLANKS}+              {};
+{STRING}+ {
+	std::string *id_name = new std::string(yytext);
+	yylval->str = id_name;
+	std::cout << "STRING: " << *(id_name) << std::endl;
+	EMIT_TOKEN(yy::VerilogParser::token::STRING);
+}
+
+{BLANKS}+		{};
+{COMMA}+		EMIT_TOKEN(yy::VerilogParser::token::COMMA)
+{AT}+			EMIT_TOKEN(yy::VerilogParser::token::AT)
+{HASH}+			EMIT_TOKEN(yy::VerilogParser::token::HASH)
+{DOT}+			EMIT_TOKEN(yy::VerilogParser::token::DOT)
 
 <<EOF>> {
 

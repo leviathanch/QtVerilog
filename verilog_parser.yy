@@ -1071,7 +1071,7 @@ module_params     :
 }
 ;
 
-list_of_ports   : {$$ = code->ast_list_new();}
+list_of_ports: {$$ = code->ast_list_new();}
 | OPEN_BRACKET ports CLOSE_BRACKET {
     $$ = $2;
 }
@@ -1155,7 +1155,10 @@ port_declaration  :
 | output_declaration {$$ = $1;}
 ;
 
-ports           : {$$ = code->ast_list_new();}
+ports:
+{
+	$$ = code->ast_list_new();
+}
 | ports COMMA port{
     $$ = $1;
     code->ast_list_append($$,$3);
@@ -1166,23 +1169,23 @@ ports           : {$$ = code->ast_list_new();}
 }
 ;
 
-port            :
-  port_expression{
-    $<list>$ = $1;
-  }
+port:
+port_expression{
+	$<list>$ = $1;
+}
 | DOT port_identifier OPEN_BRACKET port_expression CLOSE_BRACKET{
-    $$ = $2;
+	$$ = $2;
 }
 ;
 
 port_expression :
-  port_reference {
-    $$ = code->ast_list_new();
-    code->ast_list_append($$,$1);
-  }
-| port_expression COMMA port_reference{
-    $$ = $1;
-    code->ast_list_append($$,$3);
+port_reference {
+	$$ = code->ast_list_new();
+	code->ast_list_append($$,$1);
+}
+| port_expression COMMA port_reference {
+	$$ = $1;
+	code->ast_list_append($$,$3);
 }
 ;
 
