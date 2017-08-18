@@ -4,6 +4,8 @@
 Syntax Tree (AST)
 */
 
+#include <string>
+#include <cstdarg>
 #include <assert.h>
 #include <stdio.h>
 
@@ -25,8 +27,8 @@ meta data member.
 */
   void VerilogCode::ast_set_meta_info(ast_metadata * meta)
   {
-    meta->line = yylineno;
-    meta->file = verilog_preprocessor_current_file(yy_preproc);
+	meta->line = yylineno;
+	meta->file = verilog_preprocessor_current_file(yy_preproc);
   }
 
   /*!
@@ -98,8 +100,8 @@ meta data member.
 a string representation.
 @param [in] p - The expression primary to turn into a string.
 */
-  char * VerilogCode::ast_primary_tostring(ast_primary * p) {
-    char * tr;
+  std::string VerilogCode::ast_primary_tostring(ast_primary * p) {
+	std::string tr;
 
     switch (p->value_type)
       {
@@ -216,7 +218,7 @@ of the passed primary.
   }
 
   //! Returns the string representation of an operator;
-  char * VerilogCode::ast_operator_tostring(ast_operator op)
+  std::string VerilogCode::ast_operator_tostring(ast_operator op)
   {
     switch(op)
       {
@@ -261,15 +263,15 @@ a string representation.
 if exp is NULL.
 @param [in] exp - The expression to turn into a string.
 */
-  char * VerilogCode::ast_expression_tostring(ast_expression * exp){
+  std::string VerilogCode::ast_expression_tostring(ast_expression * exp){
     if(exp == NULL){return "";}
-    char * tr;
-    char * lhs;
-    char * rhs;
-    char * pri;
-    char * cond;
-    char * mid;
-    char * op;
+	std::string tr;
+	std::string lhs;
+	std::string rhs;
+	std::string pri;
+	std::string cond;
+	std::string mid;
+	std::string op;
     size_t len;
 
     switch(exp->type)
@@ -279,39 +281,34 @@ if exp is NULL.
         tr = ast_primary_tostring(exp->primary);
         break;
       case STRING_EXPRESSION:
-        tr = ast_strdup(exp->string);
+		tr = exp->string;
         break;
       case UNARY_EXPRESSION:
       case MODULE_PATH_UNARY_EXPRESSION:
         pri = ast_primary_tostring(exp->primary);
         op  = ast_operator_tostring(exp->operation);
-        tr = (char *)ast_calloc(strlen(pri)+5,sizeof(char));
-        strcat(tr,"(");
-        strcat(tr, op);
-        strcat(tr,pri);
-        strcat(tr,")");
+		tr="(";
+		tr+=op;
+		tr+=pri;
+		tr+=")";
         break;
       case BINARY_EXPRESSION:
       case MODULE_PATH_BINARY_EXPRESSION:
         lhs = ast_expression_tostring(exp->left);
         rhs = ast_expression_tostring(exp->right);
         op  = ast_operator_tostring(exp->operation);
-        len =5+strlen(lhs)+ strlen(rhs);
-        tr = (char *)ast_calloc(len,sizeof(char));
-        strcat(tr,"(");
-        strcat(tr,lhs);
-        strcat(tr, op);
-        strcat(tr,rhs);
-        strcat(tr,")");
+		tr="(";
+		tr+=lhs;
+		tr+=op;
+		tr+=rhs;
+		tr+=")";
         break;
       case RANGE_EXPRESSION_UP_DOWN:
         lhs = ast_expression_tostring(exp->left);
         rhs = ast_expression_tostring(exp->right);
-        len =3+strlen(lhs)+ strlen(rhs);
-        tr = (char *)ast_calloc(len,sizeof(char));
-        strcat(tr,lhs);
-        strcat(tr,":");
-        strcat(tr,rhs);
+		tr=lhs;
+		tr+=":";
+		tr+=rhs;
         break;
       case RANGE_EXPRESSION_INDEX:
         tr = ast_expression_tostring(exp->left);
@@ -321,32 +318,22 @@ if exp is NULL.
         lhs = ast_expression_tostring(exp->left);
         rhs = ast_expression_tostring(exp->right);
         mid = ast_expression_tostring(exp->aux);
-        len = 3 +
-            strlen(lhs) +
-            strlen(rhs) +
-            strlen(mid);
-        tr = (char *)ast_calloc(len,sizeof(char));
-        strcat(tr,lhs);
-        strcat(tr,":");
-        strcat(tr,mid);
-        strcat(tr,":");
-        strcat(tr,rhs);
+		tr=lhs;
+		tr+=":";
+		tr+=mid;
+		tr+=":";
+		tr+=rhs;
         break;
       case CONDITIONAL_EXPRESSION:
       case MODULE_PATH_CONDITIONAL_EXPRESSION:
         lhs = ast_expression_tostring(exp->left);
         rhs = ast_expression_tostring(exp->right);
         cond= ast_expression_tostring(exp->aux);
-        len = 3 +
-            strlen(lhs) +
-            strlen(rhs) +
-            strlen(cond);
-        tr = (char *)ast_calloc(len,sizeof(char));
-        strcat(tr,cond);
-        strcat(tr,"?");
-        strcat(tr,lhs);
-        strcat(tr,":");
-        strcat(tr,rhs);
+		tr=cond;
+		tr+="?";
+		tr+=lhs;
+		tr+=":";
+		tr+=rhs;
         break;
       default:
         printf("ERROR: Expression type to string not supported. %d of %s",
@@ -447,7 +434,7 @@ and operands.
   /*!
 @brief Creates a new string expression.
 */
-  ast_expression * VerilogCode::ast_new_string_expression(ast_string string)
+  ast_expression * VerilogCode::ast_new_string_expression(std::string string)
   {
     ast_expression * tr = (ast_expression *)ast_calloc(1, sizeof(ast_expression));
         ast_set_meta_info(&(tr->meta_info));
@@ -2614,18 +2601,15 @@ will be returned.
 @returns A copy of the identifiers full name, as a null terminated character
 array.
 */
-  char * VerilogCode::ast_identifier_tostring(ast_identifier id)
+  std::string VerilogCode::ast_identifier_tostring(ast_identifier id)
   {
-    char * tr = ast_strdup(id->identifier);
+	std::string tr = id->identifier;
     ast_identifier walker = id;
 
     while(walker->next != NULL)
       {
         walker = walker->next;
-
-        size_t len = strlen(walker->identifier)+1 + strlen(tr);
-        tr = (char*)realloc(tr,len);
-        strcat(tr, walker->identifier);
+		tr+=walker->identifier;
       }
     return tr;
   }
@@ -2637,22 +2621,22 @@ array.
       ast_identifier a,
       ast_identifier b
       ){
-    char * s1 = ast_identifier_tostring(a);
-    char * s2 = ast_identifier_tostring(b);
+	std::string s1 = ast_identifier_tostring(a);
+	std::string s2 = ast_identifier_tostring(b);
 
-    int result = strcmp(s1,s2);
+	int result = (s1==s2);
 
     return result;
   }
 
   ast_identifier VerilogCode::ast_new_identifier(
-          QString identifier,
+	   std::string   identifier,
       unsigned int   from_line
       ){
     ast_identifier tr = (ast_identifier)ast_calloc(1,sizeof(struct ast_identifier_t));
-        ast_set_meta_info(&(tr->meta_info));
+	ast_set_meta_info(&(tr->meta_info));
 
-    tr->identifier = ast_strdup(identifier);
+	tr->identifier = identifier;
     tr->from_line = from_line;
     tr->type = ID_UNKNOWN;
     tr->next = NULL;
@@ -2765,11 +2749,10 @@ array.
 @brief Creates a new number representation object.
 @todo Implement proper representation converstion.
 */
-  ast_number * VerilogCode::ast_new_number(
-      ast_number_base base,   //!< What is the base of the number.
-      ast_number_representation representation,   //!< How to interepret digits.
-      char  * digits  //!< The string token representing the number.
-      ){
+  ast_number * VerilogCode::ast_new_number(ast_number_base base,   //!< What is the base of the number.
+	  ast_number_representation representation,   //!< How to interepret digits.
+	  std::string digits  //!< The string token representing the number.
+	  ){
     ast_number * tr = (ast_number *)ast_calloc(1,sizeof(ast_number));
         ast_set_meta_info(&(tr->meta_info));
 
@@ -2784,11 +2767,11 @@ array.
 @brief A utility function for converting an ast number into a string.
 @param [in] n - The number to turn into a string.
 */
-  char * VerilogCode::ast_number_tostring(
+  std::string VerilogCode::ast_number_tostring(
       ast_number * n
       ){
     assert(n!=NULL);
-    char * tr;
+	std::string tr;
 
     ast_number_representation rep = n->representation;
 
@@ -2798,12 +2781,10 @@ array.
         tr = n->as_bits;
         break;
       case REP_INTEGER:
-        tr = (char*)calloc(11,sizeof(char));
-        sprintf(tr, "%d", n-> as_int);
+		tr+=n-> as_int;
         break;
       case REP_FLOAT:
-        tr = (char*)calloc(21,sizeof(char));
-        sprintf(tr, "%20f", n->as_float);
+		tr+=n->as_float;
         break;
       default:
         tr = "NULL";

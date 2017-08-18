@@ -46,7 +46,7 @@ encountered.
   //! Describes a line directive.
   typedef struct verilog_line_directive_t{
     unsigned int  line;  //!< The line to set the current counter to.
-    char *        file;  //!< The file we should pretend stuff comes from.
+	std::string        file;  //!< The file we should pretend stuff comes from.
     unsigned char level; //!< Level of include depth.
   } verilog_line_directive;
 
@@ -66,7 +66,7 @@ encountered.
 
   //! Stores information on an include directive.
   typedef struct verilog_include_directive_t{
-    char       * filename;      //!< The file to include.
+	std::string filename;      //!< The file to include.
     unsigned int lineNumber;    //!< The line number of the directive.
     bool  file_found;    //!< Can we find the file?
   } verilog_include_directive;
@@ -78,8 +78,8 @@ encountered.
 */
   typedef struct verilog_macro_directive_t{
     unsigned int line;      //!< Line number of the directive.
-    char * macro_id;        //!< The name of the macro.
-    char * macro_value;     //!< The value it expands to.
+	std::string macro_id;        //!< The name of the macro.
+	std::string macro_value;     //!< The value it expands to.
   } verilog_macro_directive;
 
   // ----------------------- Conditional Compilation Directives -----------
@@ -91,7 +91,7 @@ compilation.
 level of nested `ifdef or `ifndef statements.
 */
   typedef struct verilog_preprocessor_conditional_context_t{
-    char        * condition;           //!< The definition to check for.
+	std::string condition;           //!< The definition to check for.
     int           line_number;         //!< Where the `ifdef came from.
     bool   condition_passed;    //!< Did the condition pass?
     bool   is_ndef;             //!< True if directive was `ifndef
@@ -114,7 +114,7 @@ level of nested `ifdef or `ifndef statements.
     unsigned int    token_count;    //!< Keeps count of tokens processed.
     bool     in_cell_define; //!< TRUE iff we are in a cell define.
 
-    char *          scratch;        //!< A scratch variable. DO NOT USE.
+	std::string          scratch;        //!< A scratch variable. DO NOT USE.
 
     ast_stack     * current_file;   //!< Stack of files currently being parsed.
     ast_hashtable * macrodefines;   //!< `define kvp matching.

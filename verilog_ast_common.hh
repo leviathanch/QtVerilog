@@ -97,7 +97,7 @@ even do any hashing!
 
   //! A single element in the hash table.
   typedef struct ast_hashtable_element_t{
-    char * key; //!< The key for the element.
+	std::string key; //!< The key for the element.
     void * data;    //!< The data associated with they key.
   } ast_hashtable_element;
 

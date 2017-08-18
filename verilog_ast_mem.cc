@@ -83,23 +83,16 @@ has been freed.
   }
 
 
-  char * VerilogCode::ast_strdup(QString in)
+  /*std::string VerilogCode::ast_strdup(QString in)
   {
-        QByteArray array = in.toLocal8Bit();
-        char* buffer = array.data();
-        int len = strlen(buffer);
-        char * tr = (char *)ast_calloc(len+1,sizeof(char));
-        memcpy(tr,buffer,len);
-        return tr;
+		return in.toStdString();
   }
 
-  char * VerilogCode::ast_strdup(char * in)
+  std::string VerilogCode::ast_strdup(std::string in)
   {
-    size_t len = strlen(in);
-    char * tr = (char *)ast_calloc(len+1,sizeof(char));
-    memcpy(tr,in,len);
-    return tr;
-  }
+		return in;
+  }*/
+
 
   /*!@}*/
 }

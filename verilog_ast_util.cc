@@ -172,7 +172,7 @@ to which the passed module belongs.
 
         ast_list * children = verilog_module_get_children(module);
 
-        char * key = ast_identifier_tostring(module->identifier);
+		std::string key = ast_identifier_tostring(module->identifier);
 
         ast_hashtable_insert(tr,key,children);
       }

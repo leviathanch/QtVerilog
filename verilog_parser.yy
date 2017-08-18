@@ -122,45 +122,46 @@ namespace yy {
     yy::ast_wait_statement           * wait_statement;
 
 	bool                   boolean;
-	std::string            string;
+	std::string            *str;
 	yy::ast_number         * number;
-	char                   * term;
-	char                   * keyword;
+	std::string            *term;
+	std::string            *keyword;
+
 }
 
-%token <string> ANY
+%token <str> ANY
 %token END
-%token <string> NEWLINE
-%token <string> SPACE
-%token <string> TAB
+%token <str> NEWLINE
+%token <str> SPACE
+%token <str> TAB
 
-%token <string> AT
-%token <string> COMMA
-%token <string> HASH
-%token <string> DOT
-%token <string> EQ
-%token <string> COLON
-%token <string> IDX_PRT_SEL
-%token <string> SEMICOLON
-%token <string> OPEN_BRACKET
-%token <string> CLOSE_BRACKET
-%token <string> OPEN_SQ_BRACKET
-%token <string> CLOSE_SQ_BRACKET
-%token <string> OPEN_SQ_BRACE
-%token <string> CLOSE_SQ_BRACE
+%token <str> AT
+%token <str> COMMA
+%token <str> HASH
+%token <str> DOT
+%token <str> EQ
+%token <str> COLON
+%token <str> IDX_PRT_SEL
+%token <str> SEMICOLON
+%token <str> OPEN_BRACKET
+%token <str> CLOSE_BRACKET
+%token <str> OPEN_SQ_BRACKET
+%token <str> CLOSE_SQ_BRACKET
+%token <str> OPEN_SQ_BRACE
+%token <str> CLOSE_SQ_BRACE
 
-%token <string> BIN_VALUE
-%token <string> OCT_VALUE
-%token <string> HEX_VALUE
+%token <str> BIN_VALUE
+%token <str> OCT_VALUE
+%token <str> HEX_VALUE
 
-%token <string> DEC_BASE
-%token <string> BIN_BASE
-%token <string> OCT_BASE
-%token <string> HEX_BASE
+%token <str> DEC_BASE
+%token <str> BIN_BASE
+%token <str> OCT_BASE
+%token <str> HEX_BASE
 
-%token <string> NUM_REAL
-%token <string> NUM_SIZE
-%token <string> UNSIGNED_NUMBER
+%token <str> NUM_REAL
+%token <str> NUM_SIZE
+%token <str> UNSIGNED_NUMBER
 
 %type  <number> decimal_number
 %type  <number> binary_number
@@ -173,13 +174,13 @@ namespace yy {
 %token <identifier> ESCAPED_ID
 %token <identifier> DEFINE_ID
 
-%token <string> ATTRIBUTE_START
-%token <string> ATTRIBUTE_END
+%token <str> ATTRIBUTE_START
+%token <str> ATTRIBUTE_END
 
-%token <string> COMMENT_LINE
-%token <string> COMMENT_BLOCK
+%token <str> COMMENT_LINE
+%token <str> COMMENT_BLOCK
 
-%token <string> STRING
+%token <str> STRING
 
 /* verilog_operators Precedence */
 
@@ -234,7 +235,7 @@ namespace yy {
 
 /* Compiler / Preprocessor tokens */
 
-%token <string>     MACRO_TEXT
+%token <str>     MACRO_TEXT
 %token <identifier> MACRO_IDENTIFIER
 
 %token <keyword> KW_ALWAYS
@@ -711,15 +712,15 @@ namespace yy {
 %type   <statement_block>            function_seq_block
 %type   <statement_block>            par_block
 %type   <statement_block>            seq_block
-%type   <string>                     anys
-%type   <string>                     block_comment
-%type   <string>                     comment
-%type   <string>                     file_path
-%type   <string>                     file_path_spec
-%type   <string>                     include_statement
-%type   <string>                     one_line_comment
-%type   <string>                     string
-%type   <string>                     white_space
+%type   <str>                     anys
+%type   <str>                     block_comment
+%type   <str>                     comment
+%type   <str>                     file_path
+%type   <str>                     file_path_spec
+%type   <str>                     include_statement
+%type   <str>                     one_line_comment
+%type   <str>                     string
+%type   <str>                     white_space
 %type   <switch_gate>                cmos_switchtype
 %type   <switch_gate>                mos_switchtype
 %type   <switch_gate>                pass_switchtype
@@ -818,7 +819,7 @@ library_descriptions :
   }
 | include_statement{
     $$ = code->ast_new_library_description(yy::LIB_INCLUDE);
-    $$->include = $1;
+	$$->include = $1;
   }
 | config_declaration{
     $$ = code->ast_new_library_description(yy::LIB_CONFIG);
@@ -2707,7 +2708,7 @@ expression_o : expression {$$=$1;}
 /* A.4.2 Generated instantiation */
 
 generated_instantiation : KW_GENERATE generate_items KW_ENDGENERATE {
-    QString id = QString("gen_%1").arg(yylineno);
+	std::string id = "gen_"+yylineno;
     yy::ast_identifier new_id = code->ast_new_identifier(id,yylineno);
     $$ = code->ast_new_generate_block(new_id,$2);
 };
@@ -2808,7 +2809,7 @@ genvar_assignment : genvar_identifier EQ constant_expression{
 
 generate_block :
   KW_BEGIN generate_items KW_END{
-    QString id = QString("gen_%1").arg(yylineno);
+	std::string id = "gen_"+yylineno;
     yy::ast_identifier new_id = code->ast_new_identifier(id,yylineno);
     $$ = code->ast_new_generate_block(new_id, $2);
   }
@@ -3028,14 +3029,14 @@ edge_symbol : /* can be r,f,p,n or star in any case. */
 | 'P'   {$$ = yy::EDGE_POS;}
 | 'n'   {$$ = yy::EDGE_NEG;}
 | 'N'   {$$ = yy::EDGE_NEG;}
-| SIMPLE_ID {      if (strcmp(yylval.string,"r") == 0) $$ = yy::EDGE_POS ;
-              else if (strcmp(yylval.string,"R") == 0) $$ = yy::EDGE_POS ;
-              else if (strcmp(yylval.string,"f") == 0) $$ = yy::EDGE_NEG ;
-              else if (strcmp(yylval.string,"F") == 0) $$ = yy::EDGE_NEG ;
-              else if (strcmp(yylval.string,"p") == 0) $$ = yy::EDGE_POS ;
-              else if (strcmp(yylval.string,"P") == 0) $$ = yy::EDGE_POS ;
-              else if (strcmp(yylval.string,"n") == 0) $$ = yy::EDGE_NEG ;
-              else                                     $$ = yy::EDGE_NEG ;
+| SIMPLE_ID {      if (*(yylval.str)=="r") $$ = yy::EDGE_POS ;
+			  else if (*(yylval.str)=="R") $$ = yy::EDGE_POS ;
+			  else if (*(yylval.str)=="f") $$ = yy::EDGE_NEG ;
+			  else if (*(yylval.str)=="F") $$ = yy::EDGE_NEG ;
+			  else if (*(yylval.str)=="p") $$ = yy::EDGE_POS ;
+			  else if (*(yylval.str)=="P") $$ = yy::EDGE_POS ;
+			  else if (*(yylval.str)=="n") $$ = yy::EDGE_NEG ;
+			  else $$ = yy::EDGE_NEG ;
   }
 | STAR {$$ = yy::EDGE_ANY;}
 ;
@@ -4169,7 +4170,7 @@ constant_expression:
   constant_expression{
     $$ = code->ast_new_conditional_expression($1,$4,$6,$3);
   }
-| string { $$ = code->ast_new_string_expression($1);}
+| string { $$ = code->ast_new_string_expression(*$1);}
 ;
 
 constant_mintypmax_expression :
@@ -4280,7 +4281,7 @@ expression :
     $$ = code->ast_new_binary_expression($1,$4,$2,$3,false);
   }
 | conditional_expression {$$=$1;}
-| string {$$ = code->ast_new_string_expression($1);}
+| string {$$ = code->ast_new_string_expression(*$1);}
 ;
 
 mintypmax_expression :
@@ -4562,37 +4563,37 @@ binary_module_path_verilog_operator : L_EQ   {$$=$1;}
 
 unsigned_number :
   UNSIGNED_NUMBER {
-    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $1);
+	$$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,*$1);
   }
 ;
 
 number :
   NUM_REAL{
-    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,$1);
+	$$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,*$1);
   }
 | BIN_BASE BIN_VALUE {
-    $$ = code->ast_new_number(yy::BASE_BINARY, yy::REP_BITS, $2);
+	$$ = code->ast_new_number(yy::BASE_BINARY, yy::REP_BITS,*$2);
 }
 | HEX_BASE HEX_VALUE {
-    $$ = code->ast_new_number(yy::BASE_HEX, yy::REP_BITS, $2);
+	$$ = code->ast_new_number(yy::BASE_HEX, yy::REP_BITS,*$2);
 }
 | OCT_BASE OCT_VALUE {
-    $$ = code->ast_new_number(yy::BASE_OCTAL, yy::REP_BITS, $2);
+	$$ = code->ast_new_number(yy::BASE_OCTAL, yy::REP_BITS,*$2);
 }
 | DEC_BASE UNSIGNED_NUMBER{
-    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $2);
+	$$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,*$2);
 }
 | UNSIGNED_NUMBER BIN_BASE BIN_VALUE {
-    $$ = code->ast_new_number(yy::BASE_BINARY, yy::REP_BITS, $3);
+	$$ = code->ast_new_number(yy::BASE_BINARY, yy::REP_BITS,*$3);
 }
 | UNSIGNED_NUMBER HEX_BASE HEX_VALUE {
-    $$ = code->ast_new_number(yy::BASE_HEX, yy::REP_BITS, $3);
+	$$ = code->ast_new_number(yy::BASE_HEX, yy::REP_BITS,*$3);
 }
 | UNSIGNED_NUMBER OCT_BASE OCT_VALUE {
-    $$ = code->ast_new_number(yy::BASE_OCTAL, yy::REP_BITS, $3);
+	$$ = code->ast_new_number(yy::BASE_OCTAL, yy::REP_BITS,*$3);
 }
 | UNSIGNED_NUMBER DEC_BASE UNSIGNED_NUMBER{
-    $$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS, $3);
+	$$ = code->ast_new_number(yy::BASE_DECIMAL, yy::REP_BITS,*$3);
 }
 | unsigned_number {$$ = $1;}
 ;
@@ -4878,5 +4879,5 @@ white_space : SPACE | TAB | NEWLINE;
 
 void yy::VerilogParser::error(const location_type &l, const std::string &m)
 {
-	std::cout << m << std::endl;
+	std::cout << m << " on line " << this->code->lexer->lineno() << " at " << this->code->lexer->YYText() << std::endl;
 }

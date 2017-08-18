@@ -66,8 +66,6 @@ namespace yy {
     OPERATOR_NONE = 0
   } ast_operator;
 
-
-  typedef char * ast_string       ;
   //! A set of lvalue and corresponding assigned expressions
   typedef struct ast_assignment_t ast_assignment;
   //! A single lvalue=expression assignment.
@@ -114,7 +112,7 @@ namespace yy {
   //! Refers to a source code file line number.
   typedef int ast_line;
   //! Refers to a source code file name.
-  typedef char * ast_file;
+  typedef std::string *ast_file;
 
   /*!
 @brief Stores "meta" information and other tagging stuff about nodes.
@@ -159,7 +157,7 @@ namespace yy {
     ast_number_base base; //!< Hex, octal, binary, decimal.
     ast_number_representation   representation; //!< How is it expressed?
     union{
-      char * as_bits;
+	  std::string as_bits;
       float  as_float;
       int    as_int;
     };
@@ -326,7 +324,7 @@ the sort of expression we are dealing with.
     ast_function_call * function_call;  //!< Call to a function.
     ast_expression    * minmax;
     ast_macro_use       macro;          //!< A MACRO expansion.
-    char              * string;
+	std::string       * str;
   } ast_primary_value;
 
   /*!
@@ -402,7 +400,7 @@ re-writing it. That will be post the first "release" though.
     ast_primary    * primary;           //!< Valid IFF type == PRIMARY_EXPRESSION.
     ast_operator     operation;         //!< What are we doing?
     bool      constant;          //!< True iff constant_expression.
-    ast_string       string;            //!< The string constant. Valid IFF type == STRING_EXPRESSION.
+	std::string       string;            //!< The string constant. Valid IFF type == STRING_EXPRESSION.
   };
 
   // -------------------------------- Specify Blocks ---------------------------
@@ -1858,7 +1856,7 @@ Verilog Constructs.
   struct ast_identifier_t{
     ast_metadata    meta_info;   //!< Node metadata.
     ast_identifier_type   type;         //!< What construct does it identify?
-    char                * identifier;   //!< The identifier value.
+	std::string identifier;   //!< The identifier value.
     unsigned int          from_line;    //!< The line number of the file.
     bool           is_system;    //!< Is this a system identifier?
     ast_identifier        next;         //!< Represents a hierarchical id.
@@ -1935,7 +1933,7 @@ Verilog Constructs.
     union{
       ast_library_declaration * library;
       ast_config_declaration  * config;
-      ast_string                include;
+	  std::string             * include;
     };
   } ast_library_descriptions;
 

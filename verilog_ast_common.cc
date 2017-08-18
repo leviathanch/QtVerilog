@@ -186,6 +186,37 @@ as the correct type.
       }
   }
 
+  std::string VerilogCode::ast_list_get_str(ast_list * list, unsigned int item)
+  {
+	assert(list != NULL);
+	if(item > list->items - 1)
+	  {
+		return  std::string("");
+	  }
+	else
+	  {
+		if(item < list->current_item)
+		  {
+			list->current_item = 0;
+			list->walker = list->head;
+		  }
+
+		while(list->current_item != item && list->walker != NULL)
+		  {
+			list->walker = list->walker->next;
+			list->current_item += 1;
+		  }
+
+		if(list->walker == NULL)
+		  {
+			return  std::string("");
+		  }
+		else
+		  {
+			return  std::string((char*)list->walker->data);
+		  }
+	  }
+  }
 
   /*!
 @brief Searches the list, returning true or false if the data item supplied is
@@ -324,6 +355,29 @@ original head pointer is returned, with all data items still in tact.
 
   }
 
+  void VerilogCode::ast_stack_push(
+	  ast_stack * stack,
+	  std::string item
+	  ){
+	assert(stack != NULL);
+
+	if(stack->items == NULL)
+	  {
+		stack->items = (ast_stack_element *)ast_calloc(1,sizeof(ast_stack_element));
+		stack->items->data = (void*)item.c_str();
+	  }
+	else
+	  {
+		ast_stack_element * toadd = (ast_stack_element *)ast_calloc(1,sizeof(ast_stack_element));
+		toadd->data = (void*)item.c_str();
+		toadd->next = stack->items;
+		stack->items = toadd;
+	  }
+
+	stack->depth ++;
+
+  }
+
   /*!
 @brief Pop the top item from the top of the stack.
 @param [inout] stack - The stack to pop from.
@@ -367,6 +421,21 @@ original head pointer is returned, with all data items still in tact.
       {
         return NULL;
       }
+  }
+
+  std::string* VerilogCode::ast_stack_peek_str(
+	  ast_stack * stack
+	  ){
+	assert(stack != NULL);
+
+	if(stack->items != NULL){
+		char * tr = (char*)stack->items->data;
+		return new std::string(tr);
+	  }
+	else
+	  {
+		return new std::string();
+	  }
   }
 
   /*!
@@ -418,11 +487,10 @@ original head pointer is returned, with all data items still in tact.
   //! Inserts a new item into the hashtable.
   ast_hashtable_result VerilogCode::ast_hashtable_insert(
       ast_hashtable * table, //!< The table to insert into.
-      char          * key,   //!< The key to insert with.
+	  std::string key,   //!< The key to insert with.
       void          * value  //!< The data being added.
       ){
-    assert(key != NULL);
-    assert(table != NULL);
+	assert(table != NULL);
 
     unsigned int i;
     for(i = 0; i < table->elements->items; i ++)
@@ -430,7 +498,7 @@ original head pointer is returned, with all data items still in tact.
         ast_hashtable_element * e = (ast_hashtable_element *)ast_list_get(table->elements, i);
         if(e != NULL)
           {
-            if(strcmp(e->key , key) == 0){
+			if(e->key==key){
                 return HASH_KEY_COLLISION;
               }
           }
@@ -446,7 +514,7 @@ original head pointer is returned, with all data items still in tact.
   //! Returns an item from the hashtable.
   ast_hashtable_result VerilogCode::ast_hashtable_get(
       ast_hashtable * table, //!< The table to fetch from.
-      char          * key,   //!< The key of the data to fetch.
+	  std::string key,   //!< The key of the data to fetch.
       void         ** value  //!< [out] The data being returned.
       ){
     unsigned int i;
@@ -455,7 +523,7 @@ original head pointer is returned, with all data items still in tact.
         ast_hashtable_element * e = (ast_hashtable_element *)ast_list_get(table->elements, i);
         if(e != NULL)
           {
-            if(strcmp(e->key , key) == 0){
+			if(e->key==key){
                 *value = (e->data);
                 return HASH_SUCCESS;
               }
@@ -467,7 +535,7 @@ original head pointer is returned, with all data items still in tact.
   //! Removes a key value pair from the hashtable.
   ast_hashtable_result VerilogCode::ast_hashtable_delete(
       ast_hashtable * table, //!< The table to delete from.
-      char          * key    //!< The key to delete.
+	  std::string key    //!< The key to delete.
       ){
     unsigned int i;
     for(i = 0; i < table->elements->items; i ++)
@@ -475,7 +543,7 @@ original head pointer is returned, with all data items still in tact.
         ast_hashtable_element * e = (ast_hashtable_element *)ast_list_get(table->elements, i);
         if(e != NULL)
           {
-            if(strcmp(e->key , key) == 0){
+			if(e->key==key){
                 ast_list_remove_at(table->elements, i);
                 return HASH_SUCCESS;
               }
@@ -487,14 +555,14 @@ original head pointer is returned, with all data items still in tact.
   //! Updates an existing item in the hashtable.
   ast_hashtable_result VerilogCode::ast_hashtable_update(
       ast_hashtable * table, //!< The table to update.
-      char          * key,   //!< The key to update with.
+	  std::string key,   //!< The key to update with.
       void          * value  //!< The new data item to update.
       ){
     unsigned int i;
     for(i = 0; i < table->elements->items; i ++)
       {
         ast_hashtable_element * e = (ast_hashtable_element *)ast_list_get(table->elements, i);
-        if(strcmp(e->key , key) == 0){
+		if(e->key==key){
             e->data = value;
             return HASH_SUCCESS;
           }

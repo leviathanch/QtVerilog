@@ -38,7 +38,7 @@ namespace yy {
 	*/
 	void VerilogCode::verilog_preprocessor_set_file(
 		verilog_preprocessor_context * preproc,
-		char * file
+		std::string file
 	){
 		while(ast_stack_peek(preproc->current_file) != NULL)
 		{
@@ -51,10 +51,8 @@ namespace yy {
 	@brief Returns the file currently being parsed by the context, or NULL
 	@param [in] preproc - The context to get the current file for.
 	*/
-	char * VerilogCode::verilog_preprocessor_current_file(
-		verilog_preprocessor_context * preproc
-	){
-		return (char *)ast_stack_peek(preproc->current_file);
+	std::string *VerilogCode::verilog_preprocessor_current_file(verilog_preprocessor_context * preproc){
+		return ast_stack_peek_str(preproc->current_file);
 	}
 
 
@@ -137,16 +135,12 @@ namespace yy {
 	@returns A pointer to the newly created directive reference.
 	*/
 	verilog_include_directive * VerilogCode::verilog_preprocessor_include(
-		char * filename,
+		std::string filename,
 		unsigned int lineNumber
 	){
 		verilog_include_directive * toadd = (verilog_include_directive *) ast_calloc(1,sizeof(verilog_include_directive));
 
-		filename = filename + 1; // Remove leading quote mark.
-		size_t length = strlen(filename);
-
-		toadd->filename = ast_strdup(filename);
-		toadd->filename[length-1] = '\0';
+		toadd->filename = filename;
 		toadd->lineNumber = lineNumber;
 
 		ast_list_append(yy_preproc->includes, toadd);
@@ -155,18 +149,12 @@ namespace yy {
 		unsigned int d = 0;
 		for(d = 0; d < yy_preproc->search_dirs->items; d ++)
 		{
-			char * dir       = (char *)ast_list_get(yy_preproc->search_dirs, d);
-			size_t dirlen    = strlen(dir)+1;
-			size_t namelen   = strlen(toadd->filename);
-			char * full_name = (char *)ast_calloc(dirlen+namelen, sizeof(char));
+			std::string dir = ast_list_get_str(yy_preproc->search_dirs, d);
+			std::string full_name = dir + toadd->filename;
 
-			strcat(full_name, dir);
-			strcat(full_name, toadd->filename);
-
-			FILE * handle = fopen(full_name,"r");
-			if(handle)
+			std::ifstream infile(full_name);
+			if(infile.good())
 			{
-				fclose(handle);
 				toadd->filename = full_name;
 				toadd->file_found = true;
 
@@ -190,8 +178,8 @@ namespace yy {
 	*/
 	void VerilogCode::verilog_preprocessor_macro_define(
 		unsigned int line,  //!< The line the defininition comes from.
-		char * macro_name,  //!< The macro identifier.
-		char * macro_text,  //!< The value the macro expands to.
+		std::string macro_name,  //!< The macro identifier.
+		std::string macro_text,  //!< The value the macro expands to.
 		size_t text_len     //!< Length in bytes of macro_text.
 	){
 		verilog_macro_directive * toadd = (verilog_macro_directive *)ast_calloc(1, sizeof(verilog_macro_directive));
@@ -204,7 +192,7 @@ namespace yy {
 
 		// Make space for, and duplicate, the macro text, into the thing
 		// we will put into the hashtable.
-		toadd->macro_id    = ast_strdup(macro_name);
+		toadd->macro_id    = macro_name;
 
 		if(text_len > 0){
 			// Make sure we exclude all comments from the macro text.
@@ -219,7 +207,7 @@ namespace yy {
 				}
 			}
 
-			toadd->macro_value = ast_strdup(macro_text);
+			toadd->macro_value = macro_text;
 		} else {
 			toadd->macro_value = "";
 		}
@@ -239,7 +227,7 @@ namespace yy {
 	@brief Removes a macro definition from the preprocessors lookup table.
 	*/
 	void VerilogCode::verilog_preprocessor_macro_undefine(
-		char * macro_name //!< The name of the macro to remove.
+		std::string macro_name //!< The name of the macro to remove.
 	){
 		ast_hashtable_delete(
 			yy_preproc->macrodefines,
@@ -251,7 +239,7 @@ namespace yy {
 
 	//! Creates and returns a new conditional context.
 	verilog_preprocessor_conditional_context * VerilogCode::verilog_preprocessor_new_conditional_context(
-		char        * condition,          //!< The definition to check for.
+		std::string condition,          //!< The definition to check for.
 		int           line_number         //!< Where the `ifdef came from.
 	){
 		verilog_preprocessor_conditional_context * tr = (verilog_preprocessor_conditional_context *)ast_calloc(1,sizeof(verilog_preprocessor_conditional_context));
@@ -268,13 +256,12 @@ namespace yy {
 	@param [in] macro_name - The macro to test if defined or not.
 	*/
 	void VerilogCode::verilog_preprocessor_ifdef (
-		char * macro_name,
+		std::string macro_name,
 		unsigned int lineno,
 		bool is_ndef
 	){
 		// Create a new ifdef context.
-		verilog_preprocessor_conditional_context * topush =
-			verilog_preprocessor_new_conditional_context(macro_name,lineno);
+		verilog_preprocessor_conditional_context * topush = verilog_preprocessor_new_conditional_context(macro_name,lineno);
 
 		topush->is_ndef = is_ndef;
 
@@ -313,7 +300,7 @@ namespace yy {
 	@brief Handles an elseif statement being encountered.
 	@param [in] macro_name - The macro to test if defined or not.
 	*/
-	void VerilogCode::verilog_preprocessor_elseif(char * macro_name, unsigned int lineno)
+	void VerilogCode::verilog_preprocessor_elseif(std::string macro_name, unsigned int lineno)
 	{
 		verilog_preprocessor_conditional_context * tocheck = (verilog_preprocessor_conditional_context *)ast_stack_peek(yy_preproc->ifdefs);
 

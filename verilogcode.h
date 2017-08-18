@@ -88,9 +88,6 @@ namespace yy {
 
 		// Parser Wrapper
 		void verilog_parser_init();
-		int verilog_parse_buffer(char * to_parse, int length);
-		int verilog_parse_string(char * to_parse, int length);
-		int verilog_parse_file(FILE * to_parse);
 
 		// AST functions
 		void ast_set_meta_info(ast_metadata * meta);
@@ -126,7 +123,7 @@ namespace yy {
 	  a string representation.
 	  @param [in] exp - The expression to turn into a string.
 	  */
-		char * ast_expression_tostring(
+		std::string ast_expression_tostring(
 			ast_expression * exp
 			);
 
@@ -200,7 +197,7 @@ namespace yy {
 	  @brief Creates a new string expression.
 	  @param [in] string - The string. Duh.
 	  */
-		ast_expression * ast_new_string_expression(ast_string string);
+		ast_expression * ast_new_string_expression(std::string string);
 
 
 		/*!
@@ -280,14 +277,14 @@ namespace yy {
 	  a string representation.
 	  @param [in] p - The expression primary to turn into a string.
 	  */
-		char * ast_primary_tostring(
+		std::string ast_primary_tostring(
 			ast_primary * p
 			);
 
 
 
 		//! Returns the string representation of an operator;
-		char * ast_operator_tostring(ast_operator op);
+		std::string ast_operator_tostring(ast_operator op);
 
 		/*!
 	  @brief Creates and returns a new node representing a function call.
@@ -1205,7 +1202,7 @@ namespace yy {
 	  @returns A copy of the identifiers full name, as a null terminated character
 	  array.
 	  */
-		char * ast_identifier_tostring(ast_identifier id);
+		std::string ast_identifier_tostring(ast_identifier id);
 
 		/*!
 	  @brief Acts like strcmp but works on ast identifiers.
@@ -1223,8 +1220,7 @@ namespace yy {
 	  Also, the is_system member is set to false. If you want a new system
 	  idenifier instance, use the @ref ast_new_system_identifier function.
 	  */
-		ast_identifier ast_new_identifier(
-			QString        identifier,  //!< String text of the identifier.
+		ast_identifier ast_new_identifier(std::string identifier,  //!< String text of the identifier.
 			unsigned int   from_line    //!< THe line the idenifier came from.
 			);
 
@@ -1331,14 +1327,14 @@ namespace yy {
 		ast_number * ast_new_number(
 			ast_number_base base,   //!< What is the base of the number.
 			ast_number_representation representation,   //!< How to interepret digits.
-			char  * digits  //!< The string token representing the number.
+			std::string digits  //!< The string token representing the number.
 			);
 
 		/*!
 	  @brief A utility function for converting an ast number into a string.
 	  @param [in] n - The number to turn into a string.
 	  */
-		char * ast_number_tostring(
+		std::string ast_number_tostring(
 			ast_number * n
 			);
 
@@ -1362,8 +1358,8 @@ namespace yy {
 		ast_node * ast_node_new();
 
 		//! Duplicates the supplied null terminated string.
-		char * ast_strdup(char * in);
-		char * ast_strdup(QString in);
+		//std::string ast_strdup(std::string in);
+		//std::string ast_strdup(QString in);
 
 		//! Iterates over all allocated memory and frees it.
 		void ast_free_all();
@@ -1396,6 +1392,7 @@ namespace yy {
 	  @brief Adds a new item to the end of a linked list.
 	  */
 		void       ast_list_append(ast_list * list, const void * data);
+		void       ast_list_append(ast_list * list, const std::string str);
 
 		/*!
 	  @brief Adds a new item to the front of a linked list.
@@ -1408,6 +1405,7 @@ namespace yy {
 	  as the correct type.
 	  */
 		const void *    ast_list_get(ast_list * list, unsigned int item);
+		std::string     ast_list_get_str(ast_list * list, unsigned int item);
 
 		/*!
 	  @brief Removes the i'th item from a linked list.
@@ -1456,6 +1454,10 @@ namespace yy {
 			ast_stack * stack,
 			void      * item
 			);
+		void ast_stack_push(
+			ast_stack * stack,
+			std::string item
+			);
 
 		/*!
 	  @brief Pop the top item from the top of the stack.
@@ -1470,6 +1472,9 @@ namespace yy {
 	  @param [inout] stack - The stack to peek at
 	  */
 		void * ast_stack_peek(
+			ast_stack * stack
+			);
+		std::string* ast_stack_peek_str(
 			ast_stack * stack
 			);
 
@@ -1490,29 +1495,28 @@ namespace yy {
 			);
 
 		//! Inserts a new item into the hashtable.
-		ast_hashtable_result ast_hashtable_insert(
-			ast_hashtable * table, //!< The table to insert into.
-			char          * key,   //!< The key to insert with.
+		ast_hashtable_result ast_hashtable_insert(ast_hashtable * table, //!< The table to insert into.
+			std::string key,   //!< The key to insert with.
 			void          * value  //!< The data being added.
 			);
 
 		//! Returns an item from the hashtable.
 		ast_hashtable_result ast_hashtable_get(
 			ast_hashtable * table, //!< The table to fetch from.
-			char          * key,   //!< The key of the data to fetch.
+			std::string key,   //!< The key of the data to fetch.
 			void         ** value  //!< [out] The data being returned.
 			);
 
 		//! Removes a key value pair from the hashtable.
 		ast_hashtable_result ast_hashtable_delete(
 			ast_hashtable * table, //!< The table to delete from.
-			char          * key    //!< The key to delete.
+			std::string key    //!< The key to delete.
 			);
 
 		//! Updates an existing item in the hashtable.
 		ast_hashtable_result ast_hashtable_update(
 			ast_hashtable * table, //!< The table to update.
-			char          * key,   //!< The key to update with.
+			std::string key,   //!< The key to update with.
 			void          * value  //!< The new data item to update.
 			);
 
@@ -1587,8 +1591,8 @@ namespace yy {
 	  */
 		void verilog_preprocessor_macro_define(
 			unsigned int line,  //!< The line the defininition comes from.
-			char * macro_name,  //!< The macro identifier.
-			char * macro_text,  //!< The value the macro expands to.
+			std::string macro_name,  //!< The macro identifier.
+			std::string macro_text,  //!< The value the macro expands to.
 			size_t text_len     //!< Length in bytes of macro_text.
 			);
 
@@ -1596,13 +1600,13 @@ namespace yy {
 	  @brief Removes a macro definition from the preprocessors lookup table.
 	  */
 		void verilog_preprocessor_macro_undefine(
-			char * macro_name //!< The name of the macro to remove.
+			std::string macro_name //!< The name of the macro to remove.
 			);
 
 		//! Creates and returns a new conditional context.
 		verilog_preprocessor_conditional_context *
 		verilog_preprocessor_new_conditional_context(
-			char        * condition,          //!< The definition to check for.
+			std::string condition,          //!< The definition to check for.
 			int           line_number         //!< Where the `ifdef came from.
 			);
 
@@ -1614,7 +1618,7 @@ namespace yy {
 	  is `ifdef and this should be FALSE.
 	  */
 		void verilog_preprocessor_ifdef (
-			char * macro_name,
+			std::string macro_name,
 			unsigned int lineno,    //!< line number of the directive.
 			bool is_ndef     //!< Is this an ifndef or ifdef directive.
 			);
@@ -1624,7 +1628,7 @@ namespace yy {
 	  @param [in] macro_name - The macro to test if defined or not.
 	  @param [in] lineno - The line the directive occurs on.
 	  */
-		void verilog_preprocessor_elseif(char * macro_name, unsigned int lineno);
+		void verilog_preprocessor_elseif(std::string macro_name, unsigned int lineno);
 
 		/*!
 	  @brief Handles an else statement being encountered.
@@ -1652,14 +1656,14 @@ namespace yy {
 	  */
 		void verilog_preprocessor_set_file(
 			verilog_preprocessor_context * preproc,
-			char * file
+			std::string file
 			);
 
 		/*!
 	  @brief Returns the file currently being parsed by the context, or NULL
 	  @param [in] preproc - The context to get the current file for.
 	  */
-		char * verilog_preprocessor_current_file(
+		std::string *verilog_preprocessor_current_file(
 			verilog_preprocessor_context * preproc
 			);
 
@@ -1711,7 +1715,7 @@ namespace yy {
 	  @returns A pointer to the newly created directive reference.
 	  */
 		verilog_include_directive * verilog_preprocessor_include(
-			char * filename,        //<! The file to include.
+			std::string filename,        //<! The file to include.
 			unsigned int lineNumber //!< The line number of the directive.
 			);
 

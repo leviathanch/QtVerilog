@@ -25,6 +25,8 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #QMAKE_CXXFLAGS += -Werror=missing-prototypes
 #QMAKE_CXXFLAGS += -Werror=missing-declarations
 QMAKE_CXXFLAGS += -g
+#QMAKE_CXXFLAGS += -std=c++11
+QMAKE_CXXFLAGS += -std=c++0x
 
 SOURCES += \
 	main.cpp \

@@ -18,7 +18,6 @@
 %option debug
 %option verbose
 %option pointer
-/*%option yyclass="VerilogScanner"*/
 %option yywrap
 %option nounput
 
@@ -195,12 +194,6 @@ WOR                 "wor"
 XNOR                "xnor"
 XOR                 "xor"
 
-/* Single character tokens */
-
-NEWLINE             "\n"|"\r\n"
-SPACE               " "
-TAB                 "\t"
-
 AT                  "@"
 COMMA               ","
 HASH                "#"
@@ -276,8 +269,12 @@ COMMENT_END         "*/"
 %x in_comment
 
 /* Strings */
+BLANKS          [ \t]+
+STRING          [a-zA-Z0-9_<>\[\]:.?$/!]*[a-zA-Z_][a-zA-Z0-9_<>\[\]:.?$/!]*
 
-STRING              [a-zA-Z0-9_<>\[\]:.?$/!]*[a-zA-Z_][a-zA-Z0-9_<>\[\]:.?$/!]*
+/* Single character tokens */
+/*NEWLINE             "\n"|"\r\n"*/
+NEWLINE         [\n]+
 
 /* Operators */
 
@@ -367,7 +364,7 @@ TERNARY             "?"
     BEGIN(in_ts_2);
 }
 <in_ts_1>{NUM_UNSIGNED}      {
-        code->yy_preproc->timescale.scale = yylval->string;
+		code->yy_preproc->timescale.scale = *(yylval->str);
 }
 <in_ts_2>{DIV}               {
     BEGIN(in_ts_3);
@@ -378,7 +375,7 @@ TERNARY             "?"
     BEGIN(INITIAL);
 }
 <in_ts_3>{NUM_UNSIGNED}      {
-        code->yy_preproc->timescale.precision = yylval->string;
+		code->yy_preproc->timescale.precision = *(yylval->str);
 }
 {CD_RESETALL}            {
     code->verilog_preprocessor_resetall();
@@ -440,9 +437,8 @@ TERNARY             "?"
     }
     else
     {
-        printf("ERROR - Could not find include file %s on line %d\n",
-            id->filename, id-> lineNumber);
-        printf("\tExpect stuff to break now.\n");
+		std::cout << "ERROR - Could not find include file "<<id->filename<<" on line " << id-> lineNumber << std::endl;
+		std::cout << "\tExpect stuff to break now." << std::endl;
     }
 
     BEGIN(INITIAL);
@@ -475,7 +471,7 @@ TERNARY             "?"
 }
 
 <in_define>{SIMPLE_ID}   {
-        code->yy_preproc->scratch = code->ast_strdup(yytext);
+		code->yy_preproc->scratch = yytext;
     BEGIN(in_define_t);
 }
 
@@ -577,12 +573,12 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {BASE_OCTAL}           {BEGIN(in_oct_val); EMIT_TOKEN(yy::VerilogParser::token::OCT_BASE);}
 {BASE_BINARY}          {BEGIN(in_bin_val); EMIT_TOKEN(yy::VerilogParser::token::BIN_BASE);}
 
-<in_bin_val>{BIN_VALUE} {BEGIN(INITIAL); yylval->string = yytext; EMIT_TOKEN(yy::VerilogParser::token::BIN_VALUE);}
-<in_oct_val>{OCT_VALUE} {BEGIN(INITIAL); yylval->string = yytext; EMIT_TOKEN(yy::VerilogParser::token::OCT_VALUE);}
-<in_hex_val>{HEX_VALUE} {BEGIN(INITIAL); yylval->string = yytext; EMIT_TOKEN(yy::VerilogParser::token::HEX_VALUE);}
+<in_bin_val>{BIN_VALUE} {BEGIN(INITIAL); yylval->str = new std::string(yytext); EMIT_TOKEN(yy::VerilogParser::token::BIN_VALUE);}
+<in_oct_val>{OCT_VALUE} {BEGIN(INITIAL); yylval->str = new std::string(yytext); EMIT_TOKEN(yy::VerilogParser::token::OCT_VALUE);}
+<in_hex_val>{HEX_VALUE} {BEGIN(INITIAL); yylval->str = new std::string(yytext); EMIT_TOKEN(yy::VerilogParser::token::HEX_VALUE);}
 
-{NUM_REAL}             {yylval->string=yytext;EMIT_TOKEN(yy::VerilogParser::token::NUM_REAL);}
-{NUM_UNSIGNED}         {yylval->string=yytext;EMIT_TOKEN(yy::VerilogParser::token::UNSIGNED_NUMBER);}
+{NUM_REAL}             {yylval->str = new std::string(yytext); EMIT_TOKEN(yy::VerilogParser::token::NUM_REAL);}
+{NUM_UNSIGNED}         {yylval->str = new std::string(yytext); EMIT_TOKEN(yy::VerilogParser::token::UNSIGNED_NUMBER);}
 
 {ALWAYS}               {EMIT_TOKEN(yy::VerilogParser::token::KW_ALWAYS);}
 {AND}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_AND);}
@@ -709,23 +705,20 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 {XOR}                  {EMIT_TOKEN(yy::VerilogParser::token::KW_XOR);}
 
 {SYSTEM_ID}            {
-	yylval->identifier = code->ast_new_identifier(yytext,yylineno);
+	yylval->identifier = code->ast_new_identifier(std::string(yytext),yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SYSTEM_ID);
 }
 {ESCAPED_ID}           {
-	yylval->identifier = code->ast_new_identifier(yytext,yylineno);
+	yylval->identifier = code->ast_new_identifier(std::string(yytext),yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::ESCAPED_ID);
 }
 {SIMPLE_ID}            {
-	yylval->identifier = code->ast_new_identifier(yytext,yylineno);
+	yylval->identifier = code->ast_new_identifier(std::string(yytext),yylineno);
 	EMIT_TOKEN(yy::VerilogParser::token::SIMPLE_ID);
 }
 
-{STRING}               {yylval->string=yytext; EMIT_TOKEN(yy::VerilogParser::token::STRING);}
-
-<*>{NEWLINE}              {/*EMIT_TOKEN(yy::VerilogParser::token::NEWLINE); IGNORE */   }
-<*>{SPACE}                {/*EMIT_TOKEN(yy::VerilogParser::token::SPACE);   IGNORE */   }
-<*>{TAB}                  {/*EMIT_TOKEN(yy::VerilogParser::token::TAB);     IGNORE */   }
+{STRING}               {yylval->str = new std::string(yytext); std::cout << *(yylval->str) << std::endl; EMIT_TOKEN(yy::VerilogParser::token::STRING);}
+{BLANKS}+              {};
 
 <<EOF>> {
 
@@ -748,4 +741,5 @@ COLON                {EMIT_TOKEN(yy::VerilogParser::token::COLON)}
 }
 
 %%
+
 //. EMIT_TOKEN(yy::VerilogParser::token::ANY)
